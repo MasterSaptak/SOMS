@@ -170,8 +170,12 @@ export function AppSidebar() {
             </div>
           )}
 
-          <div className="flex items-center gap-3">
-             <Avatar className="w-8 h-8">
+          <Link 
+            href="/employee/profile" 
+            className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer group"
+          >
+             <Avatar className="w-8 h-8 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+               <AvatarImage src={employee?.avatarUrl} />
                <AvatarFallback>{initials}</AvatarFallback>
              </Avatar>
              {!collapsed && (
@@ -180,7 +184,7 @@ export function AppSidebar() {
                   <span className="text-xs text-muted-foreground truncate">{designation}</span>
                 </div>
              )}
-          </div>
+          </Link>
           
           <SidebarMenuButton
             icon={<LogOut size={18}/>}

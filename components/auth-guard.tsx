@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/store/use-auth-store'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -16,6 +17,7 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
+  const { setAuth, logout } = useAuthStore()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -23,20 +25,47 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
       
       if (!session) {
         setIsAuthenticated(false)
+        logout()
         router.replace('/login')
         return
+      }
+
+      // Fetch profile and employee info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+        
+      const { data: employeeData } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (profile) {
+        setAuth(
+          { id: session.user.id, email: session.user.email!, role: profile.role, isActive: true },
+          employeeData ? {
+            id: employeeData.id,
+            userId: employeeData.user_id,
+            employeeId: employeeData.employee_id_string || '',
+            firstName: employeeData.full_name.split(' ')[0] || '',
+            lastName: employeeData.full_name.split(' ').slice(1).join(' ') || '',
+            department: employeeData.department || '',
+            designation: employeeData.designation || '',
+            phone: employeeData.phone || '',
+            avatarUrl: employeeData.profile_photo || '',
+            joiningDate: employeeData.joining_date || '',
+            status: employeeData.employment_status || 'active'
+          } : null
+        )
       }
 
       setIsAuthenticated(true)
 
       // If we require admin, check the role
       if (requireAdmin) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-
         if (profile?.role !== 'admin') {
           setIsAuthorized(false)
           router.replace('/employee') // fallback
@@ -53,6 +82,7 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         setIsAuthenticated(false)
+        logout()
         router.replace('/login')
       }
     })
