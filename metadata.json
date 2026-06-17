@@ -1,0 +1,6 @@
+{
+  "name": "Smart Office Management System",
+  "description": "Enterprise-grade Smart Office Management System with work session tracking, leave management, task management and rewards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
