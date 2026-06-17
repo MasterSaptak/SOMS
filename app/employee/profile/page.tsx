@@ -20,7 +20,7 @@ export default function ProfilePage() {
     firstName: '',
     lastName: '',
     designation: '',
-    department: '',
+    departmentId: '',
     phone: '',
     avatarUrl: '',
   })
@@ -31,7 +31,7 @@ export default function ProfilePage() {
         firstName: employee.firstName || '',
         lastName: employee.lastName || '',
         designation: employee.designation || '',
-        department: employee.department || '',
+        departmentId: employee.departmentId || '',
         phone: employee.phone || '',
         avatarUrl: employee.avatarUrl || '',
       })
@@ -86,7 +86,7 @@ export default function ProfilePage() {
         .update({
           full_name: fullName,
           designation: formData.designation,
-          department: formData.department,
+          department: formData.departmentId,
           phone: formData.phone,
           profile_photo: formData.avatarUrl,
         })
@@ -98,7 +98,7 @@ export default function ProfilePage() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         designation: formData.designation,
-        department: formData.department,
+        departmentId: formData.departmentId,
         phone: formData.phone,
         avatarUrl: formData.avatarUrl,
       })
@@ -192,8 +192,8 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label>Department</Label>
                 <Input 
-                  value={formData.department}
-                  onChange={e => setFormData({ ...formData, department: e.target.value })}
+                  value={formData.departmentId}
+                  onChange={e => setFormData({ ...formData, departmentId: e.target.value })}
                   placeholder="e.g. Engineering"
                 />
               </div>

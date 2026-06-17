@@ -52,7 +52,7 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
             employeeId: employeeData.employee_id_string || '',
             firstName: employeeData.full_name.split(' ')[0] || '',
             lastName: employeeData.full_name.split(' ').slice(1).join(' ') || '',
-            department: employeeData.department || '',
+            departmentId: employeeData.department || '',
             designation: employeeData.designation || '',
             phone: employeeData.phone || '',
             avatarUrl: employeeData.profile_photo || '',
