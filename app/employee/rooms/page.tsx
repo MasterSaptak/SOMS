@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MOCK_ROOMS, MOCK_BOOKINGS, MOCK_EMPLOYEES, getFullName } from '@/lib/mock-data'
+import { MOCK_ROOMS, MOCK_BOOKINGS, MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
 import { useAuthStore } from '@/store/use-auth-store'
 import { DoorOpen, Users, Tv, Mic, Video, PenLine, Calendar, Clock, X, Plus, Check, MapPin } from 'lucide-react'
 

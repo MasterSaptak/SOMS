@@ -12,13 +12,19 @@ import { NOTIFICATION_TYPES } from '@/lib/constants'
 export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const { user } = useAuthStore()
-  const { notifications, unreadCount, markRead, markAllRead } = useNotificationStore()
+  const { notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications, subscribeToNotifications, unsubscribeFromNotifications } = useNotificationStore()
+  const { employee } = useAuthStore()
 
-  const userNotifications = user
-    ? notifications.filter(n => n.userId === user.id).slice(0, 20)
-    : []
-  const userUnread = userNotifications.filter(n => !n.isRead).length
+  useEffect(() => {
+    if (employee?.id) {
+      fetchNotifications(employee.id)
+      subscribeToNotifications(employee.id)
+    }
+    return () => unsubscribeFromNotifications()
+  }, [employee?.id])
+
+  const userNotifications = notifications.slice(0, 20)
+  const userUnread = unreadCount
 
   // Close on click outside
   useEffect(() => {
@@ -57,7 +63,7 @@ export function NotificationCenter() {
                   variant="ghost"
                   size="sm"
                   className="text-xs h-7 gap-1 text-muted-foreground"
-                  onClick={markAllRead}
+                  onClick={() => employee?.id && markAllAsRead(employee.id)}
                 >
                   <CheckCheck className="w-3.5 h-3.5" />
                   Mark all read
@@ -83,16 +89,16 @@ export function NotificationCenter() {
               </div>
             ) : (
               userNotifications.map((notification) => {
-                const typeConfig = NOTIFICATION_TYPES[notification.type]
+                const typeConfig = NOTIFICATION_TYPES[notification.type as keyof typeof NOTIFICATION_TYPES]
                 return (
                   <div
                     key={notification.id}
                     className={`flex items-start gap-3 px-4 py-3 border-b border-border/30 hover:bg-accent/50 transition-colors cursor-pointer ${
-                      !notification.isRead ? 'bg-primary/[0.03]' : ''
+                      !notification.is_read ? 'bg-primary/[0.03]' : ''
                     }`}
                     onClick={() => {
-                      markRead(notification.id)
-                      if (notification.actionUrl) {
+                      markAsRead(notification.id)
+                      if (notification.reference_id) {
                         setIsOpen(false)
                       }
                     }}
@@ -102,36 +108,19 @@ export function NotificationCenter() {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      {notification.actionUrl ? (
-                        <Link
-                          href={notification.actionUrl}
-                          className="block"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <p className={`text-sm leading-snug ${!notification.isRead ? 'font-medium' : ''}`}>
-                            {notification.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {notification.message}
-                          </p>
-                        </Link>
-                      ) : (
-                        <>
-                          <p className={`text-sm leading-snug ${!notification.isRead ? 'font-medium' : ''}`}>
-                            {notification.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {notification.message}
-                          </p>
-                        </>
-                      )}
+                      <p className={`text-sm leading-snug ${!notification.is_read ? 'font-medium' : ''}`}>
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        {notification.message}
+                      </p>
                       <p className="text-[10px] text-muted-foreground/60 mt-1">
-                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                        {notification.created_at ? formatDistanceToNow(new Date(notification.created_at), { addSuffix: true }) : 'Just now'}
                       </p>
                     </div>
 
                     {/* Unread dot */}
-                    {!notification.isRead && (
+                    {!notification.is_read && (
                       <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />
                     )}
                   </div>

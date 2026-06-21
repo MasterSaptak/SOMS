@@ -7,7 +7,8 @@ import { AuthGuard } from "@/components/auth-guard"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { NotificationCenter } from "@/components/notification-center"
-import { Search, Sun, Moon } from "lucide-react"
+import { UniversalSearch } from "@/components/universal-search"
+import { Sun, Moon } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
 
 function ThemeToggle() {
@@ -45,14 +46,7 @@ export default function EmployeeLayout({
                 <Breadcrumbs />
                 
                 <div className="flex items-center gap-2">
-                   <div className="relative hidden md:block">
-                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                     <input 
-                       type="text" 
-                       placeholder="Search..." 
-                       className="h-9 w-64 rounded-full border border-input bg-background pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                     />
-                   </div>
+                   <UniversalSearch />
                    <ThemeToggle />
                    <NotificationCenter />
                 </div>

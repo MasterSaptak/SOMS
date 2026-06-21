@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { MOCK_ANNOUNCEMENTS, MOCK_EMPLOYEES, getFullName } from '@/lib/mock-data'
+import { MOCK_ANNOUNCEMENTS, MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
 import { Megaphone, Pin, Calendar, Eye, Plus } from 'lucide-react'
 
 const containerVars = {

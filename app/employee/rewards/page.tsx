@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_REWARDS, MOCK_EMPLOYEES, getFullName, getDepartmentById } from '@/lib/mock-data'
+import { MOCK_REWARDS, MOCK_EMPLOYEES, getFullName, getDepartmentById } from '@/lib/demo/generators/legacy-mock-data'
 import { Wallet, Gift, Star, Zap, TrendingUp, ShoppingBag, ArrowRight, Coins } from 'lucide-react'
 
 const containerVars = {

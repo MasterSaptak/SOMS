@@ -136,30 +136,36 @@ export default function WorkSessionPage() {
   const startWork = async () => {
     if (!employeeId || attendanceId) return // Prevent duplicates
     
-    setSessionState('working')
     const today = new Date().toISOString().split('T')[0]
     
-    // Create DB Record
+    // Use upsert to overwrite any existing 'completed' session for today (prevents duplicate key errors)
     const { data, error } = await supabase
       .from('attendance')
-      .insert({
+      .upsert({
         employee_id: employeeId,
         date: today,
         clock_in: new Date().toISOString(),
-        is_late: new Date().getHours() >= 9
-      })
+        is_late: new Date().getHours() >= 9,
+        clock_out: null,
+        total_working_hours: null,
+        is_early_leave: null
+      }, { onConflict: 'employee_id,date' })
       .select()
       .single()
 
+    if (error) {
+      alert(`Error starting session: ${error.message}`)
+      return
+    }
+
     if (data) {
       setAttendanceId(data.id)
+      setSessionState('working')
     }
   }
 
   const endWork = async () => {
     if (!attendanceId) return
-    setSessionState('idle')
-    setTotalWorkSeconds(0)
     
     const { data: attendance } = await supabase
       .from('attendance')
@@ -172,7 +178,7 @@ export default function WorkSessionPage() {
       const clockOutTime = new Date().getTime()
       const diffHours = (clockOutTime - clockInTime) / (1000 * 60 * 60)
 
-      await supabase
+      const { error } = await supabase
         .from('attendance')
         .update({
           clock_out: new Date().toISOString(),
@@ -180,16 +186,24 @@ export default function WorkSessionPage() {
           is_early_leave: new Date().getHours() < 17
         })
         .eq('id', attendanceId)
+
+      if (error) {
+        alert(`Error ending session: ${error.message}`)
+        return
+      }
     }
+    
+    setSessionState('idle')
+    setTotalWorkSeconds(0)
   }
 
   const startBreak = async (type: string) => {
-    if (!attendanceId) return
-    setSessionState('break')
-    setActiveBreak(type)
-    setTotalBreakSeconds(0)
+    if (!attendanceId) {
+      alert('Error: Attendance ID is missing. Please restart your session.');
+      return;
+    }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('breaks')
       .insert({
         attendance_id: attendanceId,
@@ -198,16 +212,21 @@ export default function WorkSessionPage() {
       .select()
       .single()
 
+    if (error) {
+      alert(`Error starting break: ${error.message}`)
+      return
+    }
+
     if (data) {
       setBreakRecordId(data.id)
+      setSessionState('break')
+      setActiveBreak(type)
+      setTotalBreakSeconds(0)
     }
   }
 
   const endBreak = async () => {
     if (!breakRecordId) return
-    setSessionState('working')
-    setActiveBreak(null)
-    setTotalBreakSeconds(0)
 
     const { data: brk } = await supabase
       .from('breaks')
@@ -220,14 +239,23 @@ export default function WorkSessionPage() {
       const endTime = new Date().getTime()
       const durationMins = Math.round((endTime - startTime) / (1000 * 60))
 
-      await supabase
+      const { error } = await supabase
         .from('breaks')
         .update({
           end_time: new Date().toISOString(),
           duration_minutes: durationMins
         })
         .eq('id', breakRecordId)
+
+      if (error) {
+        alert(`Error ending break: ${error.message}`)
+        return
+      }
     }
+    
+    setSessionState('working')
+    setActiveBreak(null)
+    setTotalBreakSeconds(0)
   }
 
   const handleBreak = (type: string) => {
@@ -238,14 +266,41 @@ export default function WorkSessionPage() {
     }
   }
 
+  const resetSession = async () => {
+    if (!attendanceId) return;
+    setIsLoading(true);
+    // Delete all associated breaks first
+    const { error: err1 } = await supabase.from('breaks').delete().eq('attendance_id', attendanceId);
+    if (err1) {
+      alert(`Error deleting breaks: ${err1.message}`);
+      setIsLoading(false);
+      return;
+    }
+    // Delete the attendance record
+    const { error: err2 } = await supabase.from('attendance').delete().eq('id', attendanceId);
+    if (err2) {
+      alert(`Error deleting attendance: ${err2.message}`);
+      setIsLoading(false);
+      return;
+    }
+    
+    setAttendanceId(null);
+    setBreakRecordId(null);
+    setTotalWorkSeconds(0);
+    setTotalBreakSeconds(0);
+    setSessionState('idle');
+    setActiveBreak(null);
+    setIsLoading(false);
+  }
+
   const dailyTarget = 28800
   const progressPercent = Math.min((totalWorkSeconds / dailyTarget) * 100, 100)
 
   const breakOptions = [
-    { type: 'lunch', label: 'Lunch Break', icon: <Pizza className="w-5 h-5" />, color: 'bg-orange-500' },
-    { type: 'food', label: 'Snack/Coffee', icon: <Coffee className="w-5 h-5" />, color: 'bg-amber-600' },
-    { type: 'personal', label: 'Personal', icon: <User className="w-5 h-5" />, color: 'bg-blue-500' },
-    { type: 'emergency', label: 'Emergency', icon: <AlertTriangle className="w-5 h-5" />, color: 'bg-destructive' },
+    { type: 'lunch', label: 'Lunch Break', icon: <Pizza className="w-5 h-5" />, color: 'bg-orange-500', activeBg: 'bg-orange-500/15', ring: 'ring-orange-500', border: 'border-orange-500/50', shadow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]' },
+    { type: 'food', label: 'Snack/Coffee', icon: <Coffee className="w-5 h-5" />, color: 'bg-amber-500', activeBg: 'bg-amber-500/15', ring: 'ring-amber-500', border: 'border-amber-500/50', shadow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]' },
+    { type: 'personal', label: 'Personal', icon: <User className="w-5 h-5" />, color: 'bg-blue-500', activeBg: 'bg-blue-500/15', ring: 'ring-blue-500', border: 'border-blue-500/50', shadow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)]' },
+    { type: 'emergency', label: 'Emergency', icon: <AlertTriangle className="w-5 h-5" />, color: 'bg-red-500', activeBg: 'bg-red-500/15', ring: 'ring-red-500', border: 'border-red-500/50', shadow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]' },
   ] as const
 
   if (isLoading) {
@@ -297,45 +352,80 @@ export default function WorkSessionPage() {
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-4">
-                {sessionState === 'idle' && !attendanceId ? (
-                  <Button 
-                    size="lg" 
-                    className="h-14 px-8 text-lg rounded-full shadow-primary/25 hover:shadow-primary/40 transition-all font-semibold gap-2"
-                    onClick={startWork}
-                  >
-                    <Play className="fill-current w-5 h-5" /> Start Work Session
-                  </Button>
-                ) : sessionState === 'idle' && attendanceId ? (
-                  <Button 
-                    size="lg" 
-                    disabled
-                    className="h-14 px-8 text-lg rounded-full shadow-primary/25 font-semibold gap-2"
-                  >
-                    Session Completed Today
-                  </Button>
-                ) : (
-                  <>
-                    <Button 
-                      size="lg" 
-                      variant="destructive"
-                      className="h-14 px-8 text-lg rounded-full font-semibold gap-2"
-                      onClick={endWork}
+                <AnimatePresence mode="wait">
+                  {sessionState === 'idle' && !attendanceId ? (
+                    <motion.div
+                      key="start"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]"
                     >
-                      <Square className="fill-current w-5 h-5" /> End Session
-                    </Button>
-                    
-                    {sessionState === 'break' && (
                       <Button 
                         size="lg" 
-                        variant="secondary"
-                        className="h-14 px-8 text-lg rounded-full font-semibold gap-2 border border-border"
-                        onClick={endBreak}
+                        className="h-14 px-8 text-lg rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] transition-all duration-300 font-semibold gap-2 group"
+                        onClick={startWork}
                       >
-                        <Play className="fill-current w-5 h-5" /> Resume Work
+                        <Play className="fill-current w-5 h-5 group-hover:scale-110 transition-transform duration-300" /> Start Work Session
                       </Button>
-                    )}
-                  </>
-                )}
+                    </motion.div>
+                  ) : sessionState === 'idle' && attendanceId ? (
+                    <motion.div
+                      key="done"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center gap-3"
+                    >
+                      <Button 
+                        size="lg" 
+                        disabled
+                        className="h-14 px-8 text-lg rounded-full shadow-lg font-semibold gap-2 opacity-80"
+                      >
+                        Session Completed Today
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetSession}
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors rounded-full"
+                      >
+                        <History className="w-4 h-4 mr-2" />
+                        Reset Session (Dev Only)
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="active"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex gap-4"
+                    >
+                      <div className="transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]">
+                        <Button 
+                          size="lg" 
+                          variant="destructive"
+                          className="h-14 px-8 text-lg rounded-full shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-300 font-semibold gap-2 group"
+                          onClick={endWork}
+                        >
+                          <Square className="fill-current w-5 h-5 group-hover:scale-110 transition-transform duration-300" /> End Session
+                        </Button>
+                      </div>
+                      
+                      {sessionState === 'break' && (
+                        <div className="transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]">
+                          <Button 
+                            size="lg" 
+                            variant="secondary"
+                            className="h-14 px-8 text-lg rounded-full font-semibold gap-2 border border-border shadow-md hover:shadow-lg transition-all duration-300 group"
+                            onClick={endBreak}
+                          >
+                            <Play className="fill-current w-5 h-5 group-hover:scale-110 transition-transform duration-300" /> Resume Work
+                          </Button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
             </CardContent>
@@ -375,18 +465,28 @@ export default function WorkSessionPage() {
                   return (
                     <button
                       key={b.type}
+                      type="button"
                       disabled={isDisabled}
                       onClick={() => handleBreak(b.type)}
-                      className={`relative flex flex-col items-center justify-center p-6 rounded-xl border transition-all duration-300 gap-3
-                        ${isDisabled ? 'opacity-50 cursor-not-allowed bg-muted/50 border-transparent' : 
-                          isActive ? `border-${b.color.split('-')[1]}-500/50 bg-${b.color.split('-')[1]}-500/10 shadow-sm ring-1 ring-${b.color.split('-')[1]}-500` : 
-                          'hover:border-border hover:bg-card hover:shadow-sm bg-background border-border/40'}
+                      className={`group relative flex flex-col items-center justify-center p-6 rounded-2xl border transition-all duration-300 gap-3 overflow-hidden
+                        ${!isDisabled && 'hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98]'}
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed bg-muted/40 border-transparent' : 
+                          isActive ? `${b.border} ${b.activeBg} ${b.shadow} ring-1 ${b.ring}` : 
+                          'hover:border-border hover:bg-card hover:shadow-lg bg-background border-border/40'}
                       `}
                     >
-                      <div className={`p-3 rounded-full text-white ${b.color} shadow-sm transition-transform ${isActive ? 'scale-110' : ''}`}>
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeBreakBackground"
+                          className={`absolute inset-0 ${b.activeBg} pointer-events-none`}
+                          initial={false}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                      <div className={`p-4 rounded-full text-white ${b.color} shadow-md transition-transform duration-300 relative z-10 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
                         {b.icon}
                       </div>
-                      <span className="font-semibold text-sm">
+                      <span className="font-semibold text-sm relative z-10 pointer-events-none">
                         {isActive ? 'Resume Work' : b.label}
                       </span>
                     </button>

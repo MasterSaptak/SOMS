@@ -1,229 +1,247 @@
 "use client"
 
-import React, { useState } from 'react'
+import React from 'react'
 import { motion } from 'motion/react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { MOCK_EMPLOYEES, MOCK_DEPARTMENTS, MOCK_TASKS, MOCK_LEAVES, MOCK_ATTENDANCE, MOCK_PRODUCTIVITY, getFullName } from '@/lib/mock-data'
-import {
-  Users, CheckCircle2, Clock, TrendingUp, CalendarRange, BarChart3,
-  ArrowUp, ArrowDown, Activity, Target, Briefcase, Building2,
-} from 'lucide-react'
-import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { Users, Clock, CalendarRange, Activity, ArrowUp, ArrowDown } from 'lucide-react'
+import { 
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, 
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
+} from 'recharts'
+import { AIBriefingCard } from '@/components/ai/ai-briefing-card'
+import { InsightsStream } from '@/components/ai/insights-stream'
+import { PendingApprovalsWidget } from '@/components/ai/pending-approvals-widget'
+import { MOCK_EMPLOYEES, MOCK_TASKS, MOCK_LEAVES, MOCK_PRODUCTIVITY, MOCK_ATTENDANCE } from '@/lib/demo/generators/legacy-mock-data'
 
 const containerVars = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
 }
 const itemVars = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
 }
 
-// Mock chart data
-const attendanceTrend = [
-  { day: 'Mon', present: 45, absent: 3, wfh: 5 },
-  { day: 'Tue', present: 47, absent: 2, wfh: 4 },
-  { day: 'Wed', present: 44, absent: 4, wfh: 5 },
-  { day: 'Thu', present: 46, absent: 3, wfh: 4 },
-  { day: 'Fri', present: 42, absent: 5, wfh: 6 },
-]
-
-const taskDistribution = [
-  { name: 'Completed', value: 45, color: '#10b981' },
-  { name: 'In Progress', value: 28, color: '#3b82f6' },
-  { name: 'Pending', value: 18, color: '#94a3b8' },
-  { name: 'Blocked', value: 9, color: '#ef4444' },
-]
-
-const deptPerformance = [
-  { dept: 'Engineering', score: 88, tasks: 32, members: 4 },
-  { dept: 'Design', score: 92, tasks: 18, members: 2 },
-  { dept: 'HR', score: 85, tasks: 12, members: 1 },
-  { dept: 'Marketing', score: 78, tasks: 8, members: 0 },
-  { dept: 'Operations', score: 82, tasks: 6, members: 1 },
-]
-
-const monthlyHours = [
-  { month: 'Jan', hours: 1680 },
-  { month: 'Feb', hours: 1520 },
-  { month: 'Mar', hours: 1760 },
-  { month: 'Apr', hours: 1640 },
-  { month: 'May', hours: 1720 },
-  { month: 'Jun', hours: 1580 },
-]
-
 export default function AdminDashboard() {
-  const [dateRange, setDateRange] = useState('30d')
+  // Compute KPIs
+  const activeEmployeesCount = MOCK_EMPLOYEES.filter(e => e.status === 'active').length
+  const today = '2026-06-17' // From mock data current context
+  const todayAttendance = MOCK_ATTENDANCE.filter(a => a.date === today && (a.status === 'present' || a.status === 'wfh')).length
+  const attendanceRate = activeEmployeesCount > 0 ? Math.round((todayAttendance / activeEmployeesCount) * 100) : 0
+  const pendingLeavesCount = MOCK_LEAVES.filter(l => l.status === 'pending').length
+  
+  const activeProductivity = MOCK_PRODUCTIVITY.filter(p => p.score > 0)
+  const orgHealthScore = activeProductivity.length > 0 
+    ? Math.round(activeProductivity.reduce((acc, curr) => acc + curr.score, 0) / activeProductivity.length)
+    : 0
 
-  const totalEmployees = MOCK_EMPLOYEES.filter(e => e.status === 'active').length
-  const totalTasks = MOCK_TASKS.length
-  const completedTasks = MOCK_TASKS.filter(t => t.status === 'completed').length
-  const pendingLeaves = MOCK_LEAVES.filter(l => l.status === 'pending').length
-  const avgProductivity = Math.round(MOCK_PRODUCTIVITY.reduce((a, p) => a + p.score, 0) / MOCK_PRODUCTIVITY.length)
+  // Chart Data
+  const attendanceTrend = [
+    { day: 'Mon', present: 7, wfh: 1, absent: 2 },
+    { day: 'Tue', present: 8, wfh: 1, absent: 1 },
+    { day: 'Wed', present: 7, wfh: 2, absent: 1 },
+    { day: 'Thu', present: 8, wfh: 1, absent: 1 },
+    { day: 'Fri', present: 6, wfh: 2, absent: 2 },
+  ]
+
+  const deptPerformance = [
+    { dept: 'Engineering', score: 83, members: 4 },
+    { dept: 'Design', score: 88, members: 2 },
+    { dept: 'HR', score: 85, members: 1 },
+    { dept: 'Marketing', score: 82, members: 1 },
+    { dept: 'Operations', score: 75, members: 1 },
+  ]
+
+  const deptHeadcount = [
+    { name: 'Engineering', value: 4 },
+    { name: 'Design', value: 2 },
+    { name: 'HR', value: 1 },
+    { name: 'Marketing', value: 1 },
+    { name: 'Operations', value: 1 },
+  ]
+  const PIE_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
 
   return (
-    <motion.div className="flex flex-col gap-6 pb-12" variants={containerVars} initial="hidden" animate="show">
-      {/* Header */}
-      <motion.div variants={itemVars} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Analytics</h1>
-          <p className="text-muted-foreground mt-1">Organization-wide insights and performance metrics</p>
+    <motion.div variants={containerVars} initial="hidden" animate="show" className="flex flex-col gap-6 pb-12 max-w-[1600px] mx-auto">
+      
+      {/* Page Header */}
+      <motion.div variants={itemVars}>
+        <h1 className="text-3xl font-bold tracking-tight">AI Office Manager</h1>
+        <p className="text-muted-foreground mt-1">Smart insights and operations dashboard.</p>
+      </motion.div>
+
+      {/* SECTION 1: AI Briefing */}
+      <motion.div variants={itemVars}>
+        <AIBriefingCard />
+      </motion.div>
+
+      {/* SECTION 2: Smart KPI Row */}
+      <motion.div variants={itemVars} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* KPI 1 */}
+        <Card className="border-b-[3px] border-b-blue-500/50 hover:border-b-blue-500 transition-colors">
+          <CardContent className="p-5 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Active Employees</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <Users className="w-4 h-4 text-blue-500" />
+              </div>
+            </div>
+            <div className="flex items-end gap-3 mt-1">
+              <span className="text-3xl font-bold">{activeEmployeesCount}</span>
+              <span className="text-xs text-emerald-500 flex items-center font-medium mb-1"><ArrowUp className="w-3 h-3 mr-0.5" /> +1 this month</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{MOCK_EMPLOYEES.length} total headcount</p>
+          </CardContent>
+        </Card>
+
+        {/* KPI 2 */}
+        <Card className="border-b-[3px] border-b-emerald-500/50 hover:border-b-emerald-500 transition-colors">
+          <CardContent className="p-5 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Attendance Rate</span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-emerald-500" />
+              </div>
+            </div>
+            <div className="flex items-end gap-3 mt-1">
+              <span className="text-3xl font-bold">{attendanceRate}%</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">8 present · 1 on leave</p>
+          </CardContent>
+        </Card>
+
+        {/* KPI 3 */}
+        <Card className="border-b-[3px] border-b-amber-500/50 hover:border-b-amber-500 transition-colors">
+          <CardContent className="p-5 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Pending Approvals</span>
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <CalendarRange className="w-4 h-4 text-amber-500" />
+              </div>
+            </div>
+            <div className="flex items-end gap-3 mt-1">
+              <span className="text-3xl font-bold">{pendingLeavesCount}</span>
+              <span className="text-xs text-amber-500 font-medium mb-1">Needs action</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Leaves and requests</p>
+          </CardContent>
+        </Card>
+
+        {/* KPI 4 */}
+        <Card className="border-b-[3px] border-b-purple-500/50 hover:border-b-purple-500 transition-colors">
+          <CardContent className="p-5 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Org Health Score</span>
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-purple-500" />
+              </div>
+            </div>
+            <div className="flex items-end gap-3 mt-1">
+              <span className="text-3xl font-bold">{orgHealthScore}<span className="text-lg text-muted-foreground font-normal">/100</span></span>
+              <span className="text-xs text-red-500 flex items-center font-medium mb-1"><ArrowDown className="w-3 h-3 mr-0.5" /> -2% vs last wk</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Based on productivity & focus</p>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* SECTION 3: Live Feeds */}
+      <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+        <div className="lg:col-span-2 h-full">
+          <InsightsStream />
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-border overflow-hidden">
-          {['7d', '30d', '90d'].map((range) => (
-            <button key={range} onClick={() => setDateRange(range)} className={`px-3 py-1.5 text-xs font-medium transition-colors ${dateRange === range ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}>
-              {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : '90 Days'}
-            </button>
-          ))}
+        <div className="lg:col-span-1 h-full">
+          <PendingApprovalsWidget />
         </div>
       </motion.div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { title: 'Total Employees', value: totalEmployees, icon: <Users className="w-5 h-5" />, iconBg: 'bg-blue-500/10 text-blue-500', change: '+2', up: true },
-          { title: 'Task Completion', value: `${Math.round((completedTasks / totalTasks) * 100)}%`, icon: <CheckCircle2 className="w-5 h-5" />, iconBg: 'bg-emerald-500/10 text-emerald-500', change: '+5%', up: true },
-          { title: 'Avg Productivity', value: avgProductivity, icon: <Target className="w-5 h-5" />, iconBg: 'bg-purple-500/10 text-purple-500', change: '+3', up: true },
-          { title: 'Pending Leaves', value: pendingLeaves, icon: <CalendarRange className="w-5 h-5" />, iconBg: 'bg-amber-500/10 text-amber-500', change: '-1', up: false },
-        ].map((kpi) => (
-          <motion.div key={kpi.title} variants={itemVars}>
-            <Card className="hover:border-primary/20 transition-colors">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${kpi.iconBg}`}>{kpi.icon}</div>
-                  <span className={`text-xs font-semibold flex items-center gap-0.5 ${kpi.up ? 'text-emerald-500' : 'text-amber-500'}`}>
-                    {kpi.up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                    {kpi.change}
-                  </span>
-                </div>
-                <span className="text-sm text-muted-foreground">{kpi.title}</span>
-                <span className="text-3xl font-bold block mt-1">{kpi.value}</span>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* SECTION 4: Charts Row */}
+      <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
         {/* Attendance Trend */}
-        <motion.div variants={itemVars} className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Attendance Trend</CardTitle>
-              <CardDescription>Daily attendance breakdown this week</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={attendanceTrend}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
-                  <XAxis dataKey="day" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar dataKey="present" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} name="Present" />
-                  <Bar dataKey="wfh" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} name="WFH" />
-                  <Bar dataKey="absent" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} name="Absent" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Task Distribution */}
-        <motion.div variants={itemVars}>
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>Task Status</CardTitle>
-              <CardDescription>Distribution across all teams</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={taskDistribution} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value">
-                    {taskDistribution.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap gap-3 justify-center mt-2">
-                {taskDistribution.map((item) => (
-                  <div key={item.name} className="flex items-center gap-1.5 text-xs">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="text-muted-foreground">{item.name}</span>
-                    <span className="font-semibold">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Work Hours */}
-        <motion.div variants={itemVars}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Work Hours</CardTitle>
-              <CardDescription>Total hours logged across all employees</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={monthlyHours}>
-                  <defs>
-                    <linearGradient id="hoursGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
-                  <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
-                  <Area type="monotone" dataKey="hours" stroke="hsl(var(--primary))" fill="url(#hoursGrad)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Attendance Trend</CardTitle>
+            <CardDescription>Present vs WFH vs Absent over the last 5 days</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[250px] pt-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={attendanceTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                <Tooltip 
+                  cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                <Bar dataKey="present" name="Present" stackId="a" fill="hsl(var(--chart-2))" radius={[0, 0, 4, 4]} />
+                <Bar dataKey="wfh" name="WFH" stackId="a" fill="hsl(var(--chart-1))" />
+                <Bar dataKey="absent" name="Absent" stackId="a" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
         {/* Department Performance */}
-        <motion.div variants={itemVars}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Department Performance</CardTitle>
-              <CardDescription>Productivity scores by department</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {deptPerformance.map((dept) => (
-                <div key={dept.dept} className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Building2 className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium">{dept.dept}</span>
-                      <span className="text-sm font-bold">{dept.score}%</span>
-                    </div>
-                    <Progress value={dept.score} className="h-2" />
-                    <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
-                      <span>{dept.members} members</span>
-                      <span>{dept.tasks} tasks</span>
-                    </div>
-                  </div>
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Department Performance</CardTitle>
+            <CardDescription>Average productivity score by department</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0 flex flex-col justify-center gap-4">
+            {deptPerformance.map(dept => (
+              <div key={dept.dept} className="flex flex-col gap-1">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">{dept.dept}</span>
+                  <span className="text-muted-foreground">{dept.score}/100</span>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+                <Progress 
+                  value={dept.score} 
+                  className="h-2 bg-muted" 
+                  indicatorClassName={dept.score > 85 ? 'bg-emerald-500' : dept.score > 80 ? 'bg-blue-500' : 'bg-amber-500'} 
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+      </motion.div>
+
+      {/* SECTION 5: Headcount Distribution */}
+      <motion.div variants={itemVars}>
+        <Card className="border-border/50 shadow-sm w-full lg:w-1/2">
+          <CardHeader>
+            <CardTitle className="text-base">Headcount Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[250px] pt-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={deptHeadcount}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {deptHeadcount.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </motion.div>
+
     </motion.div>
   )
 }

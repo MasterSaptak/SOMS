@@ -1,0 +1,148 @@
+import React, { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Plus, Trash2, HeartPulse } from 'lucide-react'
+
+export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: string, canEdit: boolean }) {
+  const supabase = createClient()
+  const [contacts, setContacts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isAdding, setIsAdding] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  const [formData, setFormData] = useState({
+    name: '',
+    relationship: '',
+    phone: '',
+    email: '',
+    is_primary: false
+  })
+
+  const load = async () => {
+    setIsLoading(true)
+    const { data } = await supabase.from('emergency_contacts').select('*').eq('employee_id', employeeId).order('is_primary', { ascending: false })
+    if (data) setContacts(data)
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    load()
+  }, [employeeId, supabase])
+
+  const handleAdd = async () => {
+    if (!formData.name || !formData.phone || !formData.relationship) {
+      alert('Name, Phone, and Relationship are required.')
+      return
+    }
+    setIsSaving(true)
+    try {
+      const { error } = await supabase.from('emergency_contacts').insert({
+        employee_id: employeeId,
+        ...formData
+      })
+      if (error) throw error
+      setIsAdding(false)
+      setFormData({ name: '', relationship: '', phone: '', email: '', is_primary: false })
+      load()
+    } catch (e: any) {
+      alert(`Error adding contact: ${e.message}`)
+    }
+    setIsSaving(false)
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this contact?')) return
+    try {
+      const { error } = await supabase.from('emergency_contacts').delete().eq('id', id)
+      if (error) throw error
+      load()
+    } catch (e: any) {
+      alert(`Error deleting contact: ${e.message}`)
+    }
+  }
+
+  if (isLoading) return <div className="p-4 text-sm animate-pulse">Loading emergency contacts...</div>
+
+  return (
+    <div className="bg-card border border-border/50 rounded-xl p-6 shadow-sm">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="font-semibold text-lg flex items-center gap-2">
+          <HeartPulse className="w-5 h-5 text-red-500" />
+          Emergency Contacts
+        </h3>
+        {canEdit && !isAdding && (
+          <Button variant="outline" size="sm" onClick={() => setIsAdding(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> Add Contact
+          </Button>
+        )}
+      </div>
+
+      {isAdding && (
+        <div className="bg-muted/30 border border-border/50 rounded-lg p-4 mb-6">
+          <h4 className="font-semibold text-sm mb-4">Add New Contact</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs">Name</Label>
+              <Input className="mt-1 h-8" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+            </div>
+            <div>
+              <Label className="text-xs">Relationship</Label>
+              <Input className="mt-1 h-8" value={formData.relationship} onChange={e => setFormData({...formData, relationship: e.target.value})} />
+            </div>
+            <div>
+              <Label className="text-xs">Phone</Label>
+              <Input className="mt-1 h-8" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+            </div>
+            <div>
+              <Label className="text-xs">Email (Optional)</Label>
+              <Input className="mt-1 h-8" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+            </div>
+            <div className="col-span-full flex items-center gap-2 mt-2">
+              <input type="checkbox" id="is_primary" checked={formData.is_primary} onChange={e => setFormData({...formData, is_primary: e.target.checked})} className="rounded border-input" />
+              <Label htmlFor="is_primary" className="text-xs">Set as Primary Contact</Label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)} disabled={isSaving}>Cancel</Button>
+            <Button size="sm" onClick={handleAdd} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {contacts.map(c => (
+          <div key={c.id} className="border border-border/50 rounded-lg p-4 flex flex-col relative group">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{c.name}</span>
+                {c.is_primary && <Badge variant="outline" className="text-[10px] bg-red-500/10 text-red-500 border-red-500/20">Primary</Badge>}
+              </div>
+              {canEdit && (
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 hover:text-red-500" onClick={() => handleDelete(c.id)}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground mb-2">{c.relationship}</span>
+            <div className="text-sm mt-1">
+              <span className="font-medium">Phone:</span> {c.phone}
+            </div>
+            {c.email && (
+              <div className="text-sm">
+                <span className="font-medium">Email:</span> {c.email}
+              </div>
+            )}
+          </div>
+        ))}
+        {contacts.length === 0 && !isAdding && (
+          <div className="col-span-full py-8 text-center text-muted-foreground border border-dashed border-border/50 rounded-xl">
+            No emergency contacts found.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -50,7 +50,7 @@ function CreateTaskDialog({ onClose, currentEmployeeId, employees, onTaskCreated
       priority,
       created_by: currentEmployeeId,
       assigned_to: assignedTo,
-      due_date: dueDate || null,
+      deadline: dueDate || null,
     })
     
     onTaskCreated()

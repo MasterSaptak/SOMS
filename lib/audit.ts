@@ -7,13 +7,17 @@ interface AuditLogOptions {
   action: Action | string
   resource: Resource | string
   details?: Record<string, any>
+  oldValues?: Record<string, any>
+  newValues?: Record<string, any>
 }
 
 export async function logAuditAction({
   userId,
   action,
   resource,
-  details = {}
+  details = {},
+  oldValues,
+  newValues
 }: AuditLogOptions) {
   try {
     const supabase = await createClient()
@@ -23,13 +27,19 @@ export async function logAuditAction({
     const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'Unknown'
     const userAgent = headersList.get('user-agent') || 'Unknown'
 
+    const fullDetails = {
+      ...details,
+      ...(oldValues ? { oldValues } : {}),
+      ...(newValues ? { newValues } : {})
+    }
+
     const { error } = await supabase
       .from('audit_logs')
       .insert({
         user_id: userId || null,
         action,
         resource,
-        details,
+        details: fullDetails,
         ip_address: ipAddress,
         user_agent: userAgent
       })

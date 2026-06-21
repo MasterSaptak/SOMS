@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Search, ShieldAlert, Monitor, Globe, Clock, User, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { AuditDialogButton } from '@/components/audit-dialog-button'
 
 export const metadata = {
   title: 'Audit & Compliance | SOMS Admin',
@@ -13,6 +14,9 @@ export const metadata = {
 
 // Ensure dynamic rendering to fetch latest logs
 export const dynamic = 'force-dynamic'
+// Revalidate every 60 seconds at most, but since it's force-dynamic it bypasses cache mostly.
+// But we can add revalidate anyway if we remove force-dynamic.
+export const revalidate = 60
 
 export default async function AuditDashboardPage({
   searchParams
@@ -139,7 +143,7 @@ export default async function AuditDashboardPage({
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <DialogButton details={log.details} />
+                      <AuditDialogButton details={log.details} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -149,18 +153,5 @@ export default async function AuditDashboardPage({
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-// Client component wrapper for the dialog button
-function DialogButton({ details }: { details: any }) {
-  // Since we're rendering this inside a Server Component, we need a small client component
-  // to handle the dialog state if we want to show full JSON details.
-  // For simplicity, we just render a button that console.logs for now, or use a popover.
-  return (
-    <Button variant="ghost" size="sm" onClick={() => console.log('Details:', details)}>
-      <FileText className="w-4 h-4 mr-1" />
-      View JSON
-    </Button>
   )
 }

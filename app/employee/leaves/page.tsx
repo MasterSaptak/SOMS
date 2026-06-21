@@ -12,7 +12,7 @@ import { useLeaveStore } from '@/store/use-leave-store'
 import { useAuthStore } from '@/store/use-auth-store'
 import { useAuth } from '@/hooks/use-auth'
 import { LEAVE_TYPES, LEAVE_STATUSES } from '@/lib/constants'
-import { MOCK_EMPLOYEES, getFullName } from '@/lib/mock-data'
+import { MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
 import type { LeaveType, LeaveStatus } from '@/lib/types'
 import {
   Plus, Calendar, Clock, X, FileText, CheckCircle2,

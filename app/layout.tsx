@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 import { CommandPalette } from '@/components/command-palette';
+import { AICopilot } from '@/components/ai-copilot';
 
 export default function RootLayout({
   children,
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className="bg-background text-foreground min-h-screen flex flex-col">
         {children}
         <CommandPalette />
+        <AICopilot />
       </body>
     </html>
   );

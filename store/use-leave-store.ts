@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { LeaveRequest, LeaveBalance, LeaveType, LeaveStatus } from '@/lib/types'
-import { MOCK_LEAVES, MOCK_LEAVE_BALANCES } from '@/lib/mock-data'
+import { MOCK_LEAVES, MOCK_LEAVE_BALANCES } from '@/lib/demo/generators/legacy-mock-data'
 
 interface LeaveState {
   leaves: LeaveRequest[]

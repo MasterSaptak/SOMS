@@ -17,23 +17,101 @@ export interface User {
 export interface Employee {
   id: string
   userId: string
-  departmentId: string
+  organizationId: string
+  departmentId: string | null
+  teamId: string | null
+  designationId: string | null
+  workLocationId: string | null
+  managerId: string | null
   employeeCode: string
   firstName: string
   lastName: string
-  designation: string
   phone: string
-  avatarUrl: string
+  avatarUrl: string | null
   joinDate: string
   status: 'active' | 'on_leave' | 'terminated'
   createdAt: string
+  
+  // Optional eager-loaded relations
+  department?: Department
+  team?: Team
+  designation?: Designation
+  workLocation?: WorkLocation
+  manager?: Employee
+  employmentDetails?: EmploymentDetails
+  emergencyContacts?: EmergencyContact[]
+  skills?: EmployeeSkill[]
 }
 
 export interface Department {
   id: string
+  organizationId: string
   name: string
   headId: string | null
+  parentId: string | null
   createdAt: string
+  updatedAt: string
+}
+
+export interface Team {
+  id: string
+  departmentId: string
+  name: string
+  leadId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Designation {
+  id: string
+  organizationId: string
+  title: string
+  level: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WorkLocation {
+  id: string
+  organizationId: string
+  name: string
+  address: string | null
+  timezone: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmploymentDetails {
+  id: string
+  employeeId: string
+  employmentType: 'full_time' | 'part_time' | 'contract' | 'intern'
+  probationEndDate: string | null
+  noticePeriodDays: number
+  workSchedule: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmergencyContact {
+  id: string
+  employeeId: string
+  name: string
+  relationship: string
+  phone: string
+  email: string | null
+  isPrimary: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeeSkill {
+  id: string
+  employeeId: string
+  skillName: string
+  proficiency: 'beginner' | 'intermediate' | 'expert'
+  isVerified: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Role {
@@ -49,7 +127,7 @@ export interface Permission {
 }
 
 export type PermissionAction = 'view' | 'create' | 'update' | 'delete' | 'approve' | 'reject' | 'assign'
-export type PermissionResource = 'dashboard' | 'tasks' | 'leaves' | 'hr' | 'payroll' | 'assets' | 'visitors' | 'rooms' | 'analytics' | 'announcements' | 'settings'
+export type PermissionResource = 'dashboard' | 'tasks' | 'leaves' | 'hr' | 'payroll' | 'assets' | 'visitors' | 'rooms' | 'analytics' | 'announcements' | 'settings' | 'timeline' | 'calendar' | 'chat' | 'meetings' | 'documents' | 'goals' | 'knowledge' | 'surveys' | 'workflows' | 'features' | 'audit'
 
 // --- Attendance & Sessions ---
 export type WorkSessionState = 'idle' | 'working' | 'break'

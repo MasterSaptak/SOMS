@@ -22,57 +22,109 @@ import {
   Banknote,
   UserPlus,
   Brain,
+  CalendarDays,
+  GitBranch,
+  FileText,
+  Target,
+  MessageSquare,
+  Video,
+  BookOpen,
+  ClipboardList,
+  Workflow,
+  Shield,
+  ToggleLeft,
+  Server,
+  Sparkles,
+  GitMerge,
+  Package,
+  Boxes,
 } from 'lucide-react';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenuButton, SidebarContext } from '@/components/ui/sidebar';
 import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/store/use-auth-store';
 import { getAccessibleNavSections } from '@/lib/permissions';
 import { ROLES } from '@/lib/constants';
+import { createClient } from '@/lib/supabase/client';
 
 const iconMap: Record<string, React.ReactNode> = {
   LayoutDashboard: <LayoutDashboard size={18} />,
-  Clock: <Clock size={18} />,
-  Activity: <Activity size={18} />,
-  Brain: <Brain size={18} />,
-  CheckSquare: <CheckSquare size={18} />,
-  CalendarRange: <CalendarRange size={18} />,
-  Monitor: <Monitor size={18} />,
-  DoorOpen: <DoorOpen size={18} />,
-  Megaphone: <Megaphone size={18} />,
-  Wallet: <Wallet size={18} />,
-  Trophy: <Trophy size={18} />,
-  BarChart3: <BarChart3 size={18} />,
-  Users: <Users size={18} />,
-  Banknote: <Banknote size={18} />,
-  UserPlus: <UserPlus size={18} />,
+  Clock:           <Clock size={18} />,
+  Activity:        <Activity size={18} />,
+  Brain:           <Brain size={18} />,
+  CheckSquare:     <CheckSquare size={18} />,
+  CalendarRange:   <CalendarRange size={18} />,
+  Monitor:         <Monitor size={18} />,
+  DoorOpen:        <DoorOpen size={18} />,
+  Megaphone:       <Megaphone size={18} />,
+  Wallet:          <Wallet size={18} />,
+  Trophy:          <Trophy size={18} />,
+  BarChart3:       <BarChart3 size={18} />,
+  Users:           <Users size={18} />,
+  Banknote:        <Banknote size={18} />,
+  UserPlus:        <UserPlus size={18} />,
+  CalendarDays:    <CalendarDays size={18} />,
+  GitBranch:       <GitBranch size={18} />,
+  FileText:        <FileText size={18} />,
+  Target:          <Target size={18} />,
+  MessageSquare:   <MessageSquare size={18} />,
+  Video:           <Video size={18} />,
+  BookOpen:        <BookOpen size={18} />,
+  ClipboardList:   <ClipboardList size={18} />,
+  Workflow:        <Workflow size={18} />,
+  Shield:          <Shield size={18} />,
+  ToggleLeft:      <ToggleLeft size={18} />,
+  Server:          <Server size={18} />,
+  Sparkles:        <Sparkles size={18} />,
+  GitMerge:        <GitMerge size={18} />,
+  Package:         <Package size={18} />,
+  Boxes:           <Boxes size={18} />,
+  Building2:       <Building2 size={18} />,
 }
 
 const NAV_SECTIONS = {
   employee: {
     label: 'Workspace',
     items: [
-      { label: 'Dashboard', href: '/employee', icon: 'LayoutDashboard' },
-      { label: 'Work Session', href: '/employee/session', icon: 'Clock' },
-      { label: 'Debt Recovery', href: '/employee/recovery', icon: 'Activity' },
-      { label: 'AI Analytics', href: '/employee/analytics', icon: 'Brain' },
-      { label: 'Tasks', href: '/employee/tasks', icon: 'CheckSquare' },
-      { label: 'Leaves', href: '/employee/leaves', icon: 'CalendarRange' },
-      { label: 'Assets', href: '/employee/assets', icon: 'Monitor' },
-      { label: 'Meeting Rooms', href: '/employee/rooms', icon: 'DoorOpen' },
-      { label: 'Announcements', href: '/employee/announcements', icon: 'Megaphone' },
-      { label: 'Rewards', href: '/employee/rewards', icon: 'Wallet' },
-      { label: 'Achievements', href: '/employee/achievements', icon: 'Trophy' },
+      { label: 'Dashboard',     href: '/employee',              icon: 'LayoutDashboard' },
+      { label: 'Work Session',  href: '/employee/session',      icon: 'Clock' },
+      { label: 'Debt Recovery', href: '/employee/recovery',     icon: 'Activity' },
+      { label: 'AI Analytics',  href: '/employee/analytics',    icon: 'Brain' },
+      { label: 'Tasks',         href: '/employee/tasks',        icon: 'CheckSquare' },
+      { label: 'Calendar',      href: '/employee/calendar',     icon: 'CalendarDays' },
+      { label: 'Leaves',        href: '/employee/leaves',       icon: 'CalendarRange' },
+      { label: 'Assets',        href: '/employee/assets',       icon: 'Monitor' },
+      { label: 'Meeting Rooms', href: '/employee/rooms',        icon: 'DoorOpen' },
+      { label: 'Chat',          href: '/employee/chat',         icon: 'MessageSquare' },
+      { label: 'Meetings',      href: '/employee/meetings',     icon: 'Video' },
+      { label: 'Announcements', href: '/employee/announcements',icon: 'Megaphone' },
+      { label: 'Documents',     href: '/employee/documents',    icon: 'FileText' },
+      { label: 'Timeline',      href: '/employee/timeline',     icon: 'GitBranch' },
+      { label: 'Goals & OKRs',  href: '/employee/goals',        icon: 'Target' },
+      { label: 'Knowledge Base',href: '/employee/knowledge',    icon: 'BookOpen' },
+      { label: 'Surveys',       href: '/employee/surveys',      icon: 'ClipboardList' },
+      { label: 'Rewards',       href: '/employee/rewards',      icon: 'Wallet' },
+      { label: 'Achievements',  href: '/employee/achievements', icon: 'Trophy' },
     ],
   },
   admin: {
     label: 'Administration',
     items: [
-      { label: 'Analytics', href: '/admin', icon: 'BarChart3' },
-      { label: 'HR Management', href: '/admin/hr', icon: 'Users' },
-      { label: 'Payroll', href: '/admin/payroll', icon: 'Banknote' },
+      { label: 'AI Office Manager', href: '/admin',              icon: 'Sparkles',   highlight: true },
+      { label: 'HR Management',     href: '/admin/hr',           icon: 'Users' },
+      { label: 'Attendance',        href: '/admin/attendance',   icon: 'Clock' },
+      { label: 'Leave Management',  href: '/admin/leaves',       icon: 'CalendarRange' },
+      { label: 'Tasks',             href: '/admin/tasks',        icon: 'CheckSquare' },
+      { label: 'Assets',            href: '/admin/assets',       icon: 'Package' },
+      { label: 'Payroll',           href: '/admin/payroll',      icon: 'Banknote' },
+      { label: 'Analytics',         href: '/admin/analytics',    icon: 'BarChart3' },
+      { label: 'Visitors',          href: '/reception',          icon: 'UserPlus' },
+      { label: 'Workflows',         href: '/admin/workflows',    icon: 'Workflow' },
+      { label: 'Audit Logs',        href: '/admin/audit',        icon: 'Shield' },
+      { label: 'Feature Flags',     href: '/admin/features',     icon: 'ToggleLeft' },
     ],
   },
   reception: {
@@ -83,29 +135,41 @@ const NAV_SECTIONS = {
   },
 } as const
 
+type NavItem = {
+  label: string
+  href: string
+  icon: string
+  highlight?: boolean
+}
+
 export function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router   = useRouter();
   const { collapsed, setCollapsed } = React.useContext(SidebarContext);
-  const { user, employee, logout } = useAuthStore();
+  const { user, employee, logout }  = useAuthStore();
 
-  const role = user?.role || 'employee';
+  const role              = (user?.role as any) || 'employee';
   const accessibleSections = getAccessibleNavSections(role);
-  const roleConfig = ROLES[role];
+  const roleConfig        = ROLES[role];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     logout();
     router.push('/login');
   };
 
-  const displayName = employee ? `${employee.firstName} ${employee.lastName}` : user?.email || 'User';
+  const displayName = employee
+    ? `${employee.firstName} ${employee.lastName}`
+    : user?.email || 'User';
   const initials = employee
     ? `${employee.firstName[0]}${employee.lastName[0]}`
     : (user?.email?.[0] || 'U').toUpperCase();
-  const designation = employee?.designation || roleConfig.label;
+  const designation = (employee as any)?.designation || roleConfig.label;
 
   return (
     <Sidebar className="border-r border-border/40">
+      {/* ── Header ── */}
       <SidebarHeader>
         <div className="flex w-full items-center justify-between">
           {!collapsed && (
@@ -122,6 +186,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
+      {/* ── Content ── */}
       <SidebarContent>
         {accessibleSections.map((sectionKey, sectionIndex) => {
           const section = NAV_SECTIONS[sectionKey as keyof typeof NAV_SECTIONS];
@@ -141,15 +206,37 @@ export function AppSidebar() {
                   </span>
                 </div>
               )}
-              {section.items.map((item) => {
-                const isActive = pathname === item.href || (item.href !== '/employee' && pathname.startsWith(`${item.href}/`));
+              {(section.items as readonly NavItem[]).map((item) => {
+                const isActive    = pathname === item.href ||
+                  (item.href !== '/employee' && item.href !== '/admin' && pathname.startsWith(`${item.href}/`)) ||
+                  (item.href === '/admin' && pathname === '/admin');
+                const isHighlight = 'highlight' in item && item.highlight;
+
                 return (
                   <Link href={item.href} key={item.href} className="w-full">
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      icon={iconMap[item.icon] || <LayoutDashboard size={18} />}
-                      label={item.label}
-                    />
+                    <div
+                      className={`
+                        flex items-center gap-3 px-3 py-2 mx-2 rounded-lg transition-colors cursor-pointer
+                        ${isActive
+                          ? 'bg-primary text-primary-foreground'
+                          : isHighlight
+                            ? 'text-primary hover:bg-primary/10 font-medium'
+                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                        }
+                      `}
+                    >
+                      <span className="shrink-0">
+                        {iconMap[item.icon] || <LayoutDashboard size={18} />}
+                      </span>
+                      {!collapsed && (
+                        <span className="text-sm truncate flex-1">{item.label}</span>
+                      )}
+                      {!collapsed && isHighlight && !isActive && (
+                        <Badge className="ml-auto text-[9px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
+                          AI
+                        </Badge>
+                      )}
+                    </div>
                   </Link>
                 );
               })}
@@ -158,6 +245,7 @@ export function AppSidebar() {
         })}
       </SidebarContent>
 
+      {/* ── Footer ── */}
       <SidebarFooter>
         <div className="flex flex-col gap-2">
           {!collapsed && (
@@ -170,31 +258,33 @@ export function AppSidebar() {
             </div>
           )}
 
-          <Link 
-            href="/employee/profile" 
+          <Link
+            href="/employee/profile"
             className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer group"
           >
-             <Avatar className="w-8 h-8 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-               <AvatarImage src={employee?.avatarUrl} />
-               <AvatarFallback>{initials}</AvatarFallback>
-             </Avatar>
-             {!collapsed && (
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <span className="text-sm font-medium truncate">{displayName}</span>
-                  <span className="text-xs text-muted-foreground truncate">{designation}</span>
-                </div>
-             )}
+            <Avatar className="w-8 h-8 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+              <AvatarImage src={employee?.avatarUrl} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            {!collapsed && (
+              <div className="flex flex-col flex-1 overflow-hidden">
+                <span className="text-sm font-medium truncate">{displayName}</span>
+                <span className="text-xs text-muted-foreground truncate">{designation}</span>
+              </div>
+            )}
           </Link>
-          
-          <SidebarMenuButton
-            icon={<LogOut size={18}/>}
-            label="Sign Out"
+
+          <div
             onClick={handleLogout}
-          />
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
+            className="flex items-center gap-3 px-3 py-2 mx-0 rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+          >
+            <LogOut size={18} className="shrink-0" />
+            {!collapsed && <span className="text-sm">Sign Out</span>}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
             className="mt-2 w-full flex justify-center text-muted-foreground"
             onClick={() => setCollapsed(!collapsed)}
           >

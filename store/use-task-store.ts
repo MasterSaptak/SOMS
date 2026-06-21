@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Task, TaskStatus, TaskPriority, TaskComment } from '@/lib/types'
-import { MOCK_TASKS } from '@/lib/mock-data'
+import { MOCK_TASKS } from '@/lib/demo/generators/legacy-mock-data'
 
 interface TaskFilters {
   status: TaskStatus | 'all'

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MOCK_VISITORS, MOCK_EMPLOYEES, getFullName } from '@/lib/mock-data'
+import { MOCK_VISITORS, MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
 import type { VisitorLog } from '@/lib/types'
 import { UserPlus, LogIn, LogOut, Search, Clock, Building2, Phone, X, Plus } from 'lucide-react'
 

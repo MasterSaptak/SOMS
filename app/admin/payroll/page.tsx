@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MOCK_EMPLOYEES, MOCK_SALARIES, MOCK_PAYSLIPS, getFullName } from '@/lib/mock-data'
+import { MOCK_EMPLOYEES, MOCK_SALARIES, MOCK_PAYSLIPS, getFullName } from '@/lib/demo/generators/legacy-mock-data'
 import { Banknote, Download, FileText, TrendingUp, Wallet, Users, ArrowUpRight } from 'lucide-react'
 
 const containerVars = {

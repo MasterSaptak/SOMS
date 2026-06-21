@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_ACHIEVEMENTS } from '@/lib/mock-data'
+import { MOCK_ACHIEVEMENTS } from '@/lib/demo/generators/legacy-mock-data'
 import { Trophy, Lock, Star, Flame, Zap, Target, Shield, Clock, Award, Crown, Users, Coffee } from 'lucide-react'
 
 const containerVars = {

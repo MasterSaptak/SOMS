@@ -8,7 +8,7 @@ import type { PermissionAction, PermissionResource } from '@/lib/types'
  * Hook for auth state and permission checking in components
  */
 export function useAuth() {
-  const { user, employee, isAuthenticated, login, logout } = useAuthStore()
+  const { user, employee, isAuthenticated, setAuth, logout } = useAuthStore()
   const role = user?.role ?? null
 
   return {
@@ -16,7 +16,7 @@ export function useAuth() {
     employee,
     isAuthenticated,
     role,
-    login,
+    setAuth,
     logout,
 
     /** Check if the current user has a specific permission */

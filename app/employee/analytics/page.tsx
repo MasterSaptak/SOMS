@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Sparkles, TrendingUp, TrendingDown, Target, Brain, Calendar, Clock, AlertTriangle } from 'lucide-react'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_AI_INSIGHTS, MOCK_PRODUCTIVITY } from '@/lib/mock-data'
+import { MOCK_AI_INSIGHTS, MOCK_PRODUCTIVITY } from '@/lib/demo/generators/legacy-mock-data'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts'
 import { cn } from '@/lib/utils'
 

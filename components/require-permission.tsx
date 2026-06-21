@@ -1,33 +1,37 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
-import { hasPermission, Role, Resource, Action } from '@/lib/rbac'
-import { useAuthStore } from '@/store/use-auth-store'
+/**
+ * @deprecated Use <Can permission="resource.action"> instead.
+ * Kept for backward compatibility during the transition to string-based permissions.
+ */
+import React from 'react'
+import { Can } from '@/components/auth/can'
+import type { Permission } from '@/types/permissions'
 
 interface RequirePermissionProps {
-  resource: Resource
-  action: Action
+  /** Permission key e.g. 'leave.approve'. Falls back to legacy resource+action if not set. */
+  permission?: Permission
+  /** @deprecated Use `permission` prop with string key instead */
+  resource?: string
+  /** @deprecated Use `permission` prop with string key instead */
+  action?: string
   children: React.ReactNode
   fallback?: React.ReactNode
 }
 
-export function RequirePermission({ resource, action, children, fallback = null }: RequirePermissionProps) {
-  const { user } = useAuthStore()
-  const [mounted, setMounted] = useState(false)
+export function RequirePermission({
+  permission,
+  resource,
+  action,
+  children,
+  fallback = null,
+}: RequirePermissionProps) {
+  // Derive permission key from legacy resource+action props
+  const derivedPermission: Permission = permission ?? (`${resource}.${action}` as Permission)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) return null
-
-  // In our simplified setup, `user.role` from the mock store acts as the current role
-  // In a real Supabase setup, this would be fetched from the `organization_members` table
-  const userRole = (user?.role || 'employee') as Role
-
-  if (hasPermission(userRole, resource, action)) {
-    return <>{children}</>
-  }
-
-  return <>{fallback}</>
+  return (
+    <Can permission={derivedPermission} fallback={fallback}>
+      {children}
+    </Can>
+  )
 }
