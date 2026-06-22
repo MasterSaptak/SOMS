@@ -58,7 +58,7 @@ const sidebarMenuButtonVariants = cva(
   {
     variants: {
       isActive: {
-        true: "bg-primary/10 text-primary hover:bg-primary/20",
+        true: "bg-accent/80 text-foreground shadow-sm ring-1 ring-border/50 font-medium",
         false: "",
       },
       collapsed: {

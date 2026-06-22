@@ -54,7 +54,7 @@ export function ProfileHero({ employee, isAdminView, onEditClick }: ProfileHeroP
             
             <div className="shrink-0">
               <Avatar className={`w-24 h-24 border-4 border-background ring-2 ring-offset-2 ring-offset-background ${ringColor}`}>
-                <AvatarImage src={employee.avatarUrl} />
+                <AvatarImage src={employee.avatarUrl || undefined} />
                 <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">{initials}</AvatarFallback>
               </Avatar>
             </div>

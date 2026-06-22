@@ -23,7 +23,7 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
 
   const load = async () => {
     setIsLoading(true)
-    const { data } = await supabase.from('emergency_contacts').select('*').eq('employee_id', employeeId).order('is_primary', { ascending: false })
+    const { data } = await (supabase as any).from('emergency_contacts').select('*').eq('employee_id', employeeId).order('is_primary', { ascending: false })
     if (data) setContacts(data)
     setIsLoading(false)
   }
@@ -39,7 +39,7 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
     }
     setIsSaving(true)
     try {
-      const { error } = await supabase.from('emergency_contacts').insert({
+      const { error } = await (supabase as any).from('emergency_contacts').insert({
         employee_id: employeeId,
         ...formData
       })
@@ -56,7 +56,7 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this contact?')) return
     try {
-      const { error } = await supabase.from('emergency_contacts').delete().eq('id', id)
+      const { error } = await (supabase as any).from('emergency_contacts').delete().eq('id', id)
       if (error) throw error
       load()
     } catch (e: any) {

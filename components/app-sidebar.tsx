@@ -218,7 +218,7 @@ export function AppSidebar() {
                       className={`
                         flex items-center gap-3 px-3 py-2 mx-2 rounded-lg transition-colors cursor-pointer
                         ${isActive
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-accent/80 text-foreground font-medium shadow-sm ring-1 ring-border/50'
                           : isHighlight
                             ? 'text-primary hover:bg-primary/10 font-medium'
                             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'

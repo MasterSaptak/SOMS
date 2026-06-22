@@ -1,42 +1,45 @@
 "use client"
 
-import React from 'react'
-import { motion } from 'motion/react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Users, Clock, CalendarRange, Activity, ArrowUp, ArrowDown } from 'lucide-react'
-import { 
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, 
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
-} from 'recharts'
-import { AIBriefingCard } from '@/components/ai/ai-briefing-card'
-import { InsightsStream } from '@/components/ai/insights-stream'
-import { PendingApprovalsWidget } from '@/components/ai/pending-approvals-widget'
-import { MOCK_EMPLOYEES, MOCK_TASKS, MOCK_LEAVES, MOCK_PRODUCTIVITY, MOCK_ATTENDANCE } from '@/lib/demo/generators/legacy-mock-data'
-
-const containerVars = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-}
-const itemVars = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
-}
+import React, { useState, useEffect } from 'react'
+import { BentoGrid, BentoSlot } from '@/components/enterprise/layout/bento-grid'
+import { MetricCard } from '@/components/enterprise/primitives/metric-card'
+import { ExecutiveOverview } from '@/components/dashboard/bento/executive-overview'
+import { AttendanceChart } from '@/components/dashboard/bento/attendance-chart'
+import { DepartmentPerformance } from '@/components/dashboard/bento/department-performance'
+import { HeadcountDonut } from '@/components/dashboard/bento/headcount-donut'
+import { AICopilotPanel } from '@/components/dashboard/bento/ai-copilot-panel'
+import { LiveActivity } from '@/components/dashboard/bento/live-activity'
+import { WorkspaceStatus } from '@/components/dashboard/bento/workspace-status'
+import { QuickActions } from '@/components/dashboard/bento/quick-actions'
+import { PendingApprovalsBento } from '@/components/dashboard/bento/pending-approvals-bento'
+import {
+  Users, Clock, CalendarRange, Activity, Calendar, CheckSquare, Briefcase,
+} from 'lucide-react'
+import {
+  MOCK_EMPLOYEES, MOCK_TASKS, MOCK_LEAVES, MOCK_PRODUCTIVITY, MOCK_ATTENDANCE, MOCK_AI_INSIGHTS,
+} from '@/lib/demo/generators/legacy-mock-data'
 
 export default function AdminDashboard() {
-  // Compute KPIs
-  const activeEmployeesCount = MOCK_EMPLOYEES.filter(e => e.status === 'active').length
-  const today = '2026-06-17' // From mock data current context
-  const todayAttendance = MOCK_ATTENDANCE.filter(a => a.date === today && (a.status === 'present' || a.status === 'wfh')).length
-  const attendanceRate = activeEmployeesCount > 0 ? Math.round((todayAttendance / activeEmployeesCount) * 100) : 0
-  const pendingLeavesCount = MOCK_LEAVES.filter(l => l.status === 'pending').length
-  
-  const activeProductivity = MOCK_PRODUCTIVITY.filter(p => p.score > 0)
-  const orgHealthScore = activeProductivity.length > 0 
-    ? Math.round(activeProductivity.reduce((acc, curr) => acc + curr.score, 0) / activeProductivity.length)
-    : 0
+  // ─── Compute KPIs (same logic as before) ─── //
+  const activeEmployeesCount = MOCK_EMPLOYEES.filter((e) => e.status === 'active').length
+  const today = '2026-06-17'
+  const todayAttendance = MOCK_ATTENDANCE.filter(
+    (a) => a.date === today && (a.status === 'present' || a.status === 'wfh')
+  ).length
+  const attendanceRate =
+    activeEmployeesCount > 0 ? Math.round((todayAttendance / activeEmployeesCount) * 100) : 0
+  const pendingLeavesCount = MOCK_LEAVES.filter((l) => l.status === 'pending').length
+  const activeProductivity = MOCK_PRODUCTIVITY.filter((p) => p.score > 0)
+  const orgHealthScore =
+    activeProductivity.length > 0
+      ? Math.round(
+          activeProductivity.reduce((acc, curr) => acc + curr.score, 0) / activeProductivity.length
+        )
+      : 0
 
-  // Chart Data
+  const pendingTasks = MOCK_TASKS.filter((t) => t.status === 'pending' || t.status === 'in_progress').length
+
+  // ─── Chart Data (same as before) ─── //
   const attendanceTrend = [
     { day: 'Mon', present: 7, wfh: 1, absent: 2 },
     { day: 'Tue', present: 8, wfh: 1, absent: 1 },
@@ -60,188 +63,147 @@ export default function AdminDashboard() {
     { name: 'Marketing', value: 1 },
     { name: 'Operations', value: 1 },
   ]
-  const PIE_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
+
+  // ─── Greeting ─── //
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good Morning, Admin' : hour < 17 ? 'Good Afternoon, Admin' : 'Good Evening, Admin'
+  const dateStr = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+
+  // ─── AI Briefing (same API call) ─── //
+  const [briefing, setBriefing] = useState<string | null>(null)
+  const [briefingLoading, setBriefingLoading] = useState(true)
+
+  const fetchBriefing = async () => {
+    setBriefingLoading(true)
+    try {
+      const res = await fetch('/api/ai/briefing')
+      if (res.ok) {
+        const json = await res.json()
+        setBriefing(json.briefing)
+      } else {
+        setBriefing('Unable to load briefing. Check AI service connectivity.')
+      }
+    } catch {
+      setBriefing('Unable to connect to AI service.')
+    } finally {
+      setBriefingLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchBriefing()
+  }, [])
+
+  // ─── AI Insights (existing mock data) ─── //
+  const aiInsights = MOCK_AI_INSIGHTS.map((i) => ({
+    id: i.id,
+    title: i.title,
+    content: i.content,
+    severity: i.severity,
+    type: i.insightType,
+    timestamp: i.createdAt,
+  }))
 
   return (
-    <motion.div variants={containerVars} initial="hidden" animate="show" className="flex flex-col gap-6 pb-12 max-w-[1600px] mx-auto">
-      
+    <div className="flex flex-col gap-2 pb-12 max-w-[1600px] mx-auto">
       {/* Page Header */}
-      <motion.div variants={itemVars}>
-        <h1 className="text-3xl font-bold tracking-tight">AI Office Manager</h1>
-        <p className="text-muted-foreground mt-1">Smart insights and operations dashboard.</p>
-      </motion.div>
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold tracking-tight">Command Center</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Enterprise overview and AI intelligence</p>
+      </div>
 
-      {/* SECTION 1: AI Briefing */}
-      <motion.div variants={itemVars}>
-        <AIBriefingCard />
-      </motion.div>
+      {/* Bento Dashboard */}
+      <BentoGrid gap="md">
 
-      {/* SECTION 2: Smart KPI Row */}
-      <motion.div variants={itemVars} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1 */}
-        <Card className="border-b-[3px] border-b-blue-500/50 hover:border-b-blue-500 transition-colors">
-          <CardContent className="p-5 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Active Employees</span>
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Users className="w-4 h-4 text-blue-500" />
-              </div>
-            </div>
-            <div className="flex items-end gap-3 mt-1">
-              <span className="text-3xl font-bold">{activeEmployeesCount}</span>
-              <span className="text-xs text-emerald-500 flex items-center font-medium mb-1"><ArrowUp className="w-3 h-3 mr-0.5" /> +1 this month</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{MOCK_EMPLOYEES.length} total headcount</p>
-          </CardContent>
-        </Card>
+        {/* Row 1: Hero + KPIs */}
+        <BentoSlot size="hero" widgetId="executive-overview">
+          <ExecutiveOverview
+            greeting={greeting}
+            date={dateStr}
+            healthScore={orgHealthScore}
+            miniStats={[
+              { label: 'Active', value: activeEmployeesCount, icon: <Users className="w-3.5 h-3.5" /> },
+              { label: 'Attendance', value: attendanceRate, suffix: '%', icon: <Clock className="w-3.5 h-3.5" /> },
+              { label: 'Tasks', value: pendingTasks, icon: <CheckSquare className="w-3.5 h-3.5" /> },
+              { label: 'Meetings', value: 3, icon: <Calendar className="w-3.5 h-3.5" /> },
+            ]}
+            aiConfidence={92}
+          />
+        </BentoSlot>
 
-        {/* KPI 2 */}
-        <Card className="border-b-[3px] border-b-emerald-500/50 hover:border-b-emerald-500 transition-colors">
-          <CardContent className="p-5 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Attendance Rate</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-emerald-500" />
-              </div>
-            </div>
-            <div className="flex items-end gap-3 mt-1">
-              <span className="text-3xl font-bold">{attendanceRate}%</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">8 present · 1 on leave</p>
-          </CardContent>
-        </Card>
+        <BentoSlot size="small" widgetId="kpi-employees">
+          <MetricCard
+            title="Active Employees"
+            value={activeEmployeesCount}
+            trend={1}
+            trendLabel="+1 this month"
+            subtitle={`${MOCK_EMPLOYEES.length} total headcount`}
+            icon={<Users className="w-4 h-4" />}
+            sparklineData={[6, 7, 7, 8, 8, 9, 9]}
+            sparklineColor="blue"
+          />
+        </BentoSlot>
 
-        {/* KPI 3 */}
-        <Card className="border-b-[3px] border-b-amber-500/50 hover:border-b-amber-500 transition-colors">
-          <CardContent className="p-5 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Pending Approvals</span>
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                <CalendarRange className="w-4 h-4 text-amber-500" />
-              </div>
-            </div>
-            <div className="flex items-end gap-3 mt-1">
-              <span className="text-3xl font-bold">{pendingLeavesCount}</span>
-              <span className="text-xs text-amber-500 font-medium mb-1">Needs action</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Leaves and requests</p>
-          </CardContent>
-        </Card>
+        <BentoSlot size="small" widgetId="kpi-attendance">
+          <MetricCard
+            title="Attendance Rate"
+            value={attendanceRate}
+            suffix="%"
+            trend={3}
+            subtitle={`${todayAttendance} present · ${activeEmployeesCount - todayAttendance} absent/leave`}
+            icon={<Clock className="w-4 h-4" />}
+            sparklineData={[78, 82, 80, 88, 85, 90, attendanceRate]}
+            sparklineColor="emerald"
+            progress={attendanceRate}
+            progressColor="bg-emerald-500"
+          />
+        </BentoSlot>
 
-        {/* KPI 4 */}
-        <Card className="border-b-[3px] border-b-purple-500/50 hover:border-b-purple-500 transition-colors">
-          <CardContent className="p-5 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Org Health Score</span>
-              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-purple-500" />
-              </div>
-            </div>
-            <div className="flex items-end gap-3 mt-1">
-              <span className="text-3xl font-bold">{orgHealthScore}<span className="text-lg text-muted-foreground font-normal">/100</span></span>
-              <span className="text-xs text-red-500 flex items-center font-medium mb-1"><ArrowDown className="w-3 h-3 mr-0.5" /> -2% vs last wk</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Based on productivity & focus</p>
-          </CardContent>
-        </Card>
-      </motion.div>
+        {/* Row 2: Charts + AI */}
+        <BentoSlot size="wide" widgetId="attendance-chart">
+          <AttendanceChart data={attendanceTrend} />
+        </BentoSlot>
 
-      {/* SECTION 3: Live Feeds */}
-      <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-        <div className="lg:col-span-2 h-full">
-          <InsightsStream />
-        </div>
-        <div className="lg:col-span-1 h-full">
-          <PendingApprovalsWidget />
-        </div>
-      </motion.div>
+        <BentoSlot size="tall" widgetId="ai-copilot">
+          <AICopilotPanel
+            briefing={briefing}
+            briefingLoading={briefingLoading}
+            insights={aiInsights}
+            onRefreshBriefing={fetchBriefing}
+          />
+        </BentoSlot>
 
-      {/* SECTION 4: Charts Row */}
-      <motion.div variants={itemVars} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Attendance Trend */}
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base">Attendance Trend</CardTitle>
-            <CardDescription>Present vs WFH vs Absent over the last 5 days</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[250px] pt-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={attendanceTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                <Tooltip 
-                  cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="present" name="Present" stackId="a" fill="hsl(var(--chart-2))" radius={[0, 0, 4, 4]} />
-                <Bar dataKey="wfh" name="WFH" stackId="a" fill="hsl(var(--chart-1))" />
-                <Bar dataKey="absent" name="Absent" stackId="a" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <BentoSlot size="medium" widgetId="dept-performance">
+          <DepartmentPerformance data={deptPerformance} />
+        </BentoSlot>
 
-        {/* Department Performance */}
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base">Department Performance</CardTitle>
-            <CardDescription>Average productivity score by department</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0 flex flex-col justify-center gap-4">
-            {deptPerformance.map(dept => (
-              <div key={dept.dept} className="flex flex-col gap-1">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">{dept.dept}</span>
-                  <span className="text-muted-foreground">{dept.score}/100</span>
-                </div>
-                <Progress 
-                  value={dept.score} 
-                  className="h-2 bg-muted" 
-                  indicatorClassName={dept.score > 85 ? 'bg-emerald-500' : dept.score > 80 ? 'bg-blue-500' : 'bg-amber-500'} 
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <BentoSlot size="medium" widgetId="headcount">
+          <HeadcountDonut data={deptHeadcount} />
+        </BentoSlot>
 
-      </motion.div>
+        {/* Row 3: Activity + Workspace + Actions + Approvals */}
+        <BentoSlot size="wide" widgetId="live-activity">
+          <LiveActivity />
+        </BentoSlot>
 
-      {/* SECTION 5: Headcount Distribution */}
-      <motion.div variants={itemVars}>
-        <Card className="border-border/50 shadow-sm w-full lg:w-1/2">
-          <CardHeader>
-            <CardTitle className="text-base">Headcount Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[250px] pt-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={deptHeadcount}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {deptHeadcount.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
-                />
-                <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: '12px' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </motion.div>
+        <BentoSlot size="medium" widgetId="workspace">
+          <WorkspaceStatus />
+        </BentoSlot>
 
-    </motion.div>
+        <BentoSlot size="medium" widgetId="quick-actions">
+          <QuickActions />
+        </BentoSlot>
+
+        <BentoSlot size="wide" widgetId="pending-approvals">
+          <PendingApprovalsBento />
+        </BentoSlot>
+
+      </BentoGrid>
+    </div>
   )
 }

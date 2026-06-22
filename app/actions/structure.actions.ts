@@ -22,14 +22,14 @@ export async function getDepartmentsAction(orgId?: string): Promise<Result<Depar
     
     let targetOrgId = orgId
     if (!targetOrgId) {
-      const { data: orgData } = await supabase.from('organizations').select('id').eq('is_demo', true).single()
+      const { data: orgData } = await (supabase as any).from('organizations').select('id').eq('is_demo', true).single()
       if (orgData) targetOrgId = orgData.id
       else return success([]) // No demo org found
     }
 
     await permissionService.authorize(userId, targetOrgId as string, 'employee.read')
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('departments')
       .select('*')
       .eq('organization_id', targetOrgId)
@@ -56,14 +56,14 @@ export async function getDesignationsAction(orgId?: string): Promise<Result<Desi
 
     let targetOrgId = orgId
     if (!targetOrgId) {
-      const { data: orgData } = await supabase.from('organizations').select('id').eq('is_demo', true).single()
+      const { data: orgData } = await (supabase as any).from('organizations').select('id').eq('is_demo', true).single()
       if (orgData) targetOrgId = orgData.id
       else return success([])
     }
 
     await permissionService.authorize(userId, targetOrgId as string, 'employee.read')
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('designations')
       .select('*')
       .eq('organization_id', targetOrgId)
@@ -89,14 +89,14 @@ export async function getWorkLocationsAction(orgId?: string): Promise<Result<Wor
 
     let targetOrgId = orgId
     if (!targetOrgId) {
-      const { data: orgData } = await supabase.from('organizations').select('id').eq('is_demo', true).single()
+      const { data: orgData } = await (supabase as any).from('organizations').select('id').eq('is_demo', true).single()
       if (orgData) targetOrgId = orgData.id
       else return success([])
     }
 
     await permissionService.authorize(userId, targetOrgId as string, 'employee.read')
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('work_locations')
       .select('*')
       .eq('organization_id', targetOrgId)

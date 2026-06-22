@@ -218,13 +218,13 @@ export function DynamicSidebar() {
               className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer group"
             >
               <Avatar className="w-8 h-8 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-                <AvatarImage src={employee?.avatarUrl} />
+                <AvatarImage src={employee?.avatarUrl || undefined} />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               {!collapsed && (
                 <div className="flex flex-col flex-1 overflow-hidden">
                   <span className="text-sm font-medium truncate">{displayName}</span>
-                  <span className="text-xs text-muted-foreground truncate">{designation}</span>
+                  <span className="text-xs text-muted-foreground truncate">{designation as any}</span>
                 </div>
               )}
             </Link>

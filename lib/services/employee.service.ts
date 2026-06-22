@@ -85,7 +85,7 @@ export class EmployeeService {
 
     try {
       const client = await createClient()
-      const { data, error } = await client
+      const { data, error } = await (client as any)
         .from('employee_skills')
         .insert({
           employee_id: employeeId,

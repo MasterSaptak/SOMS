@@ -22,7 +22,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin }: { employeeId: stri
   useEffect(() => {
     async function load() {
       setIsLoading(true)
-      const { data: ed } = await supabase.from('employment_details').select('*').eq('employee_id', employeeId).single()
+      const { data: ed } = await (supabase as any).from('employment_details').select('*').eq('employee_id', employeeId).single()
       if (ed) {
         setData(ed)
         setFormData({
@@ -42,14 +42,14 @@ export function EmploymentDetailsTab({ employeeId, isAdmin }: { employeeId: stri
     try {
       if (data) {
         // Update
-        const { error } = await supabase.from('employment_details').update({
+        const { error } = await (supabase as any).from('employment_details').update({
           ...formData,
           probation_end_date: formData.probation_end_date || null
         }).eq('id', data.id)
         if (error) throw error
       } else {
         // Insert
-        const { error } = await supabase.from('employment_details').insert({
+        const { error } = await (supabase as any).from('employment_details').insert({
           employee_id: employeeId,
           ...formData,
           probation_end_date: formData.probation_end_date || null
@@ -57,7 +57,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin }: { employeeId: stri
         if (error) throw error
       }
       // Reload
-      const { data: ed } = await supabase.from('employment_details').select('*').eq('employee_id', employeeId).single()
+      const { data: ed } = await (supabase as any).from('employment_details').select('*').eq('employee_id', employeeId).single()
       setData(ed)
       setIsEditing(false)
     } catch (e: any) {

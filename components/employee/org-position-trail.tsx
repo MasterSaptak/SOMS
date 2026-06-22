@@ -19,7 +19,7 @@ export function OrgPositionTrail({ employeeId }: { employeeId: string }) {
       for (let i = 0; i < 4; i++) {
         if (!currentId) break
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('employees')
           .select('id, full_name, manager_id')
           .eq('id', currentId)

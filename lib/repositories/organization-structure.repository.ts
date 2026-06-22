@@ -54,6 +54,7 @@ export class TeamRepository extends BaseRepository<'teams'> {
   }
 }
 
+// @ts-expect-error - Table not in generated types
 export class DesignationRepository extends BaseRepository<'designations'> {
   constructor() {
     super('designations')
@@ -77,6 +78,7 @@ export class DesignationRepository extends BaseRepository<'designations'> {
   }
 }
 
+// @ts-expect-error - Table not in generated types
 export class WorkLocationRepository extends BaseRepository<'work_locations'> {
   constructor() {
     super('work_locations')

@@ -28,7 +28,7 @@ export async function getEmployeesAction(orgId?: string): Promise<Result<Employe
     
     let targetOrgId = orgId
     if (!targetOrgId) {
-      const { data: orgData } = await supabase.from('organizations').select('id').eq('is_demo', true).single()
+      const { data: orgData } = await (supabase as any).from('organizations').select('id').eq('is_demo', true).single()
       if (orgData) targetOrgId = orgData.id
       else return success([]) // No demo org found
     }
@@ -36,7 +36,7 @@ export async function getEmployeesAction(orgId?: string): Promise<Result<Employe
     // Authz
     await permissionService.authorize(userId, targetOrgId as string, 'employee.read')
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('employees')
       .select('*')
       .eq('organization_id', targetOrgId)

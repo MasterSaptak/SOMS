@@ -21,7 +21,7 @@ export function SkillsTab({ employeeId, canEdit, isAdmin }: { employeeId: string
 
   const load = async () => {
     setIsLoading(true)
-    const { data } = await supabase.from('employee_skills').select('*').eq('employee_id', employeeId).order('skill_name')
+    const { data } = await (supabase as any).from('employee_skills').select('*').eq('employee_id', employeeId).order('skill_name')
     if (data) setSkills(data)
     setIsLoading(false)
   }
@@ -37,7 +37,7 @@ export function SkillsTab({ employeeId, canEdit, isAdmin }: { employeeId: string
     }
     setIsSaving(true)
     try {
-      const { error } = await supabase.from('employee_skills').insert({
+      const { error } = await (supabase as any).from('employee_skills').insert({
         employee_id: employeeId,
         skill_name: formData.skill_name,
         proficiency: formData.proficiency,
@@ -57,7 +57,7 @@ export function SkillsTab({ employeeId, canEdit, isAdmin }: { employeeId: string
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this skill?')) return
     try {
-      const { error } = await supabase.from('employee_skills').delete().eq('id', id)
+      const { error } = await (supabase as any).from('employee_skills').delete().eq('id', id)
       if (error) throw error
       load()
     } catch (e: any) {

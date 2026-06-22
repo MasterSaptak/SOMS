@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { WidgetShell } from '@/components/enterprise/widget-shell'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -321,13 +321,13 @@ export default function WorkSessionPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <motion.div variants={itemVars} className="lg:col-span-2">
-          <Card className="border-border/60 shadow-lg relative overflow-hidden">
+          <WidgetShell className="relative overflow-hidden">
             <div className={`absolute top-0 -left-1/4 w-1/2 h-full blur-[100px] rounded-full opacity-20 transition-colors duration-1000 ${
               sessionState === 'working' ? 'bg-primary' : 
               sessionState === 'break' ? 'bg-amber-500' : 'bg-transparent'
             }`} />
 
-            <CardContent className="p-8 relative z-10 flex flex-col items-center justify-center text-center py-16">
+            <div className="p-8 relative z-10 flex flex-col items-center justify-center text-center py-16">
               
               <div className="mb-4">
                  <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
@@ -428,17 +428,13 @@ export default function WorkSessionPage() {
                 </AnimatePresence>
               </div>
 
-            </CardContent>
-          </Card>
+            </div>
+          </WidgetShell>
         </motion.div>
 
         <motion.div variants={itemVars} className="flex flex-col gap-6">
-          <Card className="h-full">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Daily Target</CardTitle>
-              <CardDescription>8 hours default requirement</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <WidgetShell title="Daily Target" subtitle="8 hours default requirement" className="h-full">
+            <div className="pt-2">
               <div className="flex flex-col gap-2 relative mt-4">
                 <div className="flex justify-between items-end mb-2">
                   <span className="text-3xl font-bold">{Math.floor(progressPercent)}%</span>
@@ -446,17 +442,13 @@ export default function WorkSessionPage() {
                 </div>
                 <Progress value={progressPercent} className="h-3" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </WidgetShell>
         </motion.div>
 
         <motion.div variants={itemVars} className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Break Management</CardTitle>
-              <CardDescription>Take allowed breaks without accruing penalties.</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <WidgetShell title="Break Management" subtitle="Take allowed breaks without accruing penalties.">
+            <div className="pt-2">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {breakOptions.map((b) => {
                   const isActive = sessionState === 'break' && activeBreak === b.type;
@@ -493,8 +485,8 @@ export default function WorkSessionPage() {
                   )
                 })}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </WidgetShell>
         </motion.div>
       </div>
     </motion.div>

@@ -24,18 +24,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <ThemeProvider>
       <AuthGuard>
         <SidebarProvider>
-          <div className="flex w-full min-h-screen bg-muted/20">
+          <div className="flex w-full min-h-screen surface-base">
             <AppSidebar />
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-              <header className="h-14 border-b border-border/40 bg-background/50 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-20">
+              <header className="h-14 border-b border-border/30 bg-surface-primary/80 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-20">
                 <Breadcrumbs />
                 <div className="flex items-center gap-2">
                   <ThemeToggle />
                   <NotificationCenter />
                 </div>
               </header>
-              <div className="flex-1 overflow-auto p-6 md:p-8">
-                <div className="max-w-7xl mx-auto w-full">{children}</div>
+              <div className="flex-1 overflow-auto p-5 md:p-8 surface-base">
+                <div className="max-w-[1600px] mx-auto w-full">{children}</div>
               </div>
             </main>
           </div>

@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 @theme {
+  /* ─── Existing Color System ─── */
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -29,15 +30,42 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
+  /* ─── Enterprise Surface System ─── */
+  --color-surface-base: hsl(var(--surface-base));
+  --color-surface-primary: hsl(var(--surface-primary));
+  --color-surface-secondary: hsl(var(--surface-secondary));
+  --color-surface-elevated: hsl(var(--surface-elevated));
+
+  /* ─── Chart Palette ─── */
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-6: hsl(var(--chart-6));
+
+  /* ─── Border Radius Scale ─── */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  /* ─── Elevation Scale ─── */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.06);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.07), 0 8px 10px -6px rgb(0 0 0 / 0.07);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.12);
 
   --font-sans: var(--font-sans);
 }
 
 @layer base {
   :root {
+    /* ─── Core Color Tokens ─── */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -60,9 +88,35 @@
     --radius: 0.75rem;
 
     --font-sans: 'Inter', sans-serif;
+
+    /* ─── Enterprise Surface Layers ─── */
+    --surface-base: 220 14% 96%;
+    --surface-primary: 0 0% 100%;
+    --surface-secondary: 220 13% 97%;
+    --surface-elevated: 0 0% 100%;
+
+    /* ─── Chart Colors ─── */
+    --chart-1: 221 83% 53%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 262 83% 58%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 72% 51%;
+    --chart-6: 199 89% 48%;
+
+    /* ─── Motion Tokens ─── */
+    --duration-fast: 150ms;
+    --duration-normal: 250ms;
+    --duration-slow: 400ms;
+    --duration-slower: 600ms;
+
+    /* ─── Metric Typography ─── */
+    --text-metric: 2.5rem;
+    --text-metric-sm: 1.75rem;
+    --text-label: 0.6875rem;
   }
 
   .dark {
+    /* ─── Core Color Tokens (Dark) ─── */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -82,6 +136,20 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+
+    /* ─── Enterprise Surface Layers (Dark) ─── */
+    --surface-base: 224 71% 4%;
+    --surface-primary: 222 47% 8%;
+    --surface-secondary: 223 47% 11%;
+    --surface-elevated: 222 47% 12%;
+
+    /* ─── Chart Colors (Dark — brighter for contrast) ─── */
+    --chart-1: 217 91% 60%;
+    --chart-2: 160 84% 45%;
+    --chart-3: 262 83% 65%;
+    --chart-4: 38 92% 55%;
+    --chart-5: 0 72% 55%;
+    --chart-6: 199 89% 55%;
   }
 }
 
@@ -94,10 +162,113 @@
   }
 }
 
-/* Glassmorphism Classes */
+/* ============================================================
+   Enterprise Design System — Utilities
+   ============================================================ */
+
+/* ─── Glassmorphism Classes ─── */
 .glass {
   @apply bg-background/60 backdrop-blur-md border border-border/50;
 }
 .glass-card {
   @apply bg-card/60 backdrop-blur-md border border-border/50 shadow-sm transition-all hover:shadow-md;
+}
+
+/* ─── Surface Utilities ─── */
+.surface-base {
+  background-color: hsl(var(--surface-base));
+}
+.surface-primary {
+  background-color: hsl(var(--surface-primary));
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+.surface-secondary {
+  background-color: hsl(var(--surface-secondary));
+  border-radius: var(--radius-lg);
+}
+.surface-elevated {
+  background-color: hsl(var(--surface-elevated));
+  border: 1px solid hsl(var(--border) / 0.4);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+.surface-glass {
+  background-color: hsl(var(--surface-primary) / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.3);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+/* ─── Widget Hover ─── */
+.widget-hover {
+  transition: transform var(--duration-normal) cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow var(--duration-normal) cubic-bezier(0.16, 1, 0.3, 1),
+              border-color var(--duration-normal) cubic-bezier(0.16, 1, 0.3, 1);
+}
+.widget-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: hsl(var(--border) / 0.8);
+}
+
+/* ─── Skeleton Shimmer ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ─── Widget Update Bar ─── */
+@keyframes loading-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.loading-bar {
+  animation: loading-slide 1.5s ease-in-out infinite;
+}
+
+/* ─── Pulse Glow ─── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ─── Bento Grid Layout ─── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(180px, auto);
+  gap: var(--bento-gap, 20px);
+}
+@media (max-width: 1024px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .bento-grid { grid-template-columns: 1fr; }
+}
+
+.bento-hero   { grid-column: span 2; grid-row: span 2; }
+.bento-wide   { grid-column: span 2; grid-row: span 1; }
+.bento-tall   { grid-column: span 1; grid-row: span 2; }
+.bento-medium { grid-column: span 1; grid-row: span 1; }
+.bento-small  { grid-column: span 1; grid-row: span 1; }
+
+@media (max-width: 640px) {
+  .bento-hero, .bento-wide, .bento-tall { grid-column: span 1; grid-row: span 1; }
 }

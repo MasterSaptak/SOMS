@@ -38,7 +38,7 @@ export default function EmployeeLayout({
     <ThemeProvider>
       <AuthGuard>
         <SidebarProvider>
-          <div className="flex w-full min-h-screen bg-muted/20">
+          <div className="flex w-full min-h-screen bg-surface-base">
             <AppSidebar />
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
               {/* Header */}

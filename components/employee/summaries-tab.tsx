@@ -15,9 +15,9 @@ export function SummariesTab({ employeeId }: { employeeId: string }) {
       setIsLoading(true)
       
       const [tasksRes, leavesRes, attendanceRes] = await Promise.all([
-        supabase.from('tasks').select('*').eq('assigned_to', employeeId).limit(5).order('created_at', { ascending: false }),
-        supabase.from('leaves').select('*').eq('employee_id', employeeId).limit(5).order('created_at', { ascending: false }),
-        supabase.from('attendance').select('*').eq('employee_id', employeeId).limit(30).order('date', { ascending: false })
+        (supabase as any).from('tasks').select('*').eq('assigned_to', employeeId).limit(5).order('created_at', { ascending: false }),
+        (supabase as any).from('leaves').select('*').eq('employee_id', employeeId).limit(5).order('created_at', { ascending: false }),
+        (supabase as any).from('attendance').select('*').eq('employee_id', employeeId).limit(30).order('date', { ascending: false })
       ])
 
       if (tasksRes.data) setTasks(tasksRes.data)

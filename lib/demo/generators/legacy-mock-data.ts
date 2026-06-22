@@ -9,7 +9,7 @@ import type {
   Announcement, MeetingRoom, RoomBooking, Asset, AssetAssignment,
   Payslip, AttendanceLog, Reward, Achievement, VisitorLog,
   ProductivityScore, AIInsight, Notification, SalaryStructure
-} from './types'
+} from '@/lib/types'
 
 // ============================================================
 // ORGANIZATION

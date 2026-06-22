@@ -27,7 +27,7 @@ export class SeedService {
       // 1. Generate UUID Maps
       const idMap: Record<string, string> = {
         [MOCK_ORG_ID]: uuidv4(),
-        'none': null // for no manager
+        'none': null as any // for no manager
       }
 
       // Populate ID maps
@@ -42,7 +42,7 @@ export class SeedService {
 
       // 2. Insert Organization
       logger.info('[SeedService] Inserting Organization...')
-      const { error: orgErr } = await supabase.from('organizations').insert({
+      const { error: orgErr } = await (supabase as any).from('organizations').insert({
         id: idMap[MOCK_ORG_ID],
         name: 'SOMS Demo Company',
         domain: 'soms-demo.com',
@@ -52,7 +52,7 @@ export class SeedService {
 
       // 3. Insert Locations & Designations
       logger.info('[SeedService] Inserting Work Locations & Designations...')
-      await supabase.from('work_locations').insert(MOCK_WORK_LOCATIONS.map(l => ({
+      await (supabase as any).from('work_locations').insert(MOCK_WORK_LOCATIONS.map(l => ({
         id: idMap[l.id],
         organization_id: idMap[MOCK_ORG_ID],
         name: l.name,
@@ -60,7 +60,7 @@ export class SeedService {
         timezone: l.timezone
       })))
 
-      await supabase.from('designations').insert(MOCK_DESIGNATIONS.map(d => ({
+      await (supabase as any).from('designations').insert(MOCK_DESIGNATIONS.map(d => ({
         id: idMap[d.id],
         organization_id: idMap[MOCK_ORG_ID],
         title: d.title,
@@ -69,7 +69,7 @@ export class SeedService {
 
       // 4. Insert Departments (Handle Self-Refs like Parent ID)
       logger.info('[SeedService] Inserting Departments...')
-      await supabase.from('departments').insert(MOCK_DEPARTMENTS.map(d => ({
+      await (supabase as any).from('departments').insert(MOCK_DEPARTMENTS.map(d => ({
         id: idMap[d.id],
         organization_id: idMap[MOCK_ORG_ID],
         name: d.name,
@@ -78,7 +78,7 @@ export class SeedService {
 
       // 5. Insert Teams
       logger.info('[SeedService] Inserting Teams...')
-      await supabase.from('teams').insert(MOCK_TEAMS.map(t => ({
+      await (supabase as any).from('teams').insert(MOCK_TEAMS.map(t => ({
         id: idMap[t.id],
         department_id: idMap[t.departmentId],
         name: t.name
@@ -122,7 +122,7 @@ export class SeedService {
       // Since manager_id is self-referential, we can insert all employees safely as long as they are deferred
       // or we just insert them in one batch and Postgres handles it if deferrable,
       // OR we insert them with manager_id = null first, then update them.
-      const { error: empErr } = await supabase.from('employees').insert(
+      const { error: empErr } = await (supabase as any).from('employees').insert(
         employeesData.map(e => ({ ...e, manager_id: null }))
       )
       if (empErr) throw empErr
@@ -130,7 +130,7 @@ export class SeedService {
       // Update managers
       for (const e of employeesData) {
         if (e.manager_id) {
-          await supabase.from('employees').update({ manager_id: e.manager_id }).eq('id', e.id)
+          await (supabase as any).from('employees').update({ manager_id: e.manager_id }).eq('id', e.id)
         }
       }
 
@@ -138,18 +138,18 @@ export class SeedService {
       logger.info('[SeedService] Updating Heads & Leads...')
       for (const d of MOCK_DEPARTMENTS) {
         if (d.headId) {
-          await supabase.from('departments').update({ head_id: idMap[d.headId] }).eq('id', idMap[d.id])
+          await (supabase as any).from('departments').update({ head_id: idMap[d.headId] }).eq('id', idMap[d.id])
         }
       }
       for (const t of MOCK_TEAMS) {
         if (t.leadId) {
-          await supabase.from('teams').update({ lead_id: idMap[t.leadId] }).eq('id', idMap[t.id])
+          await (supabase as any).from('teams').update({ lead_id: idMap[t.leadId] }).eq('id', idMap[t.id])
         }
       }
 
       // 7. Insert Employee 360 Data
       logger.info('[SeedService] Inserting 360 Data...')
-      await supabase.from('employment_details').insert(MOCK_EMPLOYMENT_DETAILS.map(ed => ({
+      await (supabase as any).from('employment_details').insert(MOCK_EMPLOYMENT_DETAILS.map(ed => ({
         id: uuidv4(),
         employee_id: idMap[ed.employeeId],
         employment_type: ed.employmentType,
@@ -158,7 +158,7 @@ export class SeedService {
         work_schedule: ed.workSchedule
       })))
 
-      await supabase.from('emergency_contacts').insert(MOCK_EMERGENCY_CONTACTS.map(ec => ({
+      await (supabase as any).from('emergency_contacts').insert(MOCK_EMERGENCY_CONTACTS.map(ec => ({
         id: uuidv4(),
         employee_id: idMap[ec.employeeId],
         name: ec.name,
@@ -168,7 +168,7 @@ export class SeedService {
         is_primary: ec.isPrimary
       })))
 
-      await supabase.from('employee_skills').insert(MOCK_SKILLS.map(sk => ({
+      await (supabase as any).from('employee_skills').insert(MOCK_SKILLS.map(sk => ({
         id: uuidv4(),
         employee_id: idMap[sk.employeeId],
         skill_name: sk.skillName,
@@ -193,7 +193,7 @@ export class SeedService {
     const supabase = await createClient()
     logger.info('[SeedService] Deleting Demo Organizations...')
     // Cascade delete will handle employees, departments, teams, etc.
-    const { error } = await supabase.from('organizations').delete().eq('is_demo', true)
+    const { error } = await (supabase as any).from('organizations').delete().eq('is_demo', true)
     if (error) {
       logger.error('[SeedService] Delete failed:', error)
       return { success: false, error }

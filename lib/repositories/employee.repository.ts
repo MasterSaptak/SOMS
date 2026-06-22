@@ -14,6 +14,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
     super('employees')
   }
 
+  // @ts-expect-error - Custom return type
   async findById(id: string): Promise<Result<Employee>> {
     try {
       const client = await getUntypedClient()
