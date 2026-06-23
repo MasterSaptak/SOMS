@@ -9,16 +9,18 @@ interface LeaveState {
   leaves: LeaveRequest[]
   balances: Record<string, LeaveBalance>
 
-  applyLeave: (leave: Omit<LeaveRequest, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'hrId'>) => void
+  submitLeave: (leave: Omit<LeaveRequest, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'hrId' | 'verificationStatus' | 'payrollProcessed' | 'salaryDeducted'>) => void
   cancelLeave: (id: string) => void
-  approveLeave: (id: string, approverId: string, level: 'manager' | 'hr') => void
+  verifyHR: (id: string, hrId: string) => void
+  approveManager: (id: string, managerId: string) => void
+  processPayroll: (id: string) => void
   rejectLeave: (id: string) => void
   getForEmployee: (employeeId: string) => LeaveRequest[]
   getBalance: (employeeId: string) => LeaveBalance
   getPending: () => LeaveRequest[]
 }
 
-const DEFAULT_BALANCE: LeaveBalance = { casual: 12, medical: 6, emergency: 3, wfh: 999 }
+const DEFAULT_BALANCE: LeaveBalance = { casual: 2, medical: 2, emergency: 0 }
 
 export const useLeaveStore = create<LeaveState>()(
   persist(
@@ -26,16 +28,21 @@ export const useLeaveStore = create<LeaveState>()(
       leaves: MOCK_LEAVES,
       balances: MOCK_LEAVE_BALANCES,
 
-      applyLeave: (leave) => {
+      submitLeave: (leave) => {
         const newLeave: LeaveRequest = {
           ...leave,
           id: `l${Date.now()}`,
-          status: 'pending',
+          status: 'submitted',
           hrId: null,
+          verificationStatus: 'pending',
+          payrollProcessed: false,
+          salaryDeducted: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
         set((state) => ({ leaves: [newLeave, ...state.leaves] }))
+        // Mocking an Audit Log entry creation
+        console.log(`[Audit] Leave request submitted by ${leave.employeeId}`)
       },
 
       cancelLeave: (id) => {
@@ -46,16 +53,31 @@ export const useLeaveStore = create<LeaveState>()(
         }))
       },
 
-      approveLeave: (id, approverId, level) => {
+      verifyHR: (id, hrId) => {
         set((state) => ({
-          leaves: state.leaves.map((l) => {
-            if (l.id !== id) return l
-            if (level === 'manager') {
-              return { ...l, status: 'manager_approved' as LeaveStatus, managerId: approverId, updatedAt: new Date().toISOString() }
-            }
-            return { ...l, status: 'hr_approved' as LeaveStatus, hrId: approverId, updatedAt: new Date().toISOString() }
-          }),
+          leaves: state.leaves.map((l) =>
+            l.id === id ? { ...l, verificationStatus: 'verified', status: 'hr_verification' as LeaveStatus, hrId, updatedAt: new Date().toISOString() } : l
+          ),
         }))
+        console.log(`[Audit] Leave request ${id} verified by HR ${hrId}`)
+      },
+
+      approveManager: (id, managerId) => {
+        set((state) => ({
+          leaves: state.leaves.map((l) =>
+            l.id === id ? { ...l, status: 'manager_approval' as LeaveStatus, managerId, updatedAt: new Date().toISOString() } : l
+          ),
+        }))
+        console.log(`[Audit] Leave request ${id} approved by Manager ${managerId}`)
+      },
+
+      processPayroll: (id) => {
+        set((state) => ({
+          leaves: state.leaves.map((l) =>
+            l.id === id ? { ...l, status: 'payroll_processing' as LeaveStatus, payrollProcessed: true, updatedAt: new Date().toISOString() } : l
+          ),
+        }))
+        console.log(`[Audit] Leave request ${id} flagged for payroll processing`)
       },
 
       rejectLeave: (id) => {
@@ -75,7 +97,7 @@ export const useLeaveStore = create<LeaveState>()(
       },
 
       getPending: () => {
-        return get().leaves.filter((l) => l.status === 'pending' || l.status === 'manager_approved')
+        return get().leaves.filter((l) => l.status === 'submitted' || l.status === 'hr_verification' || l.status === 'manager_approval' || l.status === 'pending' || l.status === 'manager_approved')
       },
     }),
     {

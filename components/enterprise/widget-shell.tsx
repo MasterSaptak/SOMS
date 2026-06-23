@@ -2,6 +2,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { motion } from 'motion/react'
 import { Loader2, ArrowUpRight } from 'lucide-react'
+import { motionPresets } from '@/lib/theme'
 
 export interface WidgetShellProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -54,10 +55,13 @@ export function WidgetShell({
   return (
     <Wrapper
       href={href}
-      whileHover={{ y: -4, scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      variants={motionPresets.cardHover}
+      initial="rest"
+      animate="rest"
+      whileHover="hover"
+      whileTap="tap"
       className={cn(
-        "relative flex flex-col w-full h-full overflow-hidden rounded-[28px] bg-card border border-border/50 shadow-sm transition-all hover:shadow-lg hover:border-border/80 group",
+        "relative flex flex-col w-full h-full overflow-hidden rounded-3xl bg-card border border-border/50 group",
         className
       )}
       {...props as any}

@@ -12,6 +12,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { theme } = useThemeStore()
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

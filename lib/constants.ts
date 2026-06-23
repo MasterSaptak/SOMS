@@ -139,10 +139,9 @@ export const KANBAN_COLUMNS: TaskStatus[] = ['pending', 'in_progress', 'blocked'
 
 // --- Leave Types ---
 export const LEAVE_TYPES: Record<LeaveType, { label: string; color: string; icon: string; maxDays: number }> = {
-  casual: { label: 'Casual Leave', color: 'text-blue-500', icon: '🏖️', maxDays: 12 },
-  medical: { label: 'Medical Leave', color: 'text-red-500', icon: '🏥', maxDays: 6 },
-  emergency: { label: 'Emergency Leave', color: 'text-amber-500', icon: '🚨', maxDays: 3 },
-  wfh: { label: 'Work From Home', color: 'text-emerald-500', icon: '🏠', maxDays: 999 },
+  casual: { label: 'Casual Leave', color: 'text-blue-500', icon: '🏖️', maxDays: 2 },
+  medical: { label: 'Medical Leave', color: 'text-red-500', icon: '🏥', maxDays: 2 },
+  emergency: { label: 'Emergency Leave', color: 'text-amber-500', icon: '🚨', maxDays: 999 },
 }
 
 export const LEAVE_STATUSES: Record<LeaveStatus, { label: string; color: string; bgColor: string }> = {
@@ -222,6 +221,7 @@ export const NAV_ITEMS = {
   admin: [
     { label: 'Analytics', href: '/admin/analytics', icon: 'BarChart4' },
     { label: 'HR Management', href: '/admin/hr', icon: 'Users' },
+    { label: 'Leave Management', href: '/admin/leaves', icon: 'CalendarRange' },
     { label: 'Payroll', href: '/admin/payroll', icon: 'Banknote' },
     { label: 'Audit & Compliance', href: '/admin/audit', icon: 'ShieldAlert' },
     { label: 'Workflows', href: '/admin/workflows', icon: 'Workflow' },

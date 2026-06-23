@@ -236,7 +236,7 @@ export function AICopilot() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={togglePanel}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 text-white shadow-2xl shadow-violet-500/25 flex items-center justify-center hover:shadow-violet-500/40 transition-shadow"
+            className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 text-white shadow-2xl shadow-violet-500/25 flex items-center justify-center hover:shadow-violet-500/40 transition-shadow"
             aria-label="Open AI Copilot"
           >
             <Sparkles className="w-6 h-6" />
@@ -255,7 +255,7 @@ export function AICopilot() {
             className={`fixed z-50 bg-card border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col ${
               isExpanded
                 ? 'inset-4 md:inset-8'
-                : 'bottom-6 right-6 w-[420px] h-[600px] max-h-[80vh]'
+                : 'bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 left-4 md:left-auto md:bottom-6 md:right-6 md:w-[420px] h-[500px] md:h-[600px] max-h-[75vh] md:max-h-[80vh]'
             }`}
           >
             {/* Header */}

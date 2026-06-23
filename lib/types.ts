@@ -202,12 +202,28 @@ export interface TaskAttachment {
 }
 
 // --- Leaves ---
-export type LeaveType = 'casual' | 'medical' | 'emergency' | 'wfh'
-export type LeaveStatus = 'pending' | 'manager_approved' | 'hr_approved' | 'rejected' | 'cancelled'
+export type LeaveType = 'casual' | 'medical' | 'emergency' | 'custom'
+export type LeaveStatus = 'submitted' | 'hr_verification' | 'manager_approval' | 'payroll_processing' | 'completed' | 'rejected' | 'cancelled' | 'pending' | 'manager_approved' | 'hr_approved'
+
+export interface LeavePolicy {
+  id: string
+  organizationId: string
+  name: string
+  leaveType: LeaveType
+  isPaid: boolean
+  maxDays: number
+  requiresDocuments: boolean
+  halfDayAllowed: boolean
+  carryForwardDays: number
+  approvalWorkflowType: 'standard' | 'strict' | 'auto_approve'
+  createdAt: string
+  updatedAt: string
+}
 
 export interface LeaveRequest {
   id: string
   employeeId: string
+  policyId: string
   leaveType: LeaveType
   startDate: string
   endDate: string
@@ -215,6 +231,14 @@ export interface LeaveRequest {
   status: LeaveStatus
   managerId: string | null
   hrId: string | null
+  isPaid: boolean
+  emergencyCategory?: string
+  doctorName?: string
+  hospitalName?: string
+  documents?: string[]
+  verificationStatus?: 'pending' | 'verified' | 'rejected'
+  payrollProcessed?: boolean
+  salaryDeducted?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -223,7 +247,6 @@ export interface LeaveBalance {
   casual: number
   medical: number
   emergency: number
-  wfh: number
 }
 
 // --- Announcements ---

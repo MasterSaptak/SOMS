@@ -243,22 +243,22 @@ export const MOCK_TASKS: Task[] = [
 // ============================================================
 
 export const MOCK_LEAVES: LeaveRequest[] = [
-  { id: 'l1', employeeId: 'e3',  leaveType: 'casual',    startDate: '2026-06-23', endDate: '2026-06-24', reason: 'Family function',                    status: 'pending',          managerId: 'e4', hrId: null, createdAt: '2026-06-15', updatedAt: '2026-06-15' },
-  { id: 'l2', employeeId: 'e7',  leaveType: 'medical',   startDate: '2026-06-20', endDate: '2026-06-20', reason: 'Doctor appointment',                 status: 'manager_approved', managerId: 'e5', hrId: 'e2', createdAt: '2026-06-14', updatedAt: '2026-06-16' },
-  { id: 'l3', employeeId: 'e8',  leaveType: 'wfh',       startDate: '2026-06-18', endDate: '2026-06-18', reason: 'Internet installation at home',      status: 'hr_approved',      managerId: 'e5', hrId: 'e2', createdAt: '2026-06-13', updatedAt: '2026-06-14' },
-  { id: 'l4', employeeId: 'e3',  leaveType: 'casual',    startDate: '2026-06-05', endDate: '2026-06-06', reason: 'Personal errands',                   status: 'hr_approved',      managerId: 'e4', hrId: 'e2', createdAt: '2026-06-01', updatedAt: '2026-06-03' },
-  { id: 'l5', employeeId: 'e4',  leaveType: 'emergency', startDate: '2026-06-10', endDate: '2026-06-10', reason: 'Family emergency',                   status: 'hr_approved',      managerId: 'e5', hrId: 'e2', createdAt: '2026-06-10', updatedAt: '2026-06-10' },
-  { id: 'l6', employeeId: 'e10', leaveType: 'medical',   startDate: '2026-06-17', endDate: '2026-06-21', reason: 'Medical procedure and recovery',     status: 'hr_approved',      managerId: 'e5', hrId: 'e2', createdAt: '2026-06-12', updatedAt: '2026-06-13' },
-  { id: 'l7', employeeId: 'e9',  leaveType: 'casual',    startDate: '2026-06-26', endDate: '2026-06-27', reason: 'Travel plans',                       status: 'pending',          managerId: 'e1', hrId: null, createdAt: '2026-06-17', updatedAt: '2026-06-17' },
+  { id: 'l1', employeeId: 'e3',  leaveType: 'casual',    startDate: '2026-06-23', endDate: '2026-06-24', reason: 'Family function',                    status: 'pending',          managerId: 'e4', hrId: null, isPaid: true, verificationStatus: 'pending', payrollProcessed: false, salaryDeducted: false, createdAt: '2026-06-15', updatedAt: '2026-06-15' },
+  { id: 'l2', employeeId: 'e7',  leaveType: 'medical',   startDate: '2026-06-20', endDate: '2026-06-20', reason: 'Doctor appointment',                 status: 'manager_approved', managerId: 'e5', hrId: 'e2', isPaid: true, verificationStatus: 'verified', documents: ['doc1.pdf'], payrollProcessed: false, salaryDeducted: false, createdAt: '2026-06-14', updatedAt: '2026-06-16' },
+  { id: 'l3', employeeId: 'e8',  leaveType: 'casual',    startDate: '2026-06-18', endDate: '2026-06-18', reason: 'Personal errands',                   status: 'hr_approved',      managerId: 'e5', hrId: 'e2', isPaid: true, verificationStatus: 'pending', payrollProcessed: true, salaryDeducted: false, createdAt: '2026-06-13', updatedAt: '2026-06-14' },
+  { id: 'l4', employeeId: 'e3',  leaveType: 'casual',    startDate: '2026-06-05', endDate: '2026-06-06', reason: 'Personal errands',                   status: 'hr_approved',      managerId: 'e4', hrId: 'e2', isPaid: true, verificationStatus: 'pending', payrollProcessed: true, salaryDeducted: false, createdAt: '2026-06-01', updatedAt: '2026-06-03' },
+  { id: 'l5', employeeId: 'e4',  leaveType: 'emergency', startDate: '2026-06-10', endDate: '2026-06-10', reason: 'Family emergency',                   status: 'hr_approved',      managerId: 'e5', hrId: 'e2', isPaid: false, verificationStatus: 'pending', emergencyCategory: 'Family', payrollProcessed: true, salaryDeducted: true, createdAt: '2026-06-10', updatedAt: '2026-06-10' },
+  { id: 'l6', employeeId: 'e10', leaveType: 'medical',   startDate: '2026-06-17', endDate: '2026-06-21', reason: 'Medical procedure and recovery',     status: 'hr_approved',      managerId: 'e5', hrId: 'e2', isPaid: true, verificationStatus: 'verified', doctorName: 'Dr. Smith', hospitalName: 'City Hospital', documents: ['doc2.pdf'], payrollProcessed: false, salaryDeducted: false, createdAt: '2026-06-12', updatedAt: '2026-06-13' },
+  { id: 'l7', employeeId: 'e9',  leaveType: 'casual',    startDate: '2026-06-26', endDate: '2026-06-27', reason: 'Travel plans',                       status: 'pending',          managerId: 'e1', hrId: null, isPaid: true, verificationStatus: 'pending', payrollProcessed: false, salaryDeducted: false, createdAt: '2026-06-17', updatedAt: '2026-06-17' },
 ]
 
 export const MOCK_LEAVE_BALANCES: Record<string, LeaveBalance> = {
-  e3:  { casual: 10, medical: 6,  emergency: 3, wfh: 999 },
-  e4:  { casual: 11, medical: 6,  emergency: 2, wfh: 999 },
-  e7:  { casual: 12, medical: 5,  emergency: 3, wfh: 999 },
-  e8:  { casual: 12, medical: 6,  emergency: 3, wfh: 999 },
-  e9:  { casual: 13, medical: 6,  emergency: 3, wfh: 999 },
-  e10: { casual: 8,  medical: 3,  emergency: 3, wfh: 999 },
+  e3:  { casual: 2, medical: 2,  emergency: 0 },
+  e4:  { casual: 1, medical: 2,  emergency: 0 },
+  e7:  { casual: 2, medical: 1,  emergency: 0 },
+  e8:  { casual: 1, medical: 2,  emergency: 0 },
+  e9:  { casual: 2, medical: 2,  emergency: 0 },
+  e10: { casual: 2, medical: 0,  emergency: 0 },
 }
 
 // ============================================================

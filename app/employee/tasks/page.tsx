@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { WidgetShell } from '@/components/enterprise/widget-shell';
 import { BentoGrid, BentoSlot } from '@/components/enterprise/bento-grid'
+import { MetricCard } from '@/components/enterprise/metric-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -451,43 +452,64 @@ export default function TasksPage() {
 
   return (
     <motion.div className="flex flex-col gap-6" variants={containerVars} initial="hidden" animate="show">
-      <motion.div variants={itemVars} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <motion.div variants={itemVars} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
-          <p className="text-muted-foreground mt-1">{filteredTasks.length} tasks · {completionRate}% completed</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-lg border border-border overflow-hidden">
-            <button
-              onClick={() => setView('kanban')}
-              className={`p-2 transition-colors ${view === 'kanban' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setView('list')}
-              className={`p-2 transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
-          <Button onClick={() => setShowCreateDialog(true)} className="gap-1.5">
-            <Plus className="w-4 h-4" />
-            New Task
-          </Button>
+          <p className="text-muted-foreground mt-1">Organize and track your daily work.</p>
         </div>
       </motion.div>
 
-      <motion.div variants={itemVars} className="flex flex-col md:flex-row items-start md:items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tasks..."
-            className="pl-9"
-          />
-        </div>
+      <motion.div variants={itemVars}>
+        <BentoGrid columns={4} className="mb-2">
+          <BentoSlot colSpan={1}>
+            <MetricCard 
+              title="Total Tasks" 
+              value={filteredTasks.length} 
+              icon={<List className="w-4 h-4" />}
+            />
+          </BentoSlot>
+          <BentoSlot colSpan={1}>
+            <MetricCard 
+              title="Completed" 
+              value={`${completionRate}%`} 
+              progress={{ value: completionRate, color: "bg-emerald-500" }}
+              icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+            />
+          </BentoSlot>
+          <BentoSlot colSpan={2}>
+            <WidgetShell className="flex flex-col md:flex-row items-center justify-between p-6 h-full gap-4">
+              <div className="relative flex-1 w-full max-w-sm">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search tasks..."
+                  className="pl-9 h-10 w-full"
+                />
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center rounded-lg border border-border overflow-hidden bg-background">
+                  <button
+                    onClick={() => setView('kanban')}
+                    className={`p-2 transition-colors ${view === 'kanban' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setView('list')}
+                    className={`p-2 transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
+                <Button onClick={() => setShowCreateDialog(true)} className="gap-1.5 h-10">
+                  <Plus className="w-4 h-4" />
+                  New Task
+                </Button>
+              </div>
+            </WidgetShell>
+          </BentoSlot>
+        </BentoGrid>
       </motion.div>
 
       {view === 'kanban' && (

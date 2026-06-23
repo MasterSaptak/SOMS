@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { BentoGrid, BentoSlot } from '@/components/enterprise/bento-grid'
+import { MetricCard } from '@/components/enterprise/metric-card'
 import { WidgetShell } from '@/components/enterprise/widget-shell'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -319,15 +321,15 @@ export default function WorkSessionPage() {
         <p className="text-muted-foreground">Manage your current work, breaks, and daily productivity target.</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <motion.div variants={itemVars} className="lg:col-span-2">
-          <WidgetShell className="relative overflow-hidden">
+      <BentoGrid>
+        <BentoSlot span="large" className="order-1">
+          <WidgetShell className="relative overflow-hidden h-full bg-surface-elevated">
             <div className={`absolute top-0 -left-1/4 w-1/2 h-full blur-[100px] rounded-full opacity-20 transition-colors duration-1000 ${
               sessionState === 'working' ? 'bg-primary' : 
               sessionState === 'break' ? 'bg-amber-500' : 'bg-transparent'
             }`} />
 
-            <div className="p-8 relative z-10 flex flex-col items-center justify-center text-center py-16">
+            <div className="p-8 relative z-10 flex flex-col items-center justify-center text-center py-16 h-full">
               
               <div className="mb-4">
                  <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors ${
@@ -351,7 +353,7 @@ export default function WorkSessionPage() {
                 {sessionState === 'break' ? 'Break Duration' : 'Total Work Duration Today'}
               </p>
 
-              <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex flex-col w-full sm:w-auto sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-auto">
                 <AnimatePresence mode="wait">
                   {sessionState === 'idle' && !attendanceId ? (
                     <motion.div
@@ -359,14 +361,14 @@ export default function WorkSessionPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      className="transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]"
+                      className="w-full sm:w-auto transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]"
                     >
                       <Button 
                         size="lg" 
-                        className="h-14 px-8 text-lg rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] transition-all duration-300 font-semibold gap-2 group"
+                        className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] transition-all duration-300 font-semibold gap-2 group"
                         onClick={startWork}
                       >
-                        <Play className="fill-current w-5 h-5 group-hover:scale-110 transition-transform duration-300" /> Start Work Session
+                        <Play className="fill-current w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" /> Start Work Session
                       </Button>
                     </motion.div>
                   ) : sessionState === 'idle' && attendanceId ? (
@@ -374,12 +376,12 @@ export default function WorkSessionPage() {
                       key="done"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex flex-col items-center gap-3"
+                      className="w-full sm:w-auto flex flex-col items-center gap-3"
                     >
                       <Button 
                         size="lg" 
                         disabled
-                        className="h-14 px-8 text-lg rounded-full shadow-lg font-semibold gap-2 opacity-80"
+                        className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full shadow-lg font-semibold gap-2 opacity-80"
                       >
                         Session Completed Today
                       </Button>
@@ -398,31 +400,34 @@ export default function WorkSessionPage() {
                       key="active"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex gap-4"
+                      className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto"
                     >
-                      <div className="transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]">
-                        <Button 
-                          size="lg" 
-                          variant="destructive"
-                          className="h-14 px-8 text-lg rounded-full shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-300 font-semibold gap-2 group"
-                          onClick={endWork}
-                        >
-                          <Square className="fill-current w-5 h-5 group-hover:scale-110 transition-transform duration-300" /> End Session
-                        </Button>
-                      </div>
-                      
                       {sessionState === 'break' && (
-                        <div className="transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]">
+                        <div className="w-full sm:w-auto transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97] order-first sm:order-last">
                           <Button 
                             size="lg" 
-                            variant="secondary"
-                            className="h-14 px-8 text-lg rounded-full font-semibold gap-2 border border-border shadow-md hover:shadow-lg transition-all duration-300 group"
+                            className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full font-semibold gap-2 shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] bg-primary text-primary-foreground transition-all duration-300 group"
                             onClick={endBreak}
                           >
-                            <Play className="fill-current w-5 h-5 group-hover:scale-110 transition-transform duration-300" /> Resume Work
+                            <Play className="fill-current w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" /> Resume Work
                           </Button>
                         </div>
                       )}
+
+                      <div className="w-full sm:w-auto transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]">
+                        <Button 
+                          size="lg" 
+                          variant={sessionState === 'working' ? 'destructive' : 'secondary'}
+                          className={`w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full font-semibold gap-2 transition-all duration-300 group border ${
+                            sessionState === 'working' 
+                              ? 'shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] border-transparent' 
+                              : 'shadow-sm hover:shadow-md border-border'
+                          }`}
+                          onClick={endWork}
+                        >
+                          <Square className="fill-current w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" /> End Session
+                        </Button>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -430,26 +435,12 @@ export default function WorkSessionPage() {
 
             </div>
           </WidgetShell>
-        </motion.div>
+        </BentoSlot>
 
-        <motion.div variants={itemVars} className="flex flex-col gap-6">
-          <WidgetShell title="Daily Target" subtitle="8 hours default requirement" className="h-full">
-            <div className="pt-2">
-              <div className="flex flex-col gap-2 relative mt-4">
-                <div className="flex justify-between items-end mb-2">
-                  <span className="text-3xl font-bold">{Math.floor(progressPercent)}%</span>
-                  <span className="text-sm text-muted-foreground font-medium">of 8h 00m</span>
-                </div>
-                <Progress value={progressPercent} className="h-3" />
-              </div>
-            </div>
-          </WidgetShell>
-        </motion.div>
-
-        <motion.div variants={itemVars} className="lg:col-span-3">
-          <WidgetShell title="Break Management" subtitle="Take allowed breaks without accruing penalties.">
-            <div className="pt-2">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <BentoSlot className="col-span-1 md:col-span-3 lg:col-span-2 row-span-1 order-2 md:order-3 lg:order-2">
+          <WidgetShell title="Break Management" subtitle="Take allowed breaks without accruing penalties." className="h-full">
+            <div className="pt-2 h-full flex flex-col justify-center">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {breakOptions.map((b) => {
                   const isActive = sessionState === 'break' && activeBreak === b.type;
                   const isDisabled = sessionState === 'idle';
@@ -460,11 +451,11 @@ export default function WorkSessionPage() {
                       type="button"
                       disabled={isDisabled}
                       onClick={() => handleBreak(b.type)}
-                      className={`group relative flex flex-col items-center justify-center p-6 rounded-2xl border transition-all duration-300 gap-3 overflow-hidden
-                        ${!isDisabled && 'hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98]'}
+                      className={`group relative flex flex-col items-center justify-center p-3 md:p-4 rounded-[28px] border transition-all duration-500 gap-2 md:gap-3 overflow-hidden
+                        ${!isDisabled && 'hover:scale-[1.04] hover:-translate-y-1 active:scale-[0.92]'}
                         ${isDisabled ? 'opacity-50 cursor-not-allowed bg-muted/40 border-transparent' : 
-                          isActive ? `${b.border} ${b.activeBg} ${b.shadow} ring-1 ${b.ring}` : 
-                          'hover:border-border hover:bg-card hover:shadow-lg bg-background border-border/40'}
+                          isActive ? `${b.border} ${b.activeBg} ${b.shadow} ring-2 ${b.ring}` : 
+                          'hover:border-border hover:bg-surface-secondary hover:shadow-xl bg-background border-border/40'}
                       `}
                     >
                       {isActive && (
@@ -472,13 +463,13 @@ export default function WorkSessionPage() {
                           layoutId="activeBreakBackground"
                           className={`absolute inset-0 ${b.activeBg} pointer-events-none`}
                           initial={false}
-                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         />
                       )}
-                      <div className={`p-4 rounded-full text-white ${b.color} shadow-md transition-transform duration-300 relative z-10 pointer-events-none ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-3'}`}>
+                      <div className={`p-3 rounded-2xl text-white ${b.color} shadow-sm transition-all duration-500 relative z-10 pointer-events-none ${isActive ? 'scale-110 shadow-lg rounded-full' : 'group-hover:scale-[1.15] group-hover:-translate-y-1 group-hover:shadow-lg group-hover:rounded-3xl'}`}>
                         {b.icon}
                       </div>
-                      <span className="font-semibold text-sm relative z-10 pointer-events-none">
+                      <span className="font-semibold text-[11px] md:text-xs relative z-10 pointer-events-none text-center leading-tight">
                         {isActive ? 'Resume Work' : b.label}
                       </span>
                     </button>
@@ -487,8 +478,19 @@ export default function WorkSessionPage() {
               </div>
             </div>
           </WidgetShell>
-        </motion.div>
-      </div>
+        </BentoSlot>
+
+        <BentoSlot className="col-span-1 md:col-span-1 lg:col-span-2 row-span-1 md:row-span-2 lg:row-span-1 order-3 md:order-2 lg:order-3">
+          <MetricCard 
+            title="Daily Target" 
+            value={`${Math.floor(progressPercent)}%`}
+            trend={{ value: "8h", label: "Default requirement", isPositive: true }}
+            progress={{ value: progressPercent, color: "bg-primary" }}
+            className="h-full"
+            icon={<Activity className="w-4 h-4 text-primary" />}
+          />
+        </BentoSlot>
+      </BentoGrid>
     </motion.div>
   )
 }

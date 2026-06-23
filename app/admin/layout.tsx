@@ -1,12 +1,14 @@
 "use client"
 
 import React from "react"
-import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AuthGuard } from "@/components/auth-guard"
 import { ThemeProvider } from "@/components/theme-provider"
+import { LayoutManager } from "@/components/layout/layout-manager"
+import { NavigationSystem } from "@/components/layout/navigation-system"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { NotificationCenter } from "@/components/notification-center"
+import { QueueViewer } from "@/components/queue-viewer"
 import { Search, Sun, Moon } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
 
@@ -24,21 +26,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <ThemeProvider>
       <AuthGuard>
         <SidebarProvider>
-          <div className="flex w-full min-h-screen surface-base">
-            <AppSidebar />
+          <LayoutManager>
+            <div className="flex w-full min-h-screen bg-surface-base">
+              <NavigationSystem />
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
               <header className="h-14 border-b border-border/30 bg-surface-primary/80 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-20">
                 <Breadcrumbs />
                 <div className="flex items-center gap-2">
+                  <QueueViewer />
                   <ThemeToggle />
                   <NotificationCenter />
                 </div>
               </header>
-              <div className="flex-1 overflow-auto p-5 md:p-8 surface-base">
+              <div className="flex-1 overflow-auto p-5 md:p-8 pb-24 md:pb-8 bg-surface-base">
                 <div className="max-w-[1600px] mx-auto w-full">{children}</div>
               </div>
             </main>
           </div>
+          </LayoutManager>
         </SidebarProvider>
       </AuthGuard>
     </ThemeProvider>
