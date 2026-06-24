@@ -32,19 +32,19 @@ const itemVars = {
   show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
 }
 
-const leaveIcons: Record<LeaveType, React.ReactNode> = {
+const leaveIcons: Partial<Record<LeaveType, React.ReactNode>> = {
   casual: <Palmtree className="w-5 h-5" />,
   medical: <Stethoscope className="w-5 h-5" />,
   emergency: <Siren className="w-5 h-5" />,
 }
 
-const leaveIconColors: Record<LeaveType, string> = {
+const leaveIconColors: Partial<Record<LeaveType, string>> = {
   casual: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
   medical: 'bg-red-500/10 text-red-500 border-red-500/20',
   emergency: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
 }
 
-const statusIcons: Record<LeaveStatus, React.ReactNode> = {
+const statusIcons: Partial<Record<LeaveStatus, React.ReactNode>> = {
   hr_verification: <Clock className="w-3.5 h-3.5" />,
   manager_approval: <CheckCircle2 className="w-3.5 h-3.5" />,
   payroll_processing: <CheckCircle2 className="w-3.5 h-3.5" />,
@@ -53,7 +53,7 @@ const statusIcons: Record<LeaveStatus, React.ReactNode> = {
 
 // ─── Apply Leave Dialog ───
 function ApplyLeaveDialog({ onClose }: { onClose: () => void }) {
-  const { applyLeave } = useLeaveStore()
+  const { submitLeave } = useLeaveStore()
   const { employee } = useAuthStore()
   const [leaveType, setLeaveType] = useState<LeaveType | null>(null)
   
@@ -95,7 +95,7 @@ function ApplyLeaveDialog({ onClose }: { onClose: () => void }) {
       ...(leaveType === 'medical' && { doctorName, hospitalName, documents: ['prescription.pdf'] }),
     } as any
 
-    applyLeave(newLeave)
+    submitLeave(newLeave)
     onClose()
   }
 
@@ -277,7 +277,7 @@ function ApplyLeaveDialog({ onClose }: { onClose: () => void }) {
                   >
                     <option value="">Select manager...</option>
                     {managers.map((mgr) => (
-                      <option key={mgr.id} value={mgr.id}>{getFullName(mgr)} — {mgr.designation}</option>
+                      <option key={mgr.id} value={mgr.id}>{getFullName(mgr)} — {mgr.designation?.title || (typeof mgr.designation === 'string' ? mgr.designation : '—')}</option>
                     ))}
                   </select>
                 </div>
@@ -303,7 +303,7 @@ function LeaveRow({ leave, onCancel }: { leave: ReturnType<typeof useLeaveStore.
   
   // Use fallback for legacy records that don't have a valid status config
   const statusInfo = LEAVE_STATUSES[leave.status] || { label: leave.status.replace('_', ' ').toUpperCase(), color: 'text-muted-foreground', bgColor: 'bg-muted' }
-  const typeLabel = policy?.name || LEAVE_TYPES[leave.leaveType as any]?.label || leave.leaveType
+  const typeLabel = policy?.name || LEAVE_TYPES[leave.leaveType as keyof typeof LEAVE_TYPES]?.label || leave.leaveType
   const start = new Date(leave.startDate)
   const end = new Date(leave.endDate)
   const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
@@ -416,10 +416,10 @@ export default function LeavesPage() {
 
       {/* Modern Bento Leave Dashboard */}
       <motion.div variants={itemVars}>
-        <BentoGrid columns={4} className="auto-rows-[160px]">
+        <BentoGrid className="grid-cols-1 md:grid-cols-4 auto-rows-[160px]">
           
           {/* Casual Leave */}
-          <BentoSlot colSpan={1} className="row-span-1">
+          <BentoSlot className="col-span-1 row-span-1">
             <div className="bg-card rounded-3xl border border-border/50 p-6 flex flex-col justify-between h-full relative overflow-hidden group shadow-sm hover:shadow-md transition-all">
               <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-all duration-500">
                 <Palmtree className="w-24 h-24 text-blue-500" />
@@ -446,7 +446,7 @@ export default function LeavesPage() {
           </BentoSlot>
 
           {/* Medical Leave */}
-          <BentoSlot colSpan={1} className="row-span-1">
+          <BentoSlot className="col-span-1 row-span-1">
              <div className="bg-card rounded-3xl border border-border/50 p-6 flex flex-col justify-between h-full relative overflow-hidden group shadow-sm hover:shadow-md transition-all">
               <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-all duration-500">
                 <Stethoscope className="w-24 h-24 text-red-500" />
@@ -473,7 +473,7 @@ export default function LeavesPage() {
           </BentoSlot>
 
           {/* Emergency Leave */}
-          <BentoSlot colSpan={1} className="row-span-1">
+          <BentoSlot className="col-span-1 row-span-1">
              <div className="bg-card rounded-3xl border border-amber-500/20 p-6 flex flex-col justify-between h-full relative overflow-hidden group shadow-sm hover:shadow-md transition-all">
               <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-all duration-500">
                 <Siren className="w-24 h-24 text-amber-500" />
@@ -497,7 +497,7 @@ export default function LeavesPage() {
           </BentoSlot>
 
           {/* Summary Widget */}
-          <BentoSlot colSpan={1} className="row-span-1">
+          <BentoSlot className="col-span-1 row-span-1">
             <div className="bg-primary/5 rounded-3xl border border-primary/10 p-6 flex flex-col h-full shadow-sm hover:shadow-md transition-all">
               <h3 className="font-semibold text-sm mb-4 text-primary flex items-center gap-2">
                 <Info className="w-4 h-4" /> Leave Summary

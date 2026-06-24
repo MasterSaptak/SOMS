@@ -19,10 +19,10 @@ export default function ProfileRedirectPage() {
       // Fallback for demo environment if no employee is in store:
       // Fetch any employee from the demo organization
       const supabase = createClient()
-      const { data: demoOrg } = await supabase.from('organizations').select('id').eq('is_demo', true).single()
+      const { data: demoOrg } = await supabase.from('organizations').select('id').eq('is_demo' as any, true).single()
       
       if (demoOrg) {
-        const { data: anyEmployee } = await supabase.from('employees').select('id').eq('organization_id', demoOrg.id).limit(1).single()
+        const { data: anyEmployee } = await supabase.from('employees').select('id').eq('organization_id' as any, demoOrg.id).limit(1).single()
         if (anyEmployee) {
           router.replace(`/employee/${anyEmployee.id}`)
           return

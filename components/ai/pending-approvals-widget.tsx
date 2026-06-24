@@ -51,7 +51,7 @@ export function PendingApprovalsWidget() {
               <div key={leave.id} className={`p-4 transition-all duration-300 ${isActioned ? 'opacity-50 grayscale' : 'hover:bg-muted/30'}`}>
                 <div className="flex gap-3">
                   <Avatar className="w-8 h-8 shrink-0 mt-0.5">
-                    <AvatarImage src={employee?.avatarUrl} />
+                    <AvatarImage src={employee?.avatarUrl || undefined} />
                     <AvatarFallback className="text-[10px] bg-primary/10">
                       {employee ? `${employee.firstName[0]}${employee.lastName[0]}` : 'U'}
                     </AvatarFallback>

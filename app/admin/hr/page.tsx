@@ -112,7 +112,7 @@ export default function HRManagementPage() {
                         </div>
                       </div>
                       <span className="text-xs text-muted-foreground">{dept?.name || '—'}</span>
-                      <span className="text-xs truncate">{emp.designation}</span>
+                      <span className="text-xs truncate">{emp.designation?.title || (typeof emp.designation === 'string' ? emp.designation : '—')}</span>
                       <Badge variant="outline" className={`text-[10px] w-fit ${emp.status === 'active' ? 'text-emerald-600 border-emerald-200' : emp.status === 'on_leave' ? 'text-amber-600 border-amber-200' : 'text-red-600 border-red-200'}`}>
                         {emp.status === 'active' ? 'Active' : emp.status === 'on_leave' ? 'On Leave' : 'Terminated'}
                       </Badge>
@@ -139,7 +139,7 @@ export default function HRManagementPage() {
                     <AvatarFallback className="text-xl">{selectedEmp.firstName[0]}{selectedEmp.lastName[0]}</AvatarFallback>
                   </Avatar>
                   <h3 className="font-bold text-lg">{getFullName(selectedEmp)}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedEmp.designation}</p>
+                  <p className="text-sm text-muted-foreground">{selectedEmp.designation?.title || (typeof selectedEmp.designation === 'string' ? selectedEmp.designation : '—')}</p>
                   {selectedUser && (
                     <Badge className="mt-2 text-[10px]" variant="outline">{ROLES[selectedUser.role as UserRole]?.label}</Badge>
                   )}

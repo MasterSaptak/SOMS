@@ -7,6 +7,7 @@ import { LayoutGrid, List, Search, Eye, Filter } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { EmployeeCard } from '@/components/employee/employee-card'
 import { AddEmployeeDialog } from '@/components/employee/add-employee-dialog'
@@ -180,7 +181,7 @@ export default function EmployeeDirectoryPage() {
                 <div key={emp.id} className="grid grid-cols-[minmax(200px,2fr)_minmax(120px,1fr)_minmax(150px,1.5fr)_minmax(100px,1fr)_minmax(100px,1fr)_minmax(60px,auto)] gap-4 p-4 items-center border-b border-border/20 last:border-0 hover:bg-muted/10 transition-colors cursor-pointer" onClick={() => router.push(`/admin/hr/directory/${emp.id}`)}>
                   <div className="flex items-center gap-3 overflow-hidden">
                     <Avatar className="w-8 h-8 shrink-0">
-                      <AvatarImage src={emp.avatarUrl} />
+                      <AvatarImage src={emp.avatarUrl || undefined} />
                       <AvatarFallback>{emp.firstName[0]}{emp.lastName[0]}</AvatarFallback>
                     </Avatar>
                     <div className="truncate">

@@ -31,6 +31,17 @@ export interface Employee {
   joinDate: string
   status: 'active' | 'on_leave' | 'terminated'
   createdAt: string
+  // Personal Info (Master Record)
+  gender?: string | null
+  bloodGroup?: string | null
+  nationality?: string | null
+  maritalStatus?: string | null
+  personalEmail?: string | null
+  address?: string | null
+  aadhaarNid?: string | null
+  passportNo?: string | null
+  visaStatus?: string | null
+  drivingLicense?: string | null
   
   // Optional eager-loaded relations
   department?: Department
@@ -41,6 +52,11 @@ export interface Employee {
   employmentDetails?: EmploymentDetails
   emergencyContacts?: EmergencyContact[]
   skills?: EmployeeSkill[]
+  documents?: EmployeeDocument[]
+  certifications?: EmployeeCertification[]
+  education?: EmployeeEducation[]
+  experience?: EmployeeExperience[]
+  preferences?: EmployeePreference
 }
 
 export interface Department {
@@ -88,6 +104,13 @@ export interface EmploymentDetails {
   probationEndDate: string | null
   noticePeriodDays: number
   workSchedule: string
+  confirmationDate?: string | null
+  shift?: string | null
+  officeLocation?: string | null
+  employeeGrade?: string | null
+  employmentCategory?: string | null
+  costCenter?: string | null
+  payrollGroup?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -99,7 +122,17 @@ export interface EmergencyContact {
   relationship: string
   phone: string
   email: string | null
+  alternatePhone?: string | null
+  address?: string | null
   isPrimary: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Skill {
+  id: string
+  name: string
+  category: string
   createdAt: string
   updatedAt: string
 }
@@ -107,11 +140,17 @@ export interface EmergencyContact {
 export interface EmployeeSkill {
   id: string
   employeeId: string
-  skillName: string
+  skillId: string
   proficiency: 'beginner' | 'intermediate' | 'expert'
+  yearsOfExperience?: number | null
+  certification?: string | null
+  notes?: string | null
   isVerified: boolean
   createdAt: string
   updatedAt: string
+  
+  // Optional eager-loaded relation
+  skill?: Skill
 }
 
 export interface Role {
@@ -130,9 +169,24 @@ export type PermissionAction = 'view' | 'create' | 'update' | 'delete' | 'approv
 export type PermissionResource = 'dashboard' | 'tasks' | 'leaves' | 'hr' | 'payroll' | 'assets' | 'visitors' | 'rooms' | 'analytics' | 'announcements' | 'settings' | 'timeline' | 'calendar' | 'chat' | 'meetings' | 'documents' | 'goals' | 'knowledge' | 'surveys' | 'workflows' | 'features' | 'audit'
 
 // --- Attendance & Sessions ---
-export type WorkSessionState = 'idle' | 'working' | 'break'
-export type BreakType = 'lunch' | 'food' | 'personal' | 'emergency'
-export type AttendanceStatus = 'present' | 'absent' | 'half_day' | 'wfh'
+export type WorkSessionState = 'idle' | 'working' | 'break' | 'paused'
+export type BreakType = 'lunch' | 'food' | 'personal' | 'emergency' | 'paused'
+export type AttendanceStatus = 'present' | 'absent' | 'half_day' | 'wfh' | 'holiday' | 'leave'
+
+// New Smart Attendance Types
+export type SmartAttendanceStatus = 
+  | 'present' 
+  | 'present_compensation'
+  | 'partial_day'
+  | 'approved_leave'
+  | 'remote'
+  | 'holiday'
+  | 'weekend'
+  | 'absent'
+  | 'no_activity'
+  | 'admin_override'
+
+export type LatenessStatus = 'on_time' | 'slightly_late' | 'late'
 
 export interface AttendanceLog {
   id: string
@@ -143,6 +197,9 @@ export interface AttendanceLog {
   totalWorkSeconds: number
   totalBreakSeconds: number
   status: AttendanceStatus
+  isRemote?: boolean
+  notes?: string | null
+  isEarlyLeave?: boolean
 }
 
 export interface WorkSession {
@@ -426,4 +483,71 @@ export interface AuditLog {
   oldValue: Record<string, unknown> | null
   newValue: Record<string, unknown> | null
   createdAt: string
+}
+
+// ============================================================
+// EMPLOYEE MASTER RECORD EXTENSIONS
+// ============================================================
+
+export interface SkillCategory {
+  id: string
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeeDocument {
+  id: string
+  employeeId: string
+  documentType: string
+  fileUrl: string
+  uploadedAt: string
+}
+
+export interface EmployeeCertification {
+  id: string
+  employeeId: string
+  name: string
+  issuer: string
+  issueDate: string | null
+  expiryDate: string | null
+  credentialUrl: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeeEducation {
+  id: string
+  employeeId: string
+  school: string
+  degree: string
+  fieldOfStudy: string | null
+  startDate: string | null
+  endDate: string | null
+  cgpa: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeeExperience {
+  id: string
+  employeeId: string
+  companyName: string
+  title: string
+  startDate: string | null
+  endDate: string | null
+  location: string | null
+  description: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeePreference {
+  employeeId: string
+  theme: string
+  language: string
+  timezone: string | null
+  dashboardWidgets: Record<string, any> | any[]
+  notificationSettings: Record<string, any>
+  updatedAt: string
 }

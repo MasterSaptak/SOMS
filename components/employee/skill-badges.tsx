@@ -36,7 +36,7 @@ export function SkillBadges({ skills, isEditable }: SkillBadgesProps) {
           {list.map(skill => (
             <Badge key={skill.id} variant="secondary" className="px-2.5 py-1 text-xs font-medium bg-muted/50 hover:bg-muted transition-colors flex items-center gap-1.5 border border-border/50">
               <span className={`w-1.5 h-1.5 rounded-full ${colorClass}`} />
-              {skill.skillName}
+              {skill.skill?.name || 'Unknown Skill'}
               {skill.isVerified && <CheckCircle2 className="w-3 h-3 text-emerald-500 ml-0.5" />}
             </Badge>
           ))}

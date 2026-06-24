@@ -11,6 +11,7 @@ import { NotificationCenter } from "@/components/notification-center"
 import { QueueViewer } from "@/components/queue-viewer"
 import { Search, Sun, Moon } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
+import { AppUpdater } from "@/components/app-updater"
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useThemeStore()
@@ -34,6 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Breadcrumbs />
                 <div className="flex items-center gap-2">
                   <QueueViewer />
+                  <AppUpdater />
                   <ThemeToggle />
                   <NotificationCenter />
                 </div>

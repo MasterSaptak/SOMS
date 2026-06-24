@@ -81,7 +81,7 @@ export default function PayrollPage() {
                   <div key={salary.id} className="grid grid-cols-1 md:grid-cols-[1fr_100px_80px_80px_80px_80px_100px] gap-2 md:gap-3 items-center p-4 border-b border-border/30 hover:bg-muted/20 transition-colors">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{emp ? getFullName(emp) : '—'}</span>
-                      <span className="text-[10px] text-muted-foreground">{emp?.designation}</span>
+                      <span className="text-[10px] text-muted-foreground">{emp?.designation?.title || (typeof emp?.designation === 'string' ? emp.designation : '—')}</span>
                     </div>
                     <span className="text-xs font-mono">{formatCurrency(salary.baseSalary)}</span>
                     <span className="text-xs font-mono">{formatCurrency(salary.hra)}</span>

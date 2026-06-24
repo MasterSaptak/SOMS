@@ -41,6 +41,8 @@ function ThemeToggle() {
   )
 }
 
+import { AppUpdater } from "@/components/app-updater"
+
 export default function EmployeeLayout({
   children,
 }: {
@@ -62,6 +64,7 @@ export default function EmployeeLayout({
                 <div className="flex items-center gap-2">
                    <QueueViewer />
                    <UniversalSearch />
+                   <AppUpdater />
                    <ThemeToggle />
                    <NotificationCenter />
                 </div>

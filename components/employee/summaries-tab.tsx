@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { CheckSquare, CalendarRange, Clock, PieChart } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { getEmployeeSummaryAction } from '@/app/actions/employee.actions'
 
 export function SummariesTab({ employeeId }: { employeeId: string }) {
-  const supabase = createClient()
   const [tasks, setTasks] = useState<any[]>([])
   const [leaves, setLeaves] = useState<any[]>([])
   const [attendance, setAttendance] = useState<any[]>([])
@@ -14,21 +13,18 @@ export function SummariesTab({ employeeId }: { employeeId: string }) {
     async function loadData() {
       setIsLoading(true)
       
-      const [tasksRes, leavesRes, attendanceRes] = await Promise.all([
-        (supabase as any).from('tasks').select('*').eq('assigned_to', employeeId).limit(5).order('created_at', { ascending: false }),
-        (supabase as any).from('leaves').select('*').eq('employee_id', employeeId).limit(5).order('created_at', { ascending: false }),
-        (supabase as any).from('attendance').select('*').eq('employee_id', employeeId).limit(30).order('date', { ascending: false })
-      ])
-
-      if (tasksRes.data) setTasks(tasksRes.data)
-      if (leavesRes.data) setLeaves(leavesRes.data)
-      if (attendanceRes.data) setAttendance(attendanceRes.data)
+      const res = await getEmployeeSummaryAction(employeeId)
+      if (res.success && res.data) {
+        setTasks(res.data.tasks)
+        setLeaves(res.data.leaves)
+        setAttendance(res.data.attendance)
+      }
 
       setIsLoading(false)
     }
 
     if (employeeId) loadData()
-  }, [employeeId, supabase])
+  }, [employeeId])
 
   if (isLoading) return <div className="p-4 text-sm animate-pulse">Loading summaries...</div>
 

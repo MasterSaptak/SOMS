@@ -1,53 +1,63 @@
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { Plus, Trash2, Zap, CheckCircle2 } from 'lucide-react'
+import { addEmployeeSkillAction, deleteEmployeeSkillAction, getAllSkillsAction } from '@/app/actions/employee.actions'
 
-export function SkillsTab({ employeeId, canEdit, isAdmin }: { employeeId: string, canEdit: boolean, isAdmin: boolean }) {
-  const supabase = createClient()
-  const [skills, setSkills] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+import { useRouter } from 'next/navigation'
+
+export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, availableSkillsData }: { employeeId: string, canEdit: boolean, isAdmin: boolean, initialData: any[], availableSkillsData: any[] }) {
+  const router = useRouter()
+  const [employeeSkills, setEmployeeSkills] = useState<any[]>(initialData || [])
+  const [availableSkills, setAvailableSkills] = useState<any[]>(availableSkillsData || [])
   const [isAdding, setIsAdding] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   const [formData, setFormData] = useState({
-    skill_name: '',
+    skillId: availableSkillsData?.[0]?.id || '',
     proficiency: 'intermediate',
-    is_verified: false
+    yearsOfExperience: 0,
+    certification: '',
+    notes: ''
   })
 
-  const load = async () => {
-    setIsLoading(true)
-    const { data } = await (supabase as any).from('employee_skills').select('*').eq('employee_id', employeeId).order('skill_name')
-    if (data) setSkills(data)
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    load()
-  }, [employeeId, supabase])
-
   const handleAdd = async () => {
-    if (!formData.skill_name) {
-      alert('Skill Name is required.')
+    if (!formData.skillId) {
+      alert('Skill selection is required.')
       return
     }
     setIsSaving(true)
     try {
-      const { error } = await (supabase as any).from('employee_skills').insert({
-        employee_id: employeeId,
-        skill_name: formData.skill_name,
+      const res = await addEmployeeSkillAction({
+        employeeId,
+        skillId: formData.skillId,
         proficiency: formData.proficiency,
-        // Only admins can verify skills
-        is_verified: isAdmin ? formData.is_verified : false
+        yearsOfExperience: formData.yearsOfExperience,
+        certification: formData.certification,
+        notes: formData.notes
       })
-      if (error) throw error
+      if (!res.success) throw new Error('Failed to add skill')
+      
       setIsAdding(false)
-      setFormData({ skill_name: '', proficiency: 'intermediate', is_verified: false })
-      load()
+      setFormData({ skillId: availableSkills[0]?.id || '', proficiency: 'intermediate', yearsOfExperience: 0, certification: '', notes: '' })
+      
+      // Update local state optimistic UI
+      const addedSkill = availableSkills.find(s => s.id === formData.skillId)
+      if (addedSkill) {
+        setEmployeeSkills([...employeeSkills, {
+          id: Date.now().toString(), // temporary ID
+          skill: addedSkill,
+          proficiency: formData.proficiency,
+          years_of_experience: formData.yearsOfExperience,
+          certification: formData.certification,
+          notes: formData.notes
+        }])
+      }
+      
+      router.refresh()
     } catch (e: any) {
       alert(`Error adding skill: ${e.message}`)
     }
@@ -57,20 +67,19 @@ export function SkillsTab({ employeeId, canEdit, isAdmin }: { employeeId: string
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this skill?')) return
     try {
-      const { error } = await (supabase as any).from('employee_skills').delete().eq('id', id)
-      if (error) throw error
-      load()
+      const res = await deleteEmployeeSkillAction(employeeId, id)
+      if (!res.success) throw new Error('Failed to delete skill')
+      
+      setEmployeeSkills(employeeSkills.filter(s => s.id !== id))
+      router.refresh()
     } catch (e: any) {
       alert(`Error deleting skill: ${e.message}`)
     }
   }
 
-  if (isLoading) return <div className="p-4 text-sm animate-pulse">Loading skills...</div>
-
-  // Group by proficiency
-  const expert = skills.filter(s => s.proficiency === 'expert')
-  const intermediate = skills.filter(s => s.proficiency === 'intermediate')
-  const beginner = skills.filter(s => s.proficiency === 'beginner')
+  const expert = employeeSkills.filter(s => s.proficiency === 'expert')
+  const intermediate = employeeSkills.filter(s => s.proficiency === 'intermediate')
+  const beginner = employeeSkills.filter(s => s.proficiency === 'beginner')
 
   const renderSection = (title: string, list: any[], colorClass: string) => {
     if (list.length === 0) return null
@@ -79,9 +88,18 @@ export function SkillsTab({ employeeId, canEdit, isAdmin }: { employeeId: string
         <p className="text-xs text-muted-foreground uppercase font-semibold mb-3 tracking-wider">{title} ({list.length})</p>
         <div className="flex flex-wrap gap-2">
           {list.map(s => (
-            <Badge key={s.id} variant="outline" className={`py-1.5 px-3 bg-card relative group shadow-sm ${colorClass}`}>
-              {s.skill_name}
-              {s.is_verified && <CheckCircle2 className="w-3 h-3 ml-1.5 text-blue-500 inline-block" />}
+            <Badge key={s.id} variant="outline" className={`py-1.5 px-3 bg-card relative group shadow-sm flex flex-col items-start gap-1 ${colorClass}`}>
+              <div className="flex items-center">
+                <span className="font-medium">{s.skill?.name || 'Unknown Skill'}</span>
+                {s.is_verified && <CheckCircle2 className="w-3 h-3 ml-1.5 text-blue-500 inline-block" />}
+              </div>
+              {(s.years_of_experience > 0 || s.certification) && (
+                <div className="text-[10px] text-muted-foreground font-normal">
+                  {s.years_of_experience ? `${s.years_of_experience} yrs` : ''} 
+                  {s.years_of_experience && s.certification ? ' • ' : ''}
+                  {s.certification}
+                </div>
+              )}
               {canEdit && (
                 <button 
                   onClick={() => handleDelete(s.id)}
@@ -114,38 +132,58 @@ export function SkillsTab({ employeeId, canEdit, isAdmin }: { employeeId: string
       {isAdding && (
         <div className="bg-muted/30 border border-border/50 rounded-lg p-4 mb-6">
           <h4 className="font-semibold text-sm mb-4">Add New Skill</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label className="text-xs">Skill Name</Label>
-              <Input className="mt-1 h-8" value={formData.skill_name} onChange={e => setFormData({...formData, skill_name: e.target.value})} placeholder="e.g. React.js, CPR, Leadership..." />
-            </div>
-            <div>
-              <Label className="text-xs">Proficiency</Label>
-              <select 
-                className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm mt-1"
-                value={formData.proficiency} 
-                onChange={e => setFormData({...formData, proficiency: e.target.value})}
-              >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="expert">Expert</option>
-              </select>
-            </div>
-            {isAdmin && (
-              <div className="flex items-center gap-2 mt-6">
-                <input type="checkbox" id="is_verified" checked={formData.is_verified} onChange={e => setFormData({...formData, is_verified: e.target.checked})} className="rounded border-input" />
-                <Label htmlFor="is_verified" className="text-xs">Mark as Verified</Label>
+          {availableSkills.length === 0 ? (
+            <div className="text-sm text-amber-600">No skills available in the database. Please contact HR to add skills to the catalog.</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs">Skill</Label>
+                  <select 
+                    className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm mt-1"
+                    value={formData.skillId} 
+                    onChange={e => setFormData({...formData, skillId: e.target.value})}
+                  >
+                    {availableSkills.map(sk => (
+                      <option key={sk.id} value={sk.id}>{sk.name} ({sk.category})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Proficiency</Label>
+                  <select 
+                    className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm mt-1"
+                    value={formData.proficiency} 
+                    onChange={e => setFormData({...formData, proficiency: e.target.value})}
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Years of Experience (Optional)</Label>
+                  <Input type="number" className="mt-1 h-8" value={formData.yearsOfExperience} onChange={e => setFormData({...formData, yearsOfExperience: parseInt(e.target.value) || 0})} />
+                </div>
+                <div>
+                  <Label className="text-xs">Certification (Optional)</Label>
+                  <Input className="mt-1 h-8" value={formData.certification} onChange={e => setFormData({...formData, certification: e.target.value})} placeholder="e.g. AWS Certified..." />
+                </div>
+                <div className="col-span-full">
+                  <Label className="text-xs">Notes (Optional)</Label>
+                  <Input className="mt-1 h-8" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Any additional context..." />
+                </div>
               </div>
-            )}
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)} disabled={isSaving}>Cancel</Button>
-            <Button size="sm" onClick={handleAdd} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
-          </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)} disabled={isSaving}>Cancel</Button>
+                <Button size="sm" onClick={handleAdd} disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
-      {skills.length === 0 && !isAdding ? (
+      {employeeSkills.length === 0 && !isAdding ? (
         <div className="py-8 text-center text-muted-foreground border border-dashed border-border/50 rounded-xl">
           No skills added yet.
         </div>

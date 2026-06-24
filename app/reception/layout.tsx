@@ -19,6 +19,8 @@ function ThemeToggle() {
   )
 }
 
+import { AppUpdater } from "@/components/app-updater"
+
 export default function ReceptionLayout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
@@ -30,6 +32,7 @@ export default function ReceptionLayout({ children }: { children: React.ReactNod
               <header className="h-14 border-b border-border/40 bg-background/50 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-20">
                 <Breadcrumbs />
                 <div className="flex items-center gap-2">
+                  <AppUpdater />
                   <ThemeToggle />
                   <NotificationCenter />
                 </div>

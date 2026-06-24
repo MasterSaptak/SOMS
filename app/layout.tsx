@@ -32,6 +32,7 @@ export const metadata: Metadata = {
 import { CommandPalette } from '@/components/command-palette';
 import { AICopilot } from '@/components/ai-copilot';
 import { OfflineBanner } from '@/components/offline-banner';
+import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
 
 export default function RootLayout({
   children,
@@ -42,6 +43,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
       <body className="bg-background text-foreground min-h-screen flex flex-col">
         <OfflineBanner />
+        <PwaInstallPrompt />
         {children}
         <CommandPalette />
         <AICopilot />

@@ -38,7 +38,7 @@ export function EmployeeCard({ employee, onClick }: EmployeeCardProps) {
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
-                  <AvatarImage src={employee.avatarUrl} alt={employee.firstName} />
+                  <AvatarImage src={employee.avatarUrl || undefined} alt={employee.firstName} />
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                     {initials}
                   </AvatarFallback>

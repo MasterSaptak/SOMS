@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash2, HeartPulse } from 'lucide-react'
+import { addEmergencyContactAction, deleteEmergencyContactAction } from '@/app/actions/employee.actions'
 
-export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: string, canEdit: boolean }) {
-  const supabase = createClient()
-  const [contacts, setContacts] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+import { useRouter } from 'next/navigation'
+
+export function EmergencyContactsTab({ employeeId, canEdit, initialData }: { employeeId: string, canEdit: boolean, initialData: any[] }) {
+  const router = useRouter()
+  const [contacts, setContacts] = useState<any[]>(initialData || [])
   const [isAdding, setIsAdding] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -18,19 +20,10 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
     relationship: '',
     phone: '',
     email: '',
-    is_primary: false
+    alternatePhone: '',
+    address: '',
+    isPrimary: false
   })
-
-  const load = async () => {
-    setIsLoading(true)
-    const { data } = await (supabase as any).from('emergency_contacts').select('*').eq('employee_id', employeeId).order('is_primary', { ascending: false })
-    if (data) setContacts(data)
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    load()
-  }, [employeeId, supabase])
 
   const handleAdd = async () => {
     if (!formData.name || !formData.phone || !formData.relationship) {
@@ -39,14 +32,15 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
     }
     setIsSaving(true)
     try {
-      const { error } = await (supabase as any).from('emergency_contacts').insert({
-        employee_id: employeeId,
+      const res = await addEmergencyContactAction({
+        employeeId,
         ...formData
       })
-      if (error) throw error
+      if (!res.success) throw new Error('Failed to add contact')
+      
       setIsAdding(false)
-      setFormData({ name: '', relationship: '', phone: '', email: '', is_primary: false })
-      load()
+      setFormData({ name: '', relationship: '', phone: '', email: '', alternatePhone: '', address: '', isPrimary: false })
+      router.refresh()
     } catch (e: any) {
       alert(`Error adding contact: ${e.message}`)
     }
@@ -56,15 +50,15 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this contact?')) return
     try {
-      const { error } = await (supabase as any).from('emergency_contacts').delete().eq('id', id)
-      if (error) throw error
-      load()
+      const res = await deleteEmergencyContactAction(employeeId, id)
+      if (!res.success) throw new Error('Failed to delete contact')
+      
+      setContacts(contacts.filter(c => c.id !== id))
+      router.refresh()
     } catch (e: any) {
       alert(`Error deleting contact: ${e.message}`)
     }
   }
-
-  if (isLoading) return <div className="p-4 text-sm animate-pulse">Loading emergency contacts...</div>
 
   return (
     <div className="bg-card border border-border/50 rounded-xl p-6 shadow-sm">
@@ -97,11 +91,19 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
               <Input className="mt-1 h-8" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
             </div>
             <div>
+              <Label className="text-xs">Alternate Phone (Optional)</Label>
+              <Input className="mt-1 h-8" value={formData.alternatePhone} onChange={e => setFormData({...formData, alternatePhone: e.target.value})} />
+            </div>
+            <div>
               <Label className="text-xs">Email (Optional)</Label>
               <Input className="mt-1 h-8" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
             </div>
+            <div>
+              <Label className="text-xs">Address (Optional)</Label>
+              <Input className="mt-1 h-8" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+            </div>
             <div className="col-span-full flex items-center gap-2 mt-2">
-              <input type="checkbox" id="is_primary" checked={formData.is_primary} onChange={e => setFormData({...formData, is_primary: e.target.checked})} className="rounded border-input" />
+              <input type="checkbox" id="is_primary" checked={formData.isPrimary} onChange={e => setFormData({...formData, isPrimary: e.target.checked})} className="rounded border-input" />
               <Label htmlFor="is_primary" className="text-xs">Set as Primary Contact</Label>
             </div>
           </div>
@@ -130,9 +132,19 @@ export function EmergencyContactsTab({ employeeId, canEdit }: { employeeId: stri
             <div className="text-sm mt-1">
               <span className="font-medium">Phone:</span> {c.phone}
             </div>
+            {c.alternate_phone && (
+              <div className="text-sm">
+                <span className="font-medium">Alt Phone:</span> {c.alternate_phone}
+              </div>
+            )}
             {c.email && (
               <div className="text-sm">
                 <span className="font-medium">Email:</span> {c.email}
+              </div>
+            )}
+            {c.address && (
+              <div className="text-sm">
+                <span className="font-medium">Address:</span> {c.address}
               </div>
             )}
           </div>

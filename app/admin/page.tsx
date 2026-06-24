@@ -12,6 +12,7 @@ import { LiveActivity } from '@/components/dashboard/bento/live-activity'
 import { WorkspaceStatus } from '@/components/dashboard/bento/workspace-status'
 import { QuickActions } from '@/components/dashboard/bento/quick-actions'
 import { PendingApprovalsBento } from '@/components/dashboard/bento/pending-approvals-bento'
+import { SystemUpdateCenter } from '@/components/dashboard/bento/system-update-center'
 import {
   Users, Clock, CalendarRange, Activity, Calendar, CheckSquare, Briefcase,
 } from 'lucide-react'
@@ -187,6 +188,10 @@ export default function AdminDashboard() {
         </BentoSlot>
 
         {/* Row 3: Activity + Workspace + Actions + Approvals */}
+        <BentoSlot size="medium" widgetId="system-update">
+          <SystemUpdateCenter />
+        </BentoSlot>
+
         <BentoSlot size="wide" widgetId="live-activity">
           <LiveActivity />
         </BentoSlot>

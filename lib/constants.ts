@@ -142,9 +142,15 @@ export const LEAVE_TYPES: Record<LeaveType, { label: string; color: string; icon
   casual: { label: 'Casual Leave', color: 'text-blue-500', icon: '🏖️', maxDays: 2 },
   medical: { label: 'Medical Leave', color: 'text-red-500', icon: '🏥', maxDays: 2 },
   emergency: { label: 'Emergency Leave', color: 'text-amber-500', icon: '🚨', maxDays: 999 },
+  custom: { label: 'Custom Leave', color: 'text-purple-500', icon: '⚙️', maxDays: 999 },
 }
 
 export const LEAVE_STATUSES: Record<LeaveStatus, { label: string; color: string; bgColor: string }> = {
+  submitted: { label: 'Submitted', color: 'text-amber-600', bgColor: 'bg-amber-500/10' },
+  hr_verification: { label: 'HR Verification', color: 'text-orange-600', bgColor: 'bg-orange-500/10' },
+  manager_approval: { label: 'Manager Approval', color: 'text-blue-600', bgColor: 'bg-blue-500/10' },
+  payroll_processing: { label: 'Payroll Processing', color: 'text-indigo-600', bgColor: 'bg-indigo-500/10' },
+  completed: { label: 'Completed', color: 'text-emerald-600', bgColor: 'bg-emerald-500/10' },
   pending: { label: 'Pending', color: 'text-amber-600', bgColor: 'bg-amber-500/10' },
   manager_approved: { label: 'Manager Approved', color: 'text-blue-600', bgColor: 'bg-blue-500/10' },
   hr_approved: { label: 'Approved', color: 'text-emerald-600', bgColor: 'bg-emerald-500/10' },
@@ -158,6 +164,7 @@ export const BREAK_TYPES: Record<BreakType, { label: string; color: string; maxM
   food: { label: 'Snack / Coffee', color: 'bg-amber-600', maxMinutes: 15 },
   personal: { label: 'Personal', color: 'bg-blue-500', maxMinutes: 15 },
   emergency: { label: 'Emergency', color: 'bg-red-500', maxMinutes: 30 },
+  paused: { label: 'Paused', color: 'bg-slate-500', maxMinutes: 999 },
 }
 
 // --- Asset Categories ---

@@ -189,7 +189,7 @@ export function ApplyLeaveWizard({ onClose }: { onClose: () => void }) {
                   >
                     <option value="">Select manager...</option>
                     {managers.map((mgr) => (
-                      <option key={mgr.id} value={mgr.id}>{getFullName(mgr)} — {mgr.designation}</option>
+                      <option key={mgr.id} value={mgr.id}>{getFullName(mgr)} — {(mgr.designation as any)?.name || (mgr.designation as unknown as string) || ''}</option>
                     ))}
                   </select>
                 </div>

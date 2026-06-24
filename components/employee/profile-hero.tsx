@@ -112,7 +112,7 @@ export function ProfileHero({ employee, isAdminView, onEditClick }: ProfileHeroP
                   <span className="text-muted-foreground">Reports to:</span>
                   <div className="flex items-center gap-1.5 font-medium cursor-pointer hover:text-primary transition-colors">
                     <Avatar className="w-5 h-5">
-                      <AvatarImage src={manager.avatarUrl} />
+                      <AvatarImage src={manager.avatarUrl || undefined} />
                       <AvatarFallback className="text-[8px] bg-primary/10">{manager.firstName[0]}{manager.lastName[0]}</AvatarFallback>
                     </Avatar>
                     <span>{getFullName(manager)}</span>

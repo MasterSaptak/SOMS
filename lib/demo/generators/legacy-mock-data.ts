@@ -187,36 +187,36 @@ export const MOCK_EMERGENCY_CONTACTS: EmergencyContact[] = [
 // --- Employee Skills ---
 export const MOCK_SKILLS: EmployeeSkill[] = [
   // e3 — John Doe (Product Designer)
-  { id: 'sk1',  employeeId: 'e3', skillName: 'Figma',              proficiency: 'expert',       isVerified: true,  createdAt: '2025-03-15', updatedAt: '2025-03-15' },
-  { id: 'sk2',  employeeId: 'e3', skillName: 'User Research',      proficiency: 'expert',       isVerified: true,  createdAt: '2025-03-15', updatedAt: '2025-03-15' },
-  { id: 'sk3',  employeeId: 'e3', skillName: 'Prototyping',        proficiency: 'intermediate', isVerified: false, createdAt: '2025-03-15', updatedAt: '2025-03-15' },
-  { id: 'sk4',  employeeId: 'e3', skillName: 'HTML / CSS',         proficiency: 'intermediate', isVerified: false, createdAt: '2025-03-15', updatedAt: '2025-03-15' },
-  { id: 'sk5',  employeeId: 'e3', skillName: 'Motion Design',      proficiency: 'beginner',     isVerified: false, createdAt: '2025-06-01', updatedAt: '2025-06-01' },
+  { id: 'sk1',  employeeId: 'e3', skillId: 's1', skill: { id: 's1', name: 'Figma', category: 'Design', createdAt: '2025-01-01', updatedAt: '2025-01-01' }, proficiency: 'expert',       isVerified: true,  createdAt: '2025-03-15', updatedAt: '2025-03-15' },
+  { id: 'sk2',  employeeId: 'e3', skillId: 's2', skill: { id: 's2', name: 'User Research', category: 'Design', createdAt: '2025-01-01', updatedAt: '2025-01-01' },      proficiency: 'expert',       isVerified: true,  createdAt: '2025-03-15', updatedAt: '2025-03-15' },
+  { id: 'sk3',  employeeId: 'e3', skillId: 's3', skill: { id: 's3', name: 'Prototyping', category: 'Design', createdAt: '2025-01-01', updatedAt: '2025-01-01' },        proficiency: 'intermediate', isVerified: false, createdAt: '2025-03-15', updatedAt: '2025-03-15' },
+  { id: 'sk4',  employeeId: 'e3', skillId: 's4', skill: { id: 's4', name: 'HTML / CSS', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },         proficiency: 'intermediate', isVerified: false, createdAt: '2025-03-15', updatedAt: '2025-03-15' },
+  { id: 'sk5',  employeeId: 'e3', skillId: 's5', skill: { id: 's5', name: 'Motion Design', category: 'Design', createdAt: '2025-01-01', updatedAt: '2025-01-01' },      proficiency: 'beginner',     isVerified: false, createdAt: '2025-06-01', updatedAt: '2025-06-01' },
   // e4 — Sarah Chen (Design Lead)
-  { id: 'sk6',  employeeId: 'e4', skillName: 'Figma',              proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-01', updatedAt: '2025-02-01' },
-  { id: 'sk7',  employeeId: 'e4', skillName: 'Design Systems',     proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-01', updatedAt: '2025-02-01' },
-  { id: 'sk8',  employeeId: 'e4', skillName: 'Brand Strategy',     proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-01', updatedAt: '2025-02-01' },
-  { id: 'sk9',  employeeId: 'e4', skillName: 'Leadership',         proficiency: 'intermediate', isVerified: false, createdAt: '2025-02-01', updatedAt: '2025-02-01' },
+  { id: 'sk6',  employeeId: 'e4', skillId: 's1', skill: { id: 's1', name: 'Figma', category: 'Design', createdAt: '2025-01-01', updatedAt: '2025-01-01' },              proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-01', updatedAt: '2025-02-01' },
+  { id: 'sk7',  employeeId: 'e4', skillId: 's6', skill: { id: 's6', name: 'Design Systems', category: 'Design', createdAt: '2025-01-01', updatedAt: '2025-01-01' },     proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-01', updatedAt: '2025-02-01' },
+  { id: 'sk8',  employeeId: 'e4', skillId: 's7', skill: { id: 's7', name: 'Brand Strategy', category: 'Marketing', createdAt: '2025-01-01', updatedAt: '2025-01-01' },     proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-01', updatedAt: '2025-02-01' },
+  { id: 'sk9',  employeeId: 'e4', skillId: 's8', skill: { id: 's8', name: 'Leadership', category: 'Management', createdAt: '2025-01-01', updatedAt: '2025-01-01' },         proficiency: 'intermediate', isVerified: false, createdAt: '2025-02-01', updatedAt: '2025-02-01' },
   // e5 — Mike Johnson (Eng Manager)
-  { id: 'sk10', employeeId: 'e5', skillName: 'System Architecture',proficiency: 'expert',       isVerified: true,  createdAt: '2025-01-10', updatedAt: '2025-01-10' },
-  { id: 'sk11', employeeId: 'e5', skillName: 'Node.js',            proficiency: 'expert',       isVerified: true,  createdAt: '2025-01-10', updatedAt: '2025-01-10' },
-  { id: 'sk12', employeeId: 'e5', skillName: 'PostgreSQL',         proficiency: 'expert',       isVerified: true,  createdAt: '2025-01-10', updatedAt: '2025-01-10' },
-  { id: 'sk13', employeeId: 'e5', skillName: 'Team Management',    proficiency: 'expert',       isVerified: false, createdAt: '2025-01-10', updatedAt: '2025-01-10' },
+  { id: 'sk10', employeeId: 'e5', skillId: 's9', skill: { id: 's9', name: 'System Architecture', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },proficiency: 'expert',       isVerified: true,  createdAt: '2025-01-10', updatedAt: '2025-01-10' },
+  { id: 'sk11', employeeId: 'e5', skillId: 's10', skill: { id: 's10', name: 'Node.js', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },            proficiency: 'expert',       isVerified: true,  createdAt: '2025-01-10', updatedAt: '2025-01-10' },
+  { id: 'sk12', employeeId: 'e5', skillId: 's11', skill: { id: 's11', name: 'PostgreSQL', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },         proficiency: 'expert',       isVerified: true,  createdAt: '2025-01-10', updatedAt: '2025-01-10' },
+  { id: 'sk13', employeeId: 'e5', skillId: 's12', skill: { id: 's12', name: 'Team Management', category: 'Management', createdAt: '2025-01-01', updatedAt: '2025-01-01' },    proficiency: 'expert',       isVerified: false, createdAt: '2025-01-10', updatedAt: '2025-01-10' },
   // e7 — Alice Wong (Frontend Engineer)
-  { id: 'sk14', employeeId: 'e7', skillName: 'React',              proficiency: 'expert',       isVerified: true,  createdAt: '2025-05-10', updatedAt: '2025-05-10' },
-  { id: 'sk15', employeeId: 'e7', skillName: 'TypeScript',         proficiency: 'expert',       isVerified: true,  createdAt: '2025-05-10', updatedAt: '2025-05-10' },
-  { id: 'sk16', employeeId: 'e7', skillName: 'Next.js',            proficiency: 'intermediate', isVerified: true,  createdAt: '2025-05-10', updatedAt: '2025-05-10' },
-  { id: 'sk17', employeeId: 'e7', skillName: 'Testing (Vitest)',   proficiency: 'intermediate', isVerified: false, createdAt: '2025-05-10', updatedAt: '2025-05-10' },
-  { id: 'sk18', employeeId: 'e7', skillName: 'GraphQL',            proficiency: 'beginner',     isVerified: false, createdAt: '2025-09-01', updatedAt: '2025-09-01' },
+  { id: 'sk14', employeeId: 'e7', skillId: 's13', skill: { id: 's13', name: 'React', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },              proficiency: 'expert',       isVerified: true,  createdAt: '2025-05-10', updatedAt: '2025-05-10' },
+  { id: 'sk15', employeeId: 'e7', skillId: 's14', skill: { id: 's14', name: 'TypeScript', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },         proficiency: 'expert',       isVerified: true,  createdAt: '2025-05-10', updatedAt: '2025-05-10' },
+  { id: 'sk16', employeeId: 'e7', skillId: 's15', skill: { id: 's15', name: 'Next.js', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },            proficiency: 'intermediate', isVerified: true,  createdAt: '2025-05-10', updatedAt: '2025-05-10' },
+  { id: 'sk17', employeeId: 'e7', skillId: 's16', skill: { id: 's16', name: 'Testing (Vitest)', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },   proficiency: 'intermediate', isVerified: false, createdAt: '2025-05-10', updatedAt: '2025-05-10' },
+  { id: 'sk18', employeeId: 'e7', skillId: 's17', skill: { id: 's17', name: 'GraphQL', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },            proficiency: 'beginner',     isVerified: false, createdAt: '2025-09-01', updatedAt: '2025-09-01' },
   // e8 — Bob Martinez (Backend Engineer)
-  { id: 'sk19', employeeId: 'e8', skillName: 'Python',             proficiency: 'expert',       isVerified: true,  createdAt: '2025-06-01', updatedAt: '2025-06-01' },
-  { id: 'sk20', employeeId: 'e8', skillName: 'FastAPI',            proficiency: 'expert',       isVerified: true,  createdAt: '2025-06-01', updatedAt: '2025-06-01' },
-  { id: 'sk21', employeeId: 'e8', skillName: 'Docker',             proficiency: 'intermediate', isVerified: false, createdAt: '2025-06-01', updatedAt: '2025-06-01' },
-  { id: 'sk22', employeeId: 'e8', skillName: 'Kubernetes',         proficiency: 'beginner',     isVerified: false, createdAt: '2025-10-01', updatedAt: '2025-10-01' },
+  { id: 'sk19', employeeId: 'e8', skillId: 's18', skill: { id: 's18', name: 'Python', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },             proficiency: 'expert',       isVerified: true,  createdAt: '2025-06-01', updatedAt: '2025-06-01' },
+  { id: 'sk20', employeeId: 'e8', skillId: 's19', skill: { id: 's19', name: 'FastAPI', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },            proficiency: 'expert',       isVerified: true,  createdAt: '2025-06-01', updatedAt: '2025-06-01' },
+  { id: 'sk21', employeeId: 'e8', skillId: 's20', skill: { id: 's20', name: 'Docker', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },             proficiency: 'intermediate', isVerified: false, createdAt: '2025-06-01', updatedAt: '2025-06-01' },
+  { id: 'sk22', employeeId: 'e8', skillId: 's21', skill: { id: 's21', name: 'Kubernetes', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },         proficiency: 'beginner',     isVerified: false, createdAt: '2025-10-01', updatedAt: '2025-10-01' },
   // e10 — Arjun Nair (Senior Engineer)
-  { id: 'sk23', employeeId: 'e10',skillName: 'Go',                 proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-20', updatedAt: '2025-02-20' },
-  { id: 'sk24', employeeId: 'e10',skillName: 'Microservices',      proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-20', updatedAt: '2025-02-20' },
-  { id: 'sk25', employeeId: 'e10',skillName: 'Redis',              proficiency: 'intermediate', isVerified: false, createdAt: '2025-02-20', updatedAt: '2025-02-20' },
+  { id: 'sk23', employeeId: 'e10',skillId: 's22', skill: { id: 's22', name: 'Go', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },                 proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-20', updatedAt: '2025-02-20' },
+  { id: 'sk24', employeeId: 'e10',skillId: 's23', skill: { id: 's23', name: 'Microservices', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },      proficiency: 'expert',       isVerified: true,  createdAt: '2025-02-20', updatedAt: '2025-02-20' },
+  { id: 'sk25', employeeId: 'e10',skillId: 's24', skill: { id: 's24', name: 'Redis', category: 'Engineering', createdAt: '2025-01-01', updatedAt: '2025-01-01' },              proficiency: 'intermediate', isVerified: false, createdAt: '2025-02-20', updatedAt: '2025-02-20' },
 ]
 
 // ============================================================
@@ -242,7 +242,7 @@ export const MOCK_TASKS: Task[] = [
 // LEAVES
 // ============================================================
 
-export const MOCK_LEAVES: LeaveRequest[] = [
+export const MOCK_LEAVES: any[] = [
   { id: 'l1', employeeId: 'e3',  leaveType: 'casual',    startDate: '2026-06-23', endDate: '2026-06-24', reason: 'Family function',                    status: 'pending',          managerId: 'e4', hrId: null, isPaid: true, verificationStatus: 'pending', payrollProcessed: false, salaryDeducted: false, createdAt: '2026-06-15', updatedAt: '2026-06-15' },
   { id: 'l2', employeeId: 'e7',  leaveType: 'medical',   startDate: '2026-06-20', endDate: '2026-06-20', reason: 'Doctor appointment',                 status: 'manager_approved', managerId: 'e5', hrId: 'e2', isPaid: true, verificationStatus: 'verified', documents: ['doc1.pdf'], payrollProcessed: false, salaryDeducted: false, createdAt: '2026-06-14', updatedAt: '2026-06-16' },
   { id: 'l3', employeeId: 'e8',  leaveType: 'casual',    startDate: '2026-06-18', endDate: '2026-06-18', reason: 'Personal errands',                   status: 'hr_approved',      managerId: 'e5', hrId: 'e2', isPaid: true, verificationStatus: 'pending', payrollProcessed: true, salaryDeducted: false, createdAt: '2026-06-13', updatedAt: '2026-06-14' },

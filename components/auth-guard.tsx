@@ -64,7 +64,7 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
             joinDate: employeeData.joining_date || '',
             status: (employeeData.employment_status as any) || 'active',
             createdAt: employeeData.created_at || new Date().toISOString()
-          } : null
+          } as any : null
         )
       }
 

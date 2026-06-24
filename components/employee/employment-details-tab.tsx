@@ -4,61 +4,34 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Save, Edit2 } from 'lucide-react'
+import { updateEmploymentDetailsAction } from '@/app/actions/employee.actions'
 
-export function EmploymentDetailsTab({ employeeId, isAdmin }: { employeeId: string, isAdmin: boolean }) {
-  const supabase = createClient()
-  const [data, setData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { employeeId: string, isAdmin: boolean, initialData: any }) {
+  const [data, setData] = useState<any>(initialData || {})
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   const [formData, setFormData] = useState({
-    employment_type: '',
-    probation_end_date: '',
-    notice_period_days: 30,
-    work_schedule: ''
+    employmentType: data.employmentType || '',
+    probationEndDate: data.probationEndDate || '',
+    noticePeriodDays: data.noticePeriodDays || 30,
+    workSchedule: data.workSchedule || '',
+    confirmationDate: data.confirmationDate || '',
+    shift: data.shift || '',
+    officeLocation: data.officeLocation || '',
+    employeeGrade: data.employeeGrade || '',
+    employmentCategory: data.employmentCategory || '',
+    costCenter: data.costCenter || '',
+    payrollGroup: data.payrollGroup || ''
   })
-
-  useEffect(() => {
-    async function load() {
-      setIsLoading(true)
-      const { data: ed } = await (supabase as any).from('employment_details').select('*').eq('employee_id', employeeId).single()
-      if (ed) {
-        setData(ed)
-        setFormData({
-          employment_type: ed.employment_type || '',
-          probation_end_date: ed.probation_end_date || '',
-          notice_period_days: ed.notice_period_days || 30,
-          work_schedule: ed.work_schedule || ''
-        })
-      }
-      setIsLoading(false)
-    }
-    load()
-  }, [employeeId, supabase])
 
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      if (data) {
-        // Update
-        const { error } = await (supabase as any).from('employment_details').update({
-          ...formData,
-          probation_end_date: formData.probation_end_date || null
-        }).eq('id', data.id)
-        if (error) throw error
-      } else {
-        // Insert
-        const { error } = await (supabase as any).from('employment_details').insert({
-          employee_id: employeeId,
-          ...formData,
-          probation_end_date: formData.probation_end_date || null
-        })
-        if (error) throw error
-      }
-      // Reload
-      const { data: ed } = await (supabase as any).from('employment_details').select('*').eq('employee_id', employeeId).single()
-      setData(ed)
+      const res = await updateEmploymentDetailsAction(employeeId, formData)
+      if (!res.success) throw new Error('Failed to update employment details')
+      
+      setData({ ...data, ...formData })
       setIsEditing(false)
     } catch (e: any) {
       alert(`Error saving: ${e.message}`)
@@ -66,7 +39,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin }: { employeeId: stri
     setIsSaving(false)
   }
 
-  if (isLoading) return <div className="p-4 text-sm animate-pulse">Loading employment details...</div>
+
 
   return (
     <div className="bg-card border border-border/50 rounded-xl p-6 shadow-sm">
@@ -79,14 +52,14 @@ export function EmploymentDetailsTab({ employeeId, isAdmin }: { employeeId: stri
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Employment Type</Label>
           {isEditing ? (
             <select 
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
-              value={formData.employment_type} 
-              onChange={e => setFormData({...formData, employment_type: e.target.value})}
+              value={formData.employmentType} 
+              onChange={e => setFormData({...formData, employmentType: e.target.value})}
             >
               <option value="full_time">Full Time</option>
               <option value="part_time">Part Time</option>
@@ -101,25 +74,88 @@ export function EmploymentDetailsTab({ employeeId, isAdmin }: { employeeId: stri
         <div>
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Work Schedule</Label>
           {isEditing ? (
-            <Input className="mt-1" value={formData.work_schedule} onChange={e => setFormData({...formData, work_schedule: e.target.value})} />
+            <Input className="mt-1" value={formData.workSchedule} onChange={e => setFormData({...formData, workSchedule: e.target.value})} />
           ) : (
             <div className="font-medium mt-1 text-base">{data?.work_schedule || 'N/A'}</div>
           )}
         </div>
 
         <div>
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Shift</Label>
+          {isEditing ? (
+            <Input className="mt-1" value={formData.shift} onChange={e => setFormData({...formData, shift: e.target.value})} />
+          ) : (
+            <div className="font-medium mt-1 text-base">{data?.shift || 'N/A'}</div>
+          )}
+        </div>
+
+        <div>
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Office Location</Label>
+          {isEditing ? (
+            <Input className="mt-1" value={formData.officeLocation} onChange={e => setFormData({...formData, officeLocation: e.target.value})} />
+          ) : (
+            <div className="font-medium mt-1 text-base">{data?.office_location || 'N/A'}</div>
+          )}
+        </div>
+
+        <div>
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Employee Grade</Label>
+          {isEditing ? (
+            <Input className="mt-1" value={formData.employeeGrade} onChange={e => setFormData({...formData, employeeGrade: e.target.value})} />
+          ) : (
+            <div className="font-medium mt-1 text-base">{data?.employee_grade || 'N/A'}</div>
+          )}
+        </div>
+
+        <div>
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Employment Category</Label>
+          {isEditing ? (
+            <Input className="mt-1" value={formData.employmentCategory} onChange={e => setFormData({...formData, employmentCategory: e.target.value})} />
+          ) : (
+            <div className="font-medium mt-1 text-base">{data?.employment_category || 'N/A'}</div>
+          )}
+        </div>
+
+        <div>
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Cost Center</Label>
+          {isEditing ? (
+            <Input className="mt-1" value={formData.costCenter} onChange={e => setFormData({...formData, costCenter: e.target.value})} />
+          ) : (
+            <div className="font-medium mt-1 text-base">{data?.cost_center || 'N/A'}</div>
+          )}
+        </div>
+
+        <div>
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Payroll Group</Label>
+          {isEditing ? (
+            <Input className="mt-1" value={formData.payrollGroup} onChange={e => setFormData({...formData, payrollGroup: e.target.value})} />
+          ) : (
+            <div className="font-medium mt-1 text-base">{data?.payroll_group || 'N/A'}</div>
+          )}
+        </div>
+
+        <div>
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Notice Period (Days)</Label>
           {isEditing ? (
-            <Input type="number" className="mt-1" value={formData.notice_period_days} onChange={e => setFormData({...formData, notice_period_days: parseInt(e.target.value)})} />
+            <Input type="number" className="mt-1" value={formData.noticePeriodDays} onChange={e => setFormData({...formData, noticePeriodDays: parseInt(e.target.value)})} />
           ) : (
             <div className="font-medium mt-1 text-base">{data?.notice_period_days || 0}</div>
           )}
         </div>
 
         <div>
+          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Confirmation Date</Label>
+          {isEditing ? (
+            <Input type="date" className="mt-1" value={formData.confirmationDate} onChange={e => setFormData({...formData, confirmationDate: e.target.value})} />
+          ) : (
+            <div className="font-medium mt-1 text-base">{data?.confirmation_date || 'N/A'}</div>
+          )}
+        </div>
+
+        <div>
           <Label className="text-muted-foreground text-xs uppercase tracking-wider">Probation End Date</Label>
           {isEditing ? (
-            <Input type="date" className="mt-1" value={formData.probation_end_date} onChange={e => setFormData({...formData, probation_end_date: e.target.value})} />
+            <Input type="date" className="mt-1" value={formData.probationEndDate} onChange={e => setFormData({...formData, probationEndDate: e.target.value})} />
           ) : (
             <div className="font-medium mt-1 text-base">{data?.probation_end_date || 'N/A'}</div>
           )}

@@ -132,7 +132,7 @@ export function AppSidebar() {
 
   const role              = (user?.role as any) || 'employee';
   const accessibleSections = getAccessibleNavSections(role);
-  const roleConfig        = ROLES[role];
+  const roleConfig        = ROLES[role as keyof typeof ROLES];
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -245,7 +245,7 @@ export function AppSidebar() {
             className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer group"
           >
             <Avatar className="w-8 h-8 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-              <AvatarImage src={employee?.avatarUrl} />
+              <AvatarImage src={employee?.avatarUrl || undefined} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             {!collapsed && (

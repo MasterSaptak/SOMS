@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { WidgetShell } from '@/components/enterprise/widget-shell';
 import { BentoGrid, BentoSlot } from '@/components/enterprise/bento-grid'
 import { MetricCard } from '@/components/enterprise/metric-card'
@@ -12,9 +12,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { TASK_STATUSES, TASK_PRIORITIES, KANBAN_COLUMNS } from '@/lib/constants'
 import type { TaskStatus, TaskPriority } from '@/lib/types'
 import {
-  Search, Plus, LayoutGrid, List, CheckCircle2, Clock, AlertTriangle, Circle, X, Tag, Calendar, MessageSquare
+  Search, Plus, LayoutGrid, List, CheckCircle2, Clock, AlertTriangle, Circle, X, Tag, Calendar, MessageSquare, Filter, Check, Loader2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { formatDistanceToNow, isPast } from 'date-fns'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 const containerVars = {
   hidden: { opacity: 0 },
@@ -64,6 +67,7 @@ function CreateTaskDialog({ onClose, currentEmployeeId, employees, onTaskCreated
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
         className="w-full max-w-lg mx-4 bg-card rounded-2xl border border-border shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -183,16 +187,17 @@ function TaskDetailDialog({ task, onClose, currentEmployeeId, onTaskUpdated }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-2xl mx-4 bg-card rounded-2xl border border-border shadow-2xl max-h-[85vh] overflow-hidden flex flex-col"
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-2xl bg-card rounded-2xl border border-border shadow-2xl max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between p-6 border-b border-border/60">
+        <div className="flex items-start justify-between p-4 md:p-6 border-b border-border/60">
           <div className="flex-1 mr-4">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <Badge className={`${TASK_PRIORITIES[task.priority as TaskPriority]?.bgColor || 'bg-slate-500/10'} ${TASK_PRIORITIES[task.priority as TaskPriority]?.color || 'text-slate-500'} border-none text-[10px] uppercase font-bold`}>
                 {task.priority}
               </Badge>
@@ -200,14 +205,14 @@ function TaskDetailDialog({ task, onClose, currentEmployeeId, onTaskUpdated }: {
                 {task.status.replace('_', ' ')}
               </Badge>
             </div>
-            <h2 className="text-xl font-bold">{task.title}</h2>
+            <h2 className="text-lg md:text-xl font-bold">{task.title}</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 shrink-0">
             <X className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-6">
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Description</h3>
             <p className="text-sm leading-relaxed">{task.description || 'No description provided.'}</p>
@@ -220,7 +225,7 @@ function TaskDetailDialog({ task, onClose, currentEmployeeId, onTaskUpdated }: {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground font-medium">Due Date</span>
-              <span className="text-sm">{task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No deadline'}</span>
+              <span className="text-sm">{task.deadline ? new Date(task.deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No deadline'}</span>
             </div>
           </div>
 
@@ -284,50 +289,75 @@ function TaskDetailDialog({ task, onClose, currentEmployeeId, onTaskUpdated }: {
   )
 }
 
-function TaskCard({ task, onClick }: { task: any; onClick: () => void }) {
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
+function TaskCard({ task, onClick, onQuickComplete }: { task: any; onClick: () => void; onQuickComplete: (e: React.MouseEvent, id: string) => void }) {
+  const isTaskOverdue = task.deadline && isPast(new Date(task.deadline)) && task.status !== 'completed'
   const priorityInfo = TASK_PRIORITIES[task.priority as TaskPriority] || { bgColor: 'bg-slate-500/10', color: 'text-slate-500' }
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       draggable
-      onDragStart={(e) => {
+      onDragStart={(e: any) => {
         e.dataTransfer.setData('taskId', task.id)
         e.dataTransfer.effectAllowed = 'move'
       }}
       onClick={onClick}
-      className="group p-4 rounded-xl bg-surface-primary border border-border/60 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer"
+      className="group relative p-4 rounded-xl bg-surface-primary/60 backdrop-blur-sm border border-border/60 hover:border-primary/40 hover:shadow-[0_4px_20px_-4px_rgba(var(--primary),0.1)] transition-all cursor-pointer overflow-hidden"
     >
-      <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
-        <span className={`text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-sm ${priorityInfo.bgColor} ${priorityInfo.color}`}>
+      {/* Background glow based on priority */}
+      <div className={`absolute top-0 right-0 w-16 h-16 blur-2xl opacity-10 rounded-full pointer-events-none ${
+        task.priority === 'critical' ? 'bg-red-500' :
+        task.priority === 'high' ? 'bg-orange-500' : 'bg-transparent'
+      }`} />
+
+      <div className="flex items-center justify-between mb-2.5">
+        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${priorityInfo.bgColor} ${priorityInfo.color}`}>
           {task.priority || 'medium'}
         </span>
+        
+        {task.status !== 'completed' && (
+          <button 
+            onClick={(e) => onQuickComplete(e, task.id)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-emerald-500/10 hover:text-emerald-500 text-muted-foreground rounded-md z-10"
+            title="Mark as completed"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
-      <h4 className="text-sm font-medium mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+      <h4 className="text-sm font-medium mb-4 line-clamp-2 group-hover:text-primary transition-colors">
         {task.title}
       </h4>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mt-auto">
         <div className="flex items-center gap-2">
-          <Avatar className="w-6 h-6">
+          <Avatar className="w-6 h-6 border border-background shadow-sm">
             <AvatarFallback className="text-[9px]">
               {task.assigned_to_emp?.full_name?.charAt(0) || '?'}
             </AvatarFallback>
           </Avatar>
-          {task.due_date && (
-            <span className={`text-[10px] flex items-center gap-1 ${isOverdue ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
-              <Calendar className="w-3 h-3" />
-              {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </span>
-          )}
         </div>
+        
+        {task.deadline && (
+          <span className={`text-[10px] flex items-center gap-1 font-medium px-1.5 py-0.5 rounded ${
+            isTaskOverdue 
+              ? 'text-red-600 dark:text-red-400 bg-red-500/10' 
+              : 'text-muted-foreground bg-muted/50'
+          }`}>
+            <Calendar className="w-3 h-3" />
+            {isTaskOverdue ? 'Overdue' : formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+          </span>
+        )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
-function KanbanColumn({ status, tasks, onTaskClick, onTaskMove }: { status: string; tasks: any[]; onTaskClick: (task: any) => void; onTaskMove: (taskId: string, newStatus: string) => void }) {
+function KanbanColumn({ status, tasks, onTaskClick, onTaskMove, onQuickComplete }: { status: string; tasks: any[]; onTaskClick: (task: any) => void; onTaskMove: (taskId: string, newStatus: string) => void; onQuickComplete: (e: React.MouseEvent, id: string) => void }) {
   const config = TASK_STATUSES[status as TaskStatus] || { label: status, color: 'text-slate-500' }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -345,30 +375,45 @@ function KanbanColumn({ status, tasks, onTaskClick, onTaskMove }: { status: stri
 
   return (
     <div
-      className="flex-1 min-w-[280px] flex flex-col"
+      className="flex-1 min-w-[280px] md:min-w-[300px] flex flex-col h-full"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-3 px-2 sticky top-0 bg-background/80 backdrop-blur-sm z-10 py-1">
         <div className="flex items-center gap-2">
           <span className={`${config.color}`}>{statusIcons[status]}</span>
-          <h3 className="text-sm font-semibold">{config.label || status}</h3>
-          <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5 font-medium">
+          <h3 className="text-sm font-bold uppercase tracking-wide">{config.label || status}</h3>
+          <span className="text-[10px] text-muted-foreground bg-muted rounded-full px-2 py-0.5 font-bold">
             {tasks.length}
           </span>
         </div>
       </div>
 
-      <WidgetShell className="flex flex-col gap-3 min-h-[200px] p-2 bg-surface-secondary/50 border border-dashed border-border/40">
-        {tasks.length === 0 ? (
-          <div className="flex items-center justify-center h-24 text-xs text-muted-foreground">
-            Drop tasks here
-          </div>
-        ) : (
-          tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={() => onTaskClick(task)} />
-          ))
-        )}
+      <WidgetShell className="flex flex-col gap-3 min-h-[250px] p-3 bg-surface-secondary/30 border border-dashed border-border/40 flex-1 overflow-y-auto">
+        <AnimatePresence>
+          {tasks.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center h-32 text-xs text-muted-foreground opacity-60"
+            >
+              <div className="w-10 h-10 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center mb-2">
+                <Plus className="w-4 h-4" />
+              </div>
+              Drop tasks here
+            </motion.div>
+          ) : (
+            tasks.map((task) => (
+              <TaskCard 
+                key={task.id} 
+                task={task} 
+                onClick={() => onTaskClick(task)} 
+                onQuickComplete={onQuickComplete}
+              />
+            ))
+          )}
+        </AnimatePresence>
       </WidgetShell>
     </div>
   )
@@ -382,8 +427,12 @@ export default function TasksPage() {
   const [view, setView] = useState<'kanban' | 'list'>('kanban')
   
   const [search, setSearch] = useState('')
+  const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [selectedTask, setSelectedTask] = useState<any | null>(null)
+  
+  const isMobile = useIsMobile()
+  const [activeMobileTab, setActiveMobileTab] = useState<string>('pending')
 
   const supabase = createClient()
 
@@ -410,7 +459,6 @@ export default function TasksPage() {
           assigned_to_emp:employees!tasks_assigned_to_fkey(full_name),
           created_by_emp:employees!tasks_created_by_fkey(full_name)
         `)
-        // .eq('assigned_to', emp.id) // Optionally show all tasks or just assigned tasks
         .order('created_at', { ascending: false })
       
       if (myTasks) setTasks(myTasks)
@@ -427,7 +475,6 @@ export default function TasksPage() {
     const task = tasks.find(t => t.id === taskId)
     if (!task || task.status === newStatus) return
 
-    // Optimistic UI update
     setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t))
 
     await supabase.from('tasks').update({ status: newStatus }).eq('id', taskId)
@@ -439,15 +486,29 @@ export default function TasksPage() {
       new_status: newStatus
     })
     
-    loadData()
+    // loadData() // Commented out to prevent flicker during optimisic update, will rely on realtime if added later
   }
 
-  const filteredTasks = tasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
+  const handleQuickComplete = async (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation()
+    await moveTask(taskId, 'completed')
+  }
+
+  const filteredTasks = tasks.filter(t => {
+    const matchesSearch = t.title.toLowerCase().includes(search.toLowerCase())
+    const matchesPriority = priorityFilter === 'all' || t.priority === priorityFilter
+    return matchesSearch && matchesPriority
+  })
+  
   const completedCount = tasks.filter(t => t.status === 'completed').length
   const completionRate = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0
 
   if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading tasks...</div>
+    return <div className="p-8 text-center text-muted-foreground flex justify-center items-center min-h-[50vh]">
+      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+        <Loader2 className="w-8 h-8" />
+      </motion.div>
+    </div>
   }
 
   return (
@@ -455,20 +516,20 @@ export default function TasksPage() {
       <motion.div variants={itemVars} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
-          <p className="text-muted-foreground mt-1">Organize and track your daily work.</p>
+          <p className="text-muted-foreground mt-1">Organize and track your daily work effortlessly.</p>
         </div>
       </motion.div>
 
       <motion.div variants={itemVars}>
-        <BentoGrid columns={4} className="mb-2">
-          <BentoSlot colSpan={1}>
+        <BentoGrid className="grid-cols-1 md:grid-cols-4 mb-2 gap-4">
+          <BentoSlot className={isMobile ? "col-span-2" : "col-span-1"}>
             <MetricCard 
               title="Total Tasks" 
               value={filteredTasks.length} 
-              icon={<List className="w-4 h-4" />}
+              icon={<List className="w-4 h-4 text-primary" />}
             />
           </BentoSlot>
-          <BentoSlot colSpan={1}>
+          <BentoSlot className={isMobile ? "col-span-2" : "col-span-1"}>
             <MetricCard 
               title="Completed" 
               value={`${completionRate}%`} 
@@ -476,18 +537,45 @@ export default function TasksPage() {
               icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
             />
           </BentoSlot>
-          <BentoSlot colSpan={2}>
-            <WidgetShell className="flex flex-col md:flex-row items-center justify-between p-6 h-full gap-4">
-              <div className="relative flex-1 w-full max-w-sm">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search tasks..."
-                  className="pl-9 h-10 w-full"
-                />
+          <BentoSlot className={isMobile ? "col-span-4" : "col-span-2"}>
+            <WidgetShell className="flex flex-col sm:flex-row items-center justify-between p-4 md:p-6 h-full gap-4 bg-surface-primary/50 backdrop-blur-md">
+              <div className="relative flex-1 w-full flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search tasks..."
+                    className="pl-9 h-10 w-full bg-background"
+                  />
+                </div>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="h-10 px-3 bg-background">
+                      <Filter className="w-4 h-4 md:mr-2" />
+                      <span className="hidden md:inline">Priority</span>
+                      {priorityFilter !== 'all' && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full"></span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[160px]">
+                    <DropdownMenuItem onClick={() => setPriorityFilter('all')}>
+                      {priorityFilter === 'all' && <Check className="w-4 h-4 mr-2" />}
+                      <span className={priorityFilter === 'all' ? 'font-bold' : 'ml-6'}>All Priorities</span>
+                    </DropdownMenuItem>
+                    {Object.keys(TASK_PRIORITIES).map(p => (
+                      <DropdownMenuItem key={p} onClick={() => setPriorityFilter(p)}>
+                        {priorityFilter === p && <Check className="w-4 h-4 mr-2" />}
+                        <span className={priorityFilter === p ? 'font-bold' : 'ml-6 capitalize'}>{p}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
+
+              <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
                 <div className="flex items-center rounded-lg border border-border overflow-hidden bg-background">
                   <button
                     onClick={() => setView('kanban')}
@@ -502,9 +590,9 @@ export default function TasksPage() {
                     <List className="w-4 h-4" />
                   </button>
                 </div>
-                <Button onClick={() => setShowCreateDialog(true)} className="gap-1.5 h-10">
+                <Button onClick={() => setShowCreateDialog(true)} className="gap-1.5 h-10 rounded-full shadow-lg hover:shadow-primary/25 transition-all">
                   <Plus className="w-4 h-4" />
-                  New Task
+                  <span className="hidden sm:inline">New Task</span>
                 </Button>
               </div>
             </WidgetShell>
@@ -513,22 +601,61 @@ export default function TasksPage() {
       </motion.div>
 
       {view === 'kanban' && (
-        <BentoGrid columns={4} className="overflow-x-auto pb-4 gap-5">
-          {['pending', 'in_progress', 'blocked', 'completed'].map((status) => (
-            <BentoSlot key={status} colSpan={1}>
-              <KanbanColumn 
-                status={status} 
-                tasks={filteredTasks.filter(t => t.status === status)} 
-                onTaskClick={setSelectedTask} 
-                onTaskMove={moveTask}
-              />
-            </BentoSlot>
-          ))}
-        </BentoGrid>
+        <>
+          {isMobile ? (
+            <div className="flex flex-col gap-4">
+              <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide snap-x">
+                {KANBAN_COLUMNS.map(status => {
+                  const isActive = activeMobileTab === status
+                  const count = filteredTasks.filter(t => t.status === status).length
+                  return (
+                    <button
+                      key={status}
+                      onClick={() => setActiveMobileTab(status)}
+                      className={`flex-shrink-0 snap-start px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+                        isActive 
+                          ? 'bg-primary text-primary-foreground shadow-md' 
+                          : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {status.replace('_', ' ')}
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-primary-foreground/20' : 'bg-muted-foreground/20'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="min-h-[50vh]">
+                <KanbanColumn 
+                  status={activeMobileTab} 
+                  tasks={filteredTasks.filter(t => t.status === activeMobileTab)} 
+                  onTaskClick={setSelectedTask} 
+                  onTaskMove={moveTask}
+                  onQuickComplete={handleQuickComplete}
+                />
+              </div>
+            </div>
+          ) : (
+            <BentoGrid className="grid-cols-1 md:grid-cols-4 pb-4 gap-5 items-stretch">
+              {KANBAN_COLUMNS.map((status) => (
+                <BentoSlot key={status} className="col-span-1 h-full">
+                  <KanbanColumn 
+                    status={status} 
+                    tasks={filteredTasks.filter(t => t.status === status)} 
+                    onTaskClick={setSelectedTask} 
+                    onTaskMove={moveTask}
+                    onQuickComplete={handleQuickComplete}
+                  />
+                </BentoSlot>
+              ))}
+            </BentoGrid>
+          )}
+        </>
       )}
 
       {view === 'list' && (
-        <WidgetShell className="flex flex-col gap-2 p-4">
+        <WidgetShell className="flex flex-col gap-2 p-2 md:p-4 bg-surface-primary/50 backdrop-blur-sm">
           <div className="hidden md:grid grid-cols-[1fr_120px_120px_120px_100px] gap-4 px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             <span>Task</span>
             <span>Status</span>
@@ -536,52 +663,66 @@ export default function TasksPage() {
             <span>Assignee</span>
             <span>Due Date</span>
           </div>
-          {filteredTasks.map((task) => (
-            <div
-              key={task.id}
-              onClick={() => setSelectedTask(task)}
-              className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px_120px_100px] gap-2 md:gap-4 items-center p-4 rounded-xl border border-border/50 hover:bg-muted/30 hover:border-primary/20 transition-colors cursor-pointer bg-surface-primary"
-            >
-              <div className="flex items-center gap-3">
-                <span className={TASK_STATUSES[task.status as TaskStatus]?.color || 'text-slate-500'}>{statusIcons[task.status]}</span>
-                <span className="text-sm font-medium truncate">{task.title}</span>
-              </div>
-              <Badge className={`text-[10px] uppercase font-bold w-fit ${TASK_STATUSES[task.status as TaskStatus]?.bgColor || 'bg-muted'} ${TASK_STATUSES[task.status as TaskStatus]?.color || 'text-muted-foreground'} border-none`}>
-                {task.status.replace('_', ' ')}
-              </Badge>
-              <Badge className={`text-[10px] uppercase font-bold w-fit ${TASK_PRIORITIES[task.priority as TaskPriority]?.bgColor || 'bg-slate-500/10'} ${TASK_PRIORITIES[task.priority as TaskPriority]?.color || 'text-slate-500'} border-none`}>
-                {task.priority || 'medium'}
-              </Badge>
-              <div className="flex items-center gap-2">
-                <Avatar className="w-5 h-5">
-                  <AvatarFallback className="text-[8px]">{task.assigned_to_emp?.full_name?.charAt(0) || '?'}</AvatarFallback>
-                </Avatar>
-                <span className="text-xs truncate">{task.assigned_to_emp?.full_name || 'Unassigned'}</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
-              </span>
-            </div>
-          ))}
+          <AnimatePresence>
+            {filteredTasks.map((task) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                key={task.id}
+                onClick={() => setSelectedTask(task)}
+                className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px_120px_100px] gap-3 md:gap-4 items-center p-4 rounded-xl border border-border/50 hover:bg-muted/40 hover:border-primary/30 transition-all cursor-pointer bg-surface-primary shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <span className={TASK_STATUSES[task.status as TaskStatus]?.color || 'text-slate-500'}>{statusIcons[task.status]}</span>
+                  <span className="text-sm font-medium line-clamp-2 md:truncate">{task.title}</span>
+                </div>
+                <div className="flex items-center gap-2 md:contents">
+                  <Badge className={`text-[10px] uppercase font-bold w-fit ${TASK_STATUSES[task.status as TaskStatus]?.bgColor || 'bg-muted'} ${TASK_STATUSES[task.status as TaskStatus]?.color || 'text-muted-foreground'} border-none`}>
+                    {task.status.replace('_', ' ')}
+                  </Badge>
+                  <Badge className={`text-[10px] uppercase font-bold w-fit ${TASK_PRIORITIES[task.priority as TaskPriority]?.bgColor || 'bg-slate-500/10'} ${TASK_PRIORITIES[task.priority as TaskPriority]?.color || 'text-slate-500'} border-none`}>
+                    {task.priority || 'medium'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between md:contents mt-2 md:mt-0 pt-2 border-t border-border/50 md:border-t-0 md:pt-0">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-5 h-5">
+                      <AvatarFallback className="text-[8px]">{task.assigned_to_emp?.full_name?.charAt(0) || '?'}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs truncate">{task.assigned_to_emp?.full_name || 'Unassigned'}</span>
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {task.deadline ? formatDistanceToNow(new Date(task.deadline), { addSuffix: true }) : '—'}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </WidgetShell>
       )}
 
-      {showCreateDialog && currentEmployeeId && (
-        <CreateTaskDialog 
-          currentEmployeeId={currentEmployeeId}
-          employees={employees}
-          onClose={() => setShowCreateDialog(false)} 
-          onTaskCreated={loadData}
-        />
-      )}
-      {selectedTask && currentEmployeeId && (
-        <TaskDetailDialog
-          task={selectedTask}
-          currentEmployeeId={currentEmployeeId}
-          onClose={() => setSelectedTask(null)}
-          onTaskUpdated={loadData}
-        />
-      )}
+      <AnimatePresence>
+        {showCreateDialog && currentEmployeeId && (
+          <CreateTaskDialog 
+            currentEmployeeId={currentEmployeeId}
+            employees={employees}
+            onClose={() => setShowCreateDialog(false)} 
+            onTaskCreated={loadData}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {selectedTask && currentEmployeeId && (
+          <TaskDetailDialog
+            task={selectedTask}
+            currentEmployeeId={currentEmployeeId}
+            onClose={() => setSelectedTask(null)}
+            onTaskUpdated={loadData}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

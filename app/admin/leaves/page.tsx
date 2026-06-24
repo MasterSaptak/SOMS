@@ -17,7 +17,8 @@ import { MOCK_EMPLOYEES, MOCK_DEPARTMENTS, getFullName, getDepartmentById } from
 import type { LeaveType, LeaveStatus, LeaveRequest } from '@/lib/types'
 import { 
   Search, CheckCircle2, XCircle, Clock, FileText, 
-  Calendar, Filter, ChevronDown, Download, AlertCircle, ShieldAlert, FileUp 
+  Calendar, Filter, ChevronDown, Download, AlertCircle, ShieldAlert, FileUp,
+  Stethoscope
 } from 'lucide-react'
 
 const containerVars = {
@@ -153,7 +154,7 @@ export default function AdminLeavesPage() {
             const isExpanded = expandedLeave === leave.id
             const days = Math.ceil((new Date(leave.endDate).getTime() - new Date(leave.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
             const policy = policies.find(p => p.id === leave.policyId) || policies.find(p => p.leaveType === leave.leaveType)
-            const typeLabel = policy?.name || LEAVE_TYPES[leave.leaveType as any]?.label || leave.leaveType
+            const typeLabel = policy?.name || LEAVE_TYPES[leave.leaveType as keyof typeof LEAVE_TYPES]?.label || leave.leaveType
             const statusInfo = LEAVE_STATUSES[leave.status] || { label: leave.status.replace('_', ' ').toUpperCase(), color: 'text-muted-foreground', bgColor: 'bg-muted' }
             
             return (
@@ -374,6 +375,7 @@ export default function AdminLeavesPage() {
             )
           })
         )}
+        </motion.div>
         </TabsContent>
 
         <TabsContent value="analytics" className="m-0 flex flex-col gap-6">

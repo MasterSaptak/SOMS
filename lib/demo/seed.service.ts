@@ -108,12 +108,12 @@ export class SeedService {
         organization_id: idMap[MOCK_ORG_ID],
         employee_id_string: e.employeeCode,
         full_name: `${e.firstName} ${e.lastName}`,
-        email: e.email,
+        email: (e as any).email,
         phone: e.phone,
-        department_id: idMap[e.departmentId],
+        department_id: idMap[e.departmentId as string],
         team_id: e.teamId ? idMap[e.teamId] : null,
-        designation_id: idMap[e.designationId],
-        work_location_id: idMap[e.workLocationId],
+        designation_id: idMap[e.designationId as string],
+        work_location_id: idMap[e.workLocationId as string],
         manager_id: e.managerId && e.managerId !== 'none' ? idMap[e.managerId] : null,
         joining_date: e.joinDate,
         employment_status: e.status
@@ -171,7 +171,7 @@ export class SeedService {
       await (supabase as any).from('employee_skills').insert(MOCK_SKILLS.map(sk => ({
         id: uuidv4(),
         employee_id: idMap[sk.employeeId],
-        skill_name: sk.skillName,
+        skill_id: sk.skillId,
         proficiency: sk.proficiency,
         is_verified: sk.isVerified
       })))

@@ -13,28 +13,25 @@ async function getAuthContext() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   
-  // For Phase 2 Demo Environment: Bypass auth if no user exists.
-  if (error || !user) {
+  let userId = 'dummy-demo-user'
+  if (!error && user) {
+    userId = user.id
+  } else {
     console.warn('[getAuthContext] No auth found, using dummy user for Demo environment.')
-    return { supabase, userId: 'dummy-demo-user' }
   }
-  
-  return { supabase, userId: user.id }
+
+  const { data: orgData } = await (supabase as any).from('organizations').select('id').eq('is_demo', true).single()
+  const orgId = orgData ? orgData.id : 'dummy-org-id'
+
+  return { supabase, userId, orgId }
 }
 
 export async function getEmployeesAction(orgId?: string): Promise<Result<Employee[]>> {
   try {
-    const { userId, supabase } = await getAuthContext()
-    
-    let targetOrgId = orgId
-    if (!targetOrgId) {
-      const { data: orgData } = await (supabase as any).from('organizations').select('id').eq('is_demo', true).single()
-      if (orgData) targetOrgId = orgData.id
-      else return success([]) // No demo org found
-    }
+    const { userId, orgId: defaultOrgId, supabase } = await getAuthContext()
+    const targetOrgId = orgId || defaultOrgId
 
-    // Authz
-    await permissionService.authorize(userId, targetOrgId as string, 'employee.read')
+    await permissionService.authorize(userId, targetOrgId, 'employee.read')
 
     const { data, error } = await (supabase as any)
       .from('employees')
@@ -68,8 +65,8 @@ export async function getEmployeesAction(orgId?: string): Promise<Result<Employe
 
 export async function getEmployee360Action(employeeId: string) {
   try {
-    await getAuthContext() // just verify auth
-    return await employeeService.getEmployee360(employeeId)
+    const { userId, orgId } = await getAuthContext()
+    return await employeeService.getEmployee360(employeeId, userId, orgId)
   } catch (err) {
     return failure(err as Error)
   }
@@ -77,12 +74,189 @@ export async function getEmployee360Action(employeeId: string) {
 
 export async function updateEmployeeAction(employeeId: string, input: UpdateEmployeeInput): Promise<Result<boolean>> {
   try {
-    const { userId } = await getAuthContext()
-    const res = await employeeService.updateEmployeeStructure(employeeId, input, userId)
-    if (res.success) {
-      revalidatePath('/', 'layout')
-    }
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.updateEmployeeStructure(employeeId, input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
     return res
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function updateEmployeeBasicInfoAction(employeeId: string, input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.updatePersonalDetails(employeeId, input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function updateEmploymentDetailsAction(employeeId: string, input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.updateEmploymentDetails(employeeId, input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function addEmergencyContactAction(input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.addEmergencyContact(input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function deleteEmergencyContactAction(employeeId: string, contactId: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.deleteEmergencyContact(employeeId, contactId, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function getAllSkillsAction() {
+  try {
+    await getAuthContext()
+    return await employeeService.getAllSkills()
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function addEmployeeSkillAction(input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.addEmployeeSkill(input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function deleteEmployeeSkillAction(employeeId: string, skillId: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.deleteEmployeeSkill(employeeId, skillId, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+// Master Record Entities Actions
+
+export async function addEmployeeDocumentAction(input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.addDocument(input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function deleteEmployeeDocumentAction(employeeId: string, documentId: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.deleteDocument(employeeId, documentId, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function addEmployeeCertificationAction(input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.addCertification(input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function deleteEmployeeCertificationAction(employeeId: string, certId: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.deleteCertification(employeeId, certId, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function addEmployeeEducationAction(input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.addEducation(input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function deleteEmployeeEducationAction(employeeId: string, eduId: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.deleteEducation(employeeId, eduId, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function addEmployeeExperienceAction(input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.addExperience(input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function deleteEmployeeExperienceAction(employeeId: string, expId: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.deleteExperience(employeeId, expId, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function updateEmployeePreferenceAction(employeeId: string, input: any) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    const res = await employeeService.updatePreferences(employeeId, input, userId, orgId)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function getEmployeeSummaryAction(employeeId: string) {
+  try {
+    const { supabase, userId, orgId } = await getAuthContext()
+    await permissionService.authorize(userId, orgId, 'employee.summary.view')
+
+    const [tasksRes, leavesRes, attendanceRes] = await Promise.all([
+      (supabase as any).from('tasks').select('*').eq('assigned_to', employeeId).limit(5).order('created_at', { ascending: false }),
+      (supabase as any).from('leaves').select('*').eq('employee_id', employeeId).limit(5).order('created_at', { ascending: false }),
+      (supabase as any).from('attendance').select('*').eq('employee_id', employeeId).limit(30).order('date', { ascending: false })
+    ])
+    
+    return success({
+      tasks: tasksRes.data || [],
+      leaves: leavesRes.data || [],
+      attendance: attendanceRes.data || []
+    })
   } catch (err) {
     return failure(err as Error)
   }

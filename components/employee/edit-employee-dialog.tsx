@@ -26,7 +26,7 @@ export function EditEmployeeDialog({ open, onOpenChange, employee }: EditEmploye
   const [formData, setFormData] = useState({
     firstName: employee.firstName || '',
     lastName: employee.lastName || '',
-    email: employee.email || '',
+    email: (employee as any).email || '',
     phone: employee.phone || '',
     departmentId: employee.departmentId || '',
     designationId: employee.designationId || '',
