@@ -39,6 +39,8 @@ import {
   Package,
   Boxes,
   Settings2,
+  FolderKanban,
+  Home,
 } from 'lucide-react';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenuButton, SidebarContext } from '@/components/ui/sidebar';
 import { usePathname, useRouter } from 'next/navigation';
@@ -53,6 +55,7 @@ import { createClient } from '@/lib/supabase/client';
 
 const iconMap: Record<string, React.ReactNode> = {
   LayoutDashboard: <LayoutDashboard size={18} />,
+  Home:            <Home size={18} />,
   Clock:           <Clock size={18} />,
   Activity:        <Activity size={18} />,
   Brain:           <Brain size={18} />,
@@ -85,6 +88,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Boxes:           <Boxes size={18} />,
   Building2:       <Building2 size={18} />,
   Settings2:       <Settings2 size={18} />,
+  FolderKanban:    <FolderKanban size={18} />,
 }
 
 const NAV_SECTIONS = {
@@ -94,7 +98,7 @@ const NAV_SECTIONS = {
       {
         label: null,
         items: [
-          { label: 'Dashboard',     href: '/employee',              icon: 'LayoutDashboard' },
+          { label: 'Employee Dashboard', href: '/employee', icon: 'Home' },
         ],
       },
     ],
@@ -105,38 +109,39 @@ const NAV_SECTIONS = {
       {
         label: null,
         items: [
-          { label: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
+          { label: 'Admin Dashboard', href: '/admin', icon: 'Shield' },
         ],
       },
       {
-        label: 'Workforce',
+        label: null,
         items: [
-          { label: 'Employees',   href: '/admin/hr',         icon: 'Users' },
-          { label: 'Attendance',  href: '/admin/attendance',  icon: 'Clock' },
-          { label: 'Leave',       href: '/admin/leaves',      icon: 'CalendarRange' },
+          { label: 'Workforce',   href: '/admin/hr',         icon: 'Users' },
         ],
       },
       {
-        label: 'Operations',
+        label: 'Work',
         items: [
           { label: 'Tasks',   href: '/admin/tasks',   icon: 'CheckSquare' },
-          { label: 'Assets',  href: '/admin/assets',  icon: 'Package' },
+          { label: 'Projects', href: '/admin/projects', icon: 'FolderKanban' },
+          { label: 'Approvals', href: '/admin/approvals', icon: 'CheckSquare' },
         ],
       },
       {
         label: 'Finance',
         items: [
           { label: 'Payroll', href: '/admin/payroll', icon: 'Banknote' },
+          { label: 'Expenses', href: '/admin/expenses', icon: 'Wallet' },
         ],
       },
       {
-        label: 'Intelligence',
+        label: 'Inventory',
         items: [
-          { label: 'Analytics', href: '/admin/analytics', icon: 'BarChart3' },
+          { label: 'Assets',  href: '/admin/assets',  icon: 'Package' },
+          { label: 'Consumables', href: '/admin/consumables', icon: 'Boxes' },
         ],
       },
       {
-        label: 'Administration',
+        label: null,
         items: [
           { label: 'Settings', href: '/admin/settings', icon: 'Settings2' },
         ],

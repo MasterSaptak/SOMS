@@ -6,11 +6,12 @@ import {
   Search, Filter, Plus, MoreHorizontal, ChevronLeft, ChevronRight,
   Download, Upload, Trash2, UserCheck, UserX, CheckSquare, Square,
   X, Eye, Edit, ShieldAlert, ArrowRightLeft, Briefcase, FolderKanban,
-  User, Activity
+  User, Activity, Users, Building2, Package, CalendarRange, Banknote
 } from 'lucide-react'
 import { getPeopleAction, updatePersonAction, createPersonAction, bulkUpdateStatusAction } from '@/app/actions/people.actions'
 import PersonProfileDrawer from './PersonProfileDrawer'
 import ChangeLifecycleDialog from './ChangeLifecycleDialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 
 interface PersonSummary {
   id: string
@@ -50,6 +51,7 @@ interface Props {
     lifecycleStatuses: string[]
   }
   organizationId: string | null
+  searchQuery?: string
 }
 
 const statusColors: Record<string, string> = {
@@ -62,9 +64,9 @@ const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
 }
 
-export default function PeopleDirectoryClient({ initialData, filterOptions, organizationId }: Props) {
+export default function PeopleDirectoryClient({ initialData, filterOptions, organizationId, searchQuery = '' }: Props) {
   const [people, setPeople] = useState<PaginatedPeople>(initialData)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchQuery)
   const [statusFilter, setStatusFilter] = useState('all')
   const [deptFilter, setDeptFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
@@ -75,6 +77,18 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
   const [isPending, startTransition] = useTransition()
   const [actionMenu, setActionMenu] = useState<string | null>(null)
   const [lifecycleDialogPerson, setLifecycleDialogPerson] = useState<PersonSummary | null>(null)
+
+  // Sync global search
+  React.useEffect(() => {
+    setSearch(searchQuery)
+  }, [searchQuery])
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchPeople(1)
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [search])
 
   // Create form state
   const [newPerson, setNewPerson] = useState({ full_name: '', email: '', phone: '', department: '', designation: '', employment_type: 'permanent' })
@@ -163,74 +177,81 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
         </div>
       </div>
 
-      {/* Search & Filters Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      {/* Sticky Toolbar */}
+      <div className="sticky top-14 z-10 bg-surface-base py-3 border-b border-border/50 flex flex-col sm:flex-row gap-3 shadow-sm -mx-2 px-2">
+        <div className="relative flex-1 max-w-sm hidden sm:block">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search by name, email, or ID..."
+            placeholder="Search within people..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            className="w-full pl-9 pr-4 py-1.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
           />
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${showFilters ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border bg-card text-muted-foreground hover:text-foreground'}`}
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all shadow-sm ${showFilters ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border bg-card text-muted-foreground hover:text-foreground'}`}
         >
-          <Filter size={16} />
+          <Filter size={15} />
           Filters
         </button>
         <button
-          onClick={() => fetchPeople(1)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => setShowCreateDialog(true)}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground transition-all shadow-sm"
         >
-          <Download size={16} />
+          <Plus size={15} />
+          Add Person
+        </button>
+        <button
+          onClick={() => fetchPeople(1)}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground transition-all shadow-sm ml-auto"
+        >
+          <Download size={15} />
           Export
         </button>
       </div>
 
       {/* Expanded Filters */}
       {showFilters && (
-        <div className="flex flex-wrap gap-3 p-4 rounded-xl border border-border bg-card/50">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">Status</label>
+        <div className="flex flex-wrap gap-4 p-4 rounded-xl border border-border bg-card shadow-sm mt-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Status</label>
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); }}
-              className="px-3 py-1.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="all">All Statuses</option>
               {filterOptions.statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1).replace('_', ' ')}</option>)}
             </select>
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">Department</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Department</label>
             <select
               value={deptFilter}
               onChange={(e) => { setDeptFilter(e.target.value); }}
-              className="px-3 py-1.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="all">All Departments</option>
               {filterOptions.departments.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">Employment Type</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Employment Type</label>
             <select
               value={typeFilter}
               onChange={(e) => { setTypeFilter(e.target.value); }}
-              className="px-3 py-1.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="all">All Types</option>
               {filterOptions.employmentTypes.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
             </select>
           </div>
           <div className="flex items-end">
-            <button onClick={() => fetchPeople(1)} className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-              Apply
+            <button onClick={() => fetchPeople(1)} className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
+              Apply Filters
             </button>
           </div>
         </div>
@@ -238,8 +259,8 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
 
       {/* Bulk Actions Bar */}
       {selected.size > 0 && (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
-          <span className="text-sm font-medium text-primary">{selected.size} selected</span>
+        <div className="flex items-center gap-3 p-3 mt-4 rounded-xl bg-primary/5 border border-primary/20 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <span className="text-sm font-medium text-primary px-2">{selected.size} employees selected</span>
           <div className="flex items-center gap-2 ml-auto">
             <button onClick={() => handleBulkStatus('active')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-100 text-emerald-700 text-xs font-medium hover:bg-emerald-200 transition-colors">
               <UserCheck size={14} /> Activate
@@ -258,129 +279,133 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
       )}
 
       {/* Data Table */}
-      <div className="rounded-xl border border-border overflow-hidden bg-card">
+      <div className="rounded-xl border border-border overflow-hidden bg-card shadow-sm mt-4">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-muted/30 border-b border-border">
-                <th className="w-10 px-4 py-3 text-left">
-                  <button onClick={toggleSelectAll} className="text-muted-foreground hover:text-foreground transition-colors">
-                    {selected.size === people.data.length && people.data.length > 0 ? <CheckSquare size={16} /> : <Square size={16} />}
+              <tr className="bg-muted/40 border-b border-border">
+                <th className="w-10 px-4 py-2.5 text-left">
+                  <button onClick={toggleSelectAll} className="text-muted-foreground hover:text-foreground transition-colors flex items-center">
+                    {selected.size === people.data.length && people.data.length > 0 ? <CheckSquare size={15} /> : <Square size={15} />}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider">Person</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden md:table-cell">Employee ID</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden lg:table-cell">Department</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden lg:table-cell">Designation</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden xl:table-cell">Organization</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden xl:table-cell">Manager</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden xl:table-cell">Type</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden lg:table-cell">Joined</th>
-                <th className="w-10 px-4 py-3"></th>
+                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider">Person</th>
+                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider hidden lg:table-cell">Department</th>
+                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider hidden lg:table-cell">Role</th>
+                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider hidden xl:table-cell">Manager</th>
+                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider hidden xl:table-cell">Location</th>
+                <th className="w-10 px-4 py-2.5"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/50">
+            <tbody className="divide-y divide-border/40">
               {people.data.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-4 py-16 text-center text-muted-foreground">
-                    <User size={40} className="mx-auto mb-3 opacity-30" />
-                    <p className="text-base font-medium">No people found</p>
-                    <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                  <td colSpan={8} className="px-4 py-20 text-center text-muted-foreground">
+                    <div className="max-w-xs mx-auto">
+                      <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border/50 shadow-sm">
+                        <Users size={28} className="text-muted-foreground/60" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground mb-1">No employees found</h3>
+                      <p className="text-sm mb-6">Your workforce directory is empty. Get started by adding your first employee or importing a CSV file.</p>
+                      <div className="flex items-center justify-center gap-3">
+                        <button onClick={() => setShowCreateDialog(true)} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
+                          Create Employee
+                        </button>
+                        <button className="px-4 py-2 rounded-lg border border-border bg-card text-sm font-medium hover:bg-accent transition-colors shadow-sm">
+                          Import CSV
+                        </button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 people.data.map((person) => (
                   <tr
                     key={person.id}
-                    className={`hover:bg-accent/30 transition-colors cursor-pointer ${selected.has(person.id) ? 'bg-primary/5' : ''}`}
+                    className={`hover:bg-accent/40 transition-colors cursor-pointer group h-[46px] ${selected.has(person.id) ? 'bg-primary/5' : ''}`}
                     onClick={() => setSelectedPerson(person.id)}
                   >
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => toggleSelect(person.id)} className="text-muted-foreground hover:text-foreground transition-colors">
-                        {selected.has(person.id) ? <CheckSquare size={16} className="text-primary" /> : <Square size={16} />}
+                    <td className="px-4 py-1.5" onClick={(e) => e.stopPropagation()}>
+                      <button onClick={() => toggleSelect(person.id)} className="text-muted-foreground hover:text-foreground transition-colors flex items-center">
+                        {selected.has(person.id) ? <CheckSquare size={15} className="text-primary" /> : <Square size={15} className="opacity-40 group-hover:opacity-100" />}
                       </button>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-1.5">
                       <div className="flex items-center gap-3">
                         {person.profile_photo ? (
-                          <img src={person.profile_photo} alt="" className="w-8 h-8 rounded-full object-cover ring-1 ring-border" />
+                          <img src={person.profile_photo} alt="" className="w-7 h-7 rounded-full object-cover ring-1 ring-border shadow-sm" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                          <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shadow-sm ring-1 ring-primary/20">
                             {getInitials(person.full_name)}
                           </div>
                         )}
                         <div className="min-w-0">
-                          <p className="font-medium text-foreground truncate">{person.full_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{person.email}</p>
+                          <p className="font-medium text-sm text-foreground truncate">{person.full_name}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground hidden md:table-cell font-mono text-xs">
-                      {person.employee_id_string || '—'}
+                    <td className="px-4 py-1.5 text-muted-foreground hidden lg:table-cell text-sm">
+                      {person.department || '—'}
                     </td>
-                    <td className="px-4 py-3 text-foreground hidden lg:table-cell">
-                      {person.department || <span className="text-muted-foreground">—</span>}
+                    <td className="px-4 py-1.5 text-muted-foreground hidden lg:table-cell text-sm">
+                      {person.designation || '—'}
                     </td>
-                    <td className="px-4 py-3 text-foreground hidden lg:table-cell">
-                      {person.designation || <span className="text-muted-foreground">—</span>}
-                    </td>
-                    <td className="px-4 py-3 text-foreground hidden xl:table-cell text-xs">
-                      {person.organization_name || <span className="text-muted-foreground">—</span>}
-                    </td>
-                    <td className="px-4 py-3 text-foreground hidden xl:table-cell text-xs">
-                      {person.manager_name || <span className="text-muted-foreground">—</span>}
-                    </td>
-                    <td className="px-4 py-3 hidden xl:table-cell">
-                      <span className="text-xs capitalize text-muted-foreground">{person.employment_type || '—'}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusColors[person.employment_status] || statusColors.active}`}>
+                    <td className="px-4 py-1.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize tracking-wide ${statusColors[person.employment_status] || statusColors.active}`}>
                         {person.employment_status?.replace('_', ' ') || 'active'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs hidden lg:table-cell">
-                      {person.joining_date ? new Date(person.joining_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                    <td className="px-4 py-1.5 text-muted-foreground hidden xl:table-cell text-sm">
+                      {person.manager_name || '—'}
                     </td>
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <div className="relative">
-                        <button
-                          onClick={() => setActionMenu(actionMenu === person.id ? null : person.id)}
-                          className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                        >
-                          <MoreHorizontal size={16} />
-                        </button>
-                        {actionMenu === person.id && (
-                          <>
-                            <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
-                            <div className="absolute right-0 top-8 z-50 w-48 rounded-xl border border-border bg-card shadow-lg py-1">
-                              <button onClick={() => { setSelectedPerson(person.id); setActionMenu(null) }} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors">
-                                <Eye size={14} /> View Profile
-                              </button>
-                              <button onClick={() => { setSelectedPerson(person.id); setActionMenu(null) }} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors">
-                                <Edit size={14} /> Edit
-                              </button>
-                              <div className="border-t border-border my-1" />
-                              <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors">
-                                <ArrowRightLeft size={14} /> Transfer
-                              </button>
-                              <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors">
-                                <Briefcase size={14} /> Assign Team
-                              </button>
-                              <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors">
-                                <FolderKanban size={14} /> Assign Project
-                              </button>
-                              <div className="border-t border-border my-1" />
-                              <button onClick={() => { setLifecycleDialogPerson(person); setActionMenu(null) }} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors">
-                                <Activity size={14} /> Update Lifecycle
-                              </button>
-                              <div className="border-t border-border my-1" />
-                              <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors">
-                                <Trash2 size={14} /> Delete
-                              </button>
-                            </div>
-                          </>
-                        )}
+                    <td className="px-4 py-1.5 text-muted-foreground hidden xl:table-cell text-sm">
+                      {person.organization_name || 'HQ'}
+                    </td>
+                    <td className="px-4 py-1.5" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100">
+                              <MoreHorizontal size={16} />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 rounded-xl border border-border bg-card shadow-lg py-1.5 z-50">
+                            <DropdownMenuItem onClick={() => setSelectedPerson(person.id)} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium cursor-pointer">
+                              <Edit size={14} className="text-muted-foreground" /> Edit Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-border/50 my-1" />
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <ArrowRightLeft size={14} className="text-muted-foreground" /> Transfer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <Users size={14} className="text-muted-foreground" /> Assign Team
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <FolderKanban size={14} className="text-muted-foreground" /> Assign Project
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <Building2 size={14} className="text-muted-foreground" /> Assign Organization
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <Package size={14} className="text-muted-foreground" /> Assign Asset
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-border/50 my-1" />
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <ShieldAlert size={14} className="text-muted-foreground" /> Reset Password
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <CalendarRange size={14} className="text-muted-foreground" /> Leave
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                              <Banknote size={14} className="text-muted-foreground" /> Payroll
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-border/50 my-1" />
+                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                              <Trash2 size={14} /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>
@@ -392,17 +417,17 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
 
         {/* Pagination */}
         {people.totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/20">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-border/50 bg-muted/10">
+            <p className="text-xs text-muted-foreground font-medium">
               Showing {((people.page - 1) * people.pageSize) + 1}–{Math.min(people.page * people.pageSize, people.total)} of {people.total}
             </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => fetchPeople(people.page - 1)}
                 disabled={people.page <= 1}
-                className="p-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:pointer-events-none bg-card shadow-sm"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={14} />
               </button>
               {Array.from({ length: Math.min(people.totalPages, 5) }, (_, i) => {
                 const pageNum = i + 1
@@ -410,7 +435,7 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
                   <button
                     key={pageNum}
                     onClick={() => fetchPeople(pageNum)}
-                    className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${pageNum === people.page ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
+                    className={`w-7 h-7 rounded text-xs font-semibold transition-colors shadow-sm ${pageNum === people.page ? 'bg-primary text-primary-foreground border border-primary' : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-accent'}`}
                   >
                     {pageNum}
                   </button>
@@ -419,9 +444,9 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
               <button
                 onClick={() => fetchPeople(people.page + 1)}
                 disabled={people.page >= people.totalPages}
-                className="p-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                className="p-1 rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:pointer-events-none bg-card shadow-sm"
               >
-                <ChevronRight size={16} />
+                <ChevronRight size={14} />
               </button>
             </div>
           </div>

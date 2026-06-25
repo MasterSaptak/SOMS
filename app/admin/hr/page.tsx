@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Users, Building2, Layers3, Briefcase, FolderKanban, BadgeCheck, TrendingUp, UserPlus, UserMinus, Clock } from 'lucide-react'
+import { WorkforceWorkspace } from './components/WorkforceWorkspace'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -59,77 +60,33 @@ export default async function HRDashboardPage() {
     .select('id', { count: 'exact', head: true })
   totalOrgs = orgCount || 0
 
-  const statCards = [
-    { label: 'Total People', value: totalPeople, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', href: '/admin/hr/people' },
-    { label: 'Active', value: activePeople, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10', href: '/admin/hr/people' },
-    { label: 'Organizations', value: totalOrgs, icon: Building2, color: 'text-violet-500', bg: 'bg-violet-500/10', href: '/admin/hr/organizations' },
-    { label: 'Departments', value: totalDepts, icon: Layers3, color: 'text-amber-500', bg: 'bg-amber-500/10', href: '/admin/hr/departments' },
-    { label: 'Projects', value: totalProjects, icon: FolderKanban, color: 'text-rose-500', bg: 'bg-rose-500/10', href: '/admin/hr/projects' },
-  ]
+  const stats = {
+    totalPeople,
+    activePeople,
+    totalDepts,
+    totalOrgs,
+    totalProjects,
+    onLeave: 0, // Placeholder
+    probation: 0, // Placeholder
+    newHires: 0, // Placeholder
+  }
 
-  const quickActions = [
-    { label: 'Add Person', href: '/admin/hr/people', icon: UserPlus, desc: 'Register a new employee or user' },
-    { label: 'Create Department', href: '/admin/hr/departments', icon: Layers3, desc: 'Set up a new department' },
-    { label: 'Create Team', href: '/admin/hr/teams', icon: Briefcase, desc: 'Build a new team under a department' },
-    { label: 'Create Project', href: '/admin/hr/projects', icon: FolderKanban, desc: 'Initialize a new project' },
-    { label: 'Send Invitation', href: '/admin/hr/invitations', icon: UserPlus, desc: 'Invite someone to the organization' },
-    { label: 'Manage Designations', href: '/admin/hr/designations', icon: BadgeCheck, desc: 'Define job titles and levels' },
-  ]
+  // Fetch initial people data for the People tab
+  const { getPeopleAction, getFilterOptionsAction } = await import('@/app/actions/people.actions')
+  
+  const [peopleResult, filterOptions] = await Promise.all([
+    getPeopleAction({ organizationId: null, page: 1, pageSize: 50 }),
+    getFilterOptionsAction(null),
+  ])
+
+  const initialPeopleData = peopleResult.success ? peopleResult.data! : { data: [], total: 0, page: 1, pageSize: 50, totalPages: 0 }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">HR Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Enterprise Workforce Management overview</p>
-      </div>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {statCards.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <Link
-              key={stat.label}
-              href={stat.href}
-              className="group rounded-xl border border-border/50 bg-card p-5 hover:shadow-md hover:border-border transition-all duration-200"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2 rounded-lg ${stat.bg}`}>
-                  <Icon size={18} className={stat.color} />
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
-            </Link>
-          )
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {quickActions.map((action) => {
-            const Icon = action.icon
-            return (
-              <Link
-                key={action.label}
-                href={action.href}
-                className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card hover:shadow-md hover:border-primary/30 transition-all duration-200 group"
-              >
-                <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{action.label}</p>
-                  <p className="text-xs text-muted-foreground">{action.desc}</p>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-    </div>
+    <WorkforceWorkspace 
+      stats={stats}
+      initialPeopleData={initialPeopleData}
+      filterOptions={filterOptions}
+      organizationId={null}
+    />
   )
 }

@@ -62,6 +62,15 @@ const SETTING_CARDS = [
     comingSoon: true,
   },
   {
+    title: 'HR Configuration',
+    description: 'Configure branches, departments, roles, leave types, and policies.',
+    icon: Building,
+    href: '/admin/settings/hr',
+    color: 'text-rose-500',
+    bg: 'from-rose-500/10 to-rose-500/5',
+    border: 'hover:border-rose-500/40',
+  },
+  {
     title: 'Organization',
     description: 'Manage company details, branding, departments, and global preferences.',
     icon: Building,

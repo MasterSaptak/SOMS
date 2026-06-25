@@ -12,6 +12,7 @@ import { QueueViewer } from "@/components/queue-viewer"
 import { Search, Sun, Moon } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
 import { AppUpdater } from "@/components/app-updater"
+import { GlobalSearch } from "@/components/global-search"
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useThemeStore()
@@ -34,6 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <header className="h-14 border-b border-border/30 bg-surface-primary/80 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-20">
                 <Breadcrumbs />
                 <div className="flex items-center gap-2">
+                  <GlobalSearch />
                   <QueueViewer />
                   <AppUpdater />
                   <ThemeToggle />
