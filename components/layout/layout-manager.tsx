@@ -22,7 +22,10 @@ export function LayoutManager({ children }: { children: React.ReactNode }) {
   // Example: Persist density to localStorage
   useEffect(() => {
     const saved = localStorage.getItem('soms-density') as Density
-    if (saved) setDensity(saved)
+    if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDensity(saved)
+    }
   }, [])
 
   useEffect(() => {

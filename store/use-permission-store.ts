@@ -38,8 +38,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
 
     try {
       const supabase = createClient()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sb = supabase as any
+            const sb = supabase as any
 
       // Fetch user_roles with nested role_permissions
       const { data: userRoles, error: roleError } = await sb

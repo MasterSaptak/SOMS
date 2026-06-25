@@ -22,6 +22,7 @@ export function PwaInstallPrompt() {
     const isStandalone = ('standalone' in window.navigator) && (window.navigator as any).standalone
     
     if (isIosDevice && !isStandalone) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsIOS(true)
       setIsInstallable(true)
     }

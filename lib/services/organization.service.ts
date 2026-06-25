@@ -27,26 +27,59 @@ export class OrganizationService {
 
     const { name, slug, website, industry, size } = validation.data
 
-    // Create organization record
-    const orgResult = await organizationRepository.create({
-      name,
-      slug,
-      website: website || null,
-      industry: industry || null,
-      size: size || null,
-    } as never)
+    // Use service role client to bypass RLS during creation since the user doesn't belong to the org yet
+    const { createClient } = await import('@supabase/supabase-js')
+    const serviceClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    if (!orgResult.success) {
-      logger.error('[OrganizationService] createOrganization failed', orgResult.error)
-      return failure(orgResult.error)
+    // Create organization record
+    const { data: orgData, error: orgError } = await serviceClient
+      .from('organizations')
+      .insert({
+        name,
+        slug,
+        website: website || null,
+        industry: industry || null,
+        size: size || null,
+      })
+      .select()
+      .single()
+
+    if (orgError) {
+      logger.error('[OrganizationService] createOrganization failed', orgError)
+      return failure(new Error(orgError.message))
     }
 
-    const org = orgResult.data as unknown as Organization
+    const org = orgData as unknown as Organization
 
     // Add creator as owner
-    const memberResult = await organizationRepository.addMember(org.id, createdByUserId, 'owner')
-    if (!memberResult.success) {
-      logger.warn('[OrganizationService] Failed to add owner member', { orgId: org.id })
+    const { error: memberError } = await serviceClient
+      .from('organization_members')
+      .insert({
+        organization_id: org.id,
+        user_id: createdByUserId,
+        role: 'owner',
+        status: 'active',
+        joined_at: new Date().toISOString()
+      })
+
+    if (memberError) {
+      logger.warn('[OrganizationService] Failed to add owner member', { orgId: org.id, memberError })
+    }
+
+    // Also create the corresponding employee record
+    const { data: profile } = await serviceClient.from('profiles').select('full_name').eq('id', createdByUserId).single()
+    const { error: empError } = await serviceClient.from('employees').insert({
+      organization_id: org.id,
+      user_id: createdByUserId,
+      full_name: profile?.full_name || 'Organization Owner',
+      status: 'active'
+    })
+
+    if (empError) {
+      logger.warn('[OrganizationService] Failed to create owner employee record', { orgId: org.id, empError })
     }
 
     // Publish event

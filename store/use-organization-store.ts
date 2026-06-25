@@ -50,8 +50,7 @@ export const useOrganizationStore = create<OrganizationState>()(
         set({ isLoading: true })
         try {
           const supabase = createClient()
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data, error } = await (supabase as any)
+                    const { data, error } = await (supabase as any)
             .from('organization_members')
             .select('*, organizations(*)')
             .eq('user_id', userId)

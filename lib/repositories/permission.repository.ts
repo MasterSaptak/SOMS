@@ -76,13 +76,6 @@ export class PermissionRepository {
 
       if (roleError) return failure(new Error(roleError.message))
 
-      const { data: directPerms, error: directError } = await sb
-        .from('user_permissions')
-        .select('resource, actions')
-        .eq('employee_id', userId)
-
-      if (directError) return failure(new Error(directError.message))
-
       const permissionSet = new Set<Permission>()
       const roleNames: string[] = []
 
@@ -97,12 +90,6 @@ export class PermissionRepository {
           for (const rp of role.role_permissions || []) {
             permissionSet.add(rp.permission_key as Permission)
           }
-        }
-      }
-
-      for (const dp of directPerms || []) {
-        for (const action of dp.actions || []) {
-          permissionSet.add(`${dp.resource}.${action}` as Permission)
         }
       }
 

@@ -31,12 +31,18 @@ export class EmployeeService {
     experience: any[]
   }>> {
     try {
-      const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.profile.view')
-      if (!authRes.success) return failure(authRes.error)
-
       const employeeResult = await employeeRepository.findById(employeeId)
       if (!employeeResult.success) return failure(employeeResult.error)
       const emp = employeeResult.data
+
+      // Self-view is always allowed. Only check permission for viewing OTHER employees.
+      const isSelf = emp.userId === actingUserId
+      console.log('[getEmployee360 DEBUG] emp.userId:', emp.userId, 'actingUserId:', actingUserId, 'isSelf:', isSelf)
+      
+      if (!isSelf) {
+        const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.profile.view')
+        if (!authRes.success) return failure(authRes.error)
+      }
 
       const [detailsRes, contactsRes, skillsRes, prefsRes] = await Promise.all([
         employeeRepository.findEmploymentDetails(emp.id),
@@ -63,8 +69,13 @@ export class EmployeeService {
   }
 
   async updatePersonalDetails(employeeId: string, input: UpdatePersonalDetailsInput, actingUserId: string, orgId: string): Promise<Result<Employee>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.profile.edit')
-    if (!authRes.success) return failure(authRes.error)
+    // Self-edit is always allowed for basic personal details
+    const empResult = await employeeRepository.findById(employeeId)
+    const isSelf = empResult.success && empResult.data.userId === actingUserId
+    if (!isSelf) {
+      const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.profile.edit')
+      if (!authRes.success) return failure(authRes.error)
+    }
 
     const validation = updatePersonalDetailsSchema.safeParse(input)
     if (!validation.success) return failure(new ValidationError('Invalid personal details', validation.error.flatten().fieldErrors))

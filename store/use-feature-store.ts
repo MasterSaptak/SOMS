@@ -31,8 +31,7 @@ export const useFeatureStore = create<FeatureState>((set, get) => ({
 
     try {
       const supabase = createClient()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sb = supabase as any
+            const sb = supabase as any
 
       // Load global feature flags
       const { data: globalData } = await sb

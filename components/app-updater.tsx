@@ -32,8 +32,22 @@ export function AppUpdater() {
       localStorage.clear()
       sessionStorage.clear()
 
-      // 4. Force reload the page from the server to get fresh assets
-      window.location.href = window.location.href
+      // 4. Call Supabase Sign Out (handles its own cleanup too)
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const supabase = createClient()
+        await supabase.auth.signOut()
+      } catch (e) {
+        console.warn('Supabase sign out error', e)
+      }
+
+      // 5. Clear Supabase auth cookies aggressively
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+
+      // 6. Redirect to login page
+      window.location.href = '/login'
     } catch (error) {
       console.error('Failed to update app:', error)
       setIsUpdating(false)

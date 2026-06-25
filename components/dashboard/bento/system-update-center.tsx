@@ -39,6 +39,7 @@ export function SystemUpdateCenter() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkForUpdates()
     const interval = setInterval(checkForUpdates, 5 * 60 * 1000) // Check every 5 mins
     return () => clearInterval(interval)

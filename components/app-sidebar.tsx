@@ -38,6 +38,7 @@ import {
   GitMerge,
   Package,
   Boxes,
+  Settings2,
 } from 'lucide-react';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenuButton, SidebarContext } from '@/components/ui/sidebar';
 import { usePathname, useRouter } from 'next/navigation';
@@ -83,36 +84,74 @@ const iconMap: Record<string, React.ReactNode> = {
   Package:         <Package size={18} />,
   Boxes:           <Boxes size={18} />,
   Building2:       <Building2 size={18} />,
+  Settings2:       <Settings2 size={18} />,
 }
 
 const NAV_SECTIONS = {
   employee: {
     label: 'Workspace',
-    items: [
-      { label: 'Dashboard',     href: '/employee',              icon: 'LayoutDashboard' },
+    groups: [
+      {
+        label: null,
+        items: [
+          { label: 'Dashboard',     href: '/employee',              icon: 'LayoutDashboard' },
+        ],
+      },
     ],
   },
   admin: {
     label: 'Administration',
-    items: [
-      { label: 'AI Office Manager', href: '/admin',              icon: 'Sparkles',   highlight: true },
-      { label: 'HR Management',     href: '/admin/hr',           icon: 'Users' },
-      { label: 'Attendance',        href: '/admin/attendance',   icon: 'Clock' },
-      { label: 'Leave Management',  href: '/admin/leaves',       icon: 'CalendarRange' },
-      { label: 'Tasks',             href: '/admin/tasks',        icon: 'CheckSquare' },
-      { label: 'Assets',            href: '/admin/assets',       icon: 'Package' },
-      { label: 'Payroll',           href: '/admin/payroll',      icon: 'Banknote' },
-      { label: 'Analytics',         href: '/admin/analytics',    icon: 'BarChart3' },
-      { label: 'Visitors',          href: '/reception',          icon: 'UserPlus' },
-      { label: 'Workflows',         href: '/admin/workflows',    icon: 'Workflow' },
-      { label: 'Audit Logs',        href: '/admin/audit',        icon: 'Shield' },
-      { label: 'Feature Flags',     href: '/admin/features',     icon: 'ToggleLeft' },
+    groups: [
+      {
+        label: null,
+        items: [
+          { label: 'Dashboard', href: '/admin', icon: 'LayoutDashboard' },
+        ],
+      },
+      {
+        label: 'Workforce',
+        items: [
+          { label: 'Employees',   href: '/admin/hr',         icon: 'Users' },
+          { label: 'Attendance',  href: '/admin/attendance',  icon: 'Clock' },
+          { label: 'Leave',       href: '/admin/leaves',      icon: 'CalendarRange' },
+        ],
+      },
+      {
+        label: 'Operations',
+        items: [
+          { label: 'Tasks',   href: '/admin/tasks',   icon: 'CheckSquare' },
+          { label: 'Assets',  href: '/admin/assets',  icon: 'Package' },
+        ],
+      },
+      {
+        label: 'Finance',
+        items: [
+          { label: 'Payroll', href: '/admin/payroll', icon: 'Banknote' },
+        ],
+      },
+      {
+        label: 'Intelligence',
+        items: [
+          { label: 'Analytics', href: '/admin/analytics', icon: 'BarChart3' },
+        ],
+      },
+      {
+        label: 'Administration',
+        items: [
+          { label: 'Settings', href: '/admin/settings', icon: 'Settings2' },
+        ],
+      },
     ],
   },
   reception: {
     label: 'Front Desk',
-    items: [
-      { label: 'Visitors', href: '/reception', icon: 'UserPlus' },
+    groups: [
+      {
+        label: null,
+        items: [
+          { label: 'Visitors', href: '/reception', icon: 'UserPlus' },
+        ],
+      },
     ],
   },
 } as const
@@ -181,47 +220,56 @@ export function AppSidebar() {
                   <Separator />
                 </div>
               )}
-              {!collapsed && (
-                <div className="px-3 pt-2 pb-1">
-                  <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-                    {section.label}
-                  </span>
-                </div>
-              )}
-              {(section.items as readonly NavItem[]).map((item) => {
-                const isActive    = pathname === item.href ||
-                  (item.href !== '/employee' && item.href !== '/admin' && pathname.startsWith(`${item.href}/`)) ||
-                  (item.href === '/admin' && pathname === '/admin');
-                const isHighlight = 'highlight' in item && item.highlight;
-
-                return (
-                  <Link href={item.href} key={item.href} className="w-full">
-                    <div
-                      className={`
-                        flex items-center gap-3 px-3 py-2 mx-2 rounded-lg transition-colors cursor-pointer
-                        ${isActive
-                          ? 'bg-accent/80 text-foreground font-medium shadow-sm ring-1 ring-border/50'
-                          : isHighlight
-                            ? 'text-primary hover:bg-primary/10 font-medium'
-                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                        }
-                      `}
-                    >
-                      <span className="shrink-0">
-                        {iconMap[item.icon] || <LayoutDashboard size={18} />}
+              {section.groups.map((group, groupIndex) => (
+                <React.Fragment key={group.label ?? `group-${groupIndex}`}>
+                  {!collapsed && group.label && (
+                    <div className={`px-3 ${groupIndex === 0 ? 'pt-2' : 'pt-4'} pb-1`}>
+                      <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+                        {group.label}
                       </span>
-                      {!collapsed && (
-                        <span className="text-sm truncate flex-1">{item.label}</span>
-                      )}
-                      {!collapsed && isHighlight && !isActive && (
-                        <Badge className="ml-auto text-[9px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
-                          AI
-                        </Badge>
-                      )}
                     </div>
-                  </Link>
-                );
-              })}
+                  )}
+                  {collapsed && group.label && groupIndex > 0 && (
+                    <div className="px-3 my-1">
+                      <Separator className="opacity-30" />
+                    </div>
+                  )}
+                  {(group.items as readonly NavItem[]).map((item) => {
+                    const isActive = pathname === item.href ||
+                      (item.href !== '/employee' && item.href !== '/admin' && pathname.startsWith(`${item.href}/`)) ||
+                      (item.href === '/admin' && pathname === '/admin');
+                    const isHighlight = 'highlight' in item && item.highlight;
+
+                    return (
+                      <Link href={item.href} key={item.href} className="w-full">
+                        <div
+                          className={`
+                            flex items-center gap-3 px-3 py-2 mx-2 rounded-lg transition-colors cursor-pointer
+                            ${isActive
+                              ? 'bg-accent/80 text-foreground font-medium shadow-sm ring-1 ring-border/50'
+                              : isHighlight
+                                ? 'text-primary hover:bg-primary/10 font-medium'
+                                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                            }
+                          `}
+                        >
+                          <span className="shrink-0">
+                            {iconMap[item.icon] || <LayoutDashboard size={18} />}
+                          </span>
+                          {!collapsed && (
+                            <span className="text-sm truncate flex-1">{item.label}</span>
+                          )}
+                          {!collapsed && isHighlight && !isActive && (
+                            <Badge className="ml-auto text-[9px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
+                              AI
+                            </Badge>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
             </React.Fragment>
           );
         })}

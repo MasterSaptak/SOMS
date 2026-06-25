@@ -20,14 +20,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('employees')
-        .select(`
-          *,
-          department:departments(*),
-          team:teams(*),
-          designation:designations(*),
-          workLocation:work_locations(*),
-          manager:employees!manager_id(id, full_name, email, profile_photo)
-        `)
+        .select(`*`)
         .eq('id', id)
         .single()
 
@@ -45,14 +38,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('employees')
-        .select(`
-          *,
-          department:departments(*),
-          team:teams(*),
-          designation:designations(*),
-          workLocation:work_locations(*),
-          manager:employees!manager_id(id, full_name, email, profile_photo)
-        `)
+        .select(`*`)
         .eq('user_id', userId)
         .single()
 
@@ -79,10 +65,12 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       firstName: data.full_name?.split(' ')[0] || '',
       lastName: data.full_name?.split(' ').slice(1).join(' ') || '',
       phone: data.phone || '',
+      email: data.email || '',
       avatarUrl: data.profile_photo,
       joinDate: data.joining_date || '',
       status: data.employment_status || 'active',
       createdAt: data.created_at || '',
+      date_of_birth: data.date_of_birth,
       // Personal Info (Master Record)
       gender: data.gender,
       bloodGroup: data.blood_group,
@@ -104,7 +92,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
         lastName: data.manager.full_name?.split(' ').slice(1).join(' '),
         avatarUrl: data.manager.profile_photo
       } as Employee : undefined
-    }
+    } as any
   }
 
   async findByOrganizationId(orgId: string): Promise<Result<Employee[]>> {
@@ -112,13 +100,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('employees')
-        .select(`
-          *,
-          department:departments(*),
-          team:teams(*),
-          designation:designations(*),
-          workLocation:work_locations(*)
-        `)
+        .select(`*`)
         .eq('organization_id', orgId)
         .order('full_name')
 

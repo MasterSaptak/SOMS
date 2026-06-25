@@ -66,13 +66,11 @@ export default function EmployeeDashboard() {
       
       if (emp) {
         setEmployee(emp)
-        const { data: myTasks } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('assigned_to', emp.id)
-          .order('created_at', { ascending: false })
-          
-        setTasks(myTasks || [])
+        const { getEmployeeTasksAction } = await import('@/app/actions/task.actions')
+        const myTasksRes = await getEmployeeTasksAction(emp.id, (emp as any).organization_id)
+        if (myTasksRes.success) {
+          setTasks(myTasksRes.data)
+        }
       }
       
       setIsLoading(false)

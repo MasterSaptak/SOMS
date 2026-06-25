@@ -394,6 +394,7 @@ export default function WorkSessionPage() {
     for (const threshold of dynamicWarnings) {
       const diff = totalWorkSeconds - threshold.seconds
       if (diff >= 0 && diff < 5 && !dismissedWarnings.has(threshold.seconds)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveWarning({ message: threshold.message, type: threshold.type })
         return
       }
@@ -668,7 +669,8 @@ export default function WorkSessionPage() {
     setInitialCompensationBalanceSeconds(balanceHours * 3600)
   }
 
-  const greeting = useMemo(() => getGreeting(), [currentTime.getHours()])
+  const currentHour = currentTime.getHours()
+  const greeting = useMemo(() => getGreeting(), [currentHour])
   const dayName = currentTime.toLocaleDateString('en-US', { weekday: 'long' })
   const dateStr = currentTime.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   const timeStr = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })

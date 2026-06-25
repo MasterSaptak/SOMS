@@ -27,8 +27,10 @@ export interface Employee {
   firstName: string
   lastName: string
   phone: string
+  email?: string
   avatarUrl: string | null
   joinDate: string
+  date_of_birth?: string | null
   status: 'active' | 'on_leave' | 'terminated'
   createdAt: string
   // Personal Info (Master Record)

@@ -13,15 +13,29 @@ async function getAuthContext() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   
-  let userId = 'dummy-demo-user'
   if (!error && user) {
-    userId = user.id
-  } else {
-    console.warn('[getAuthContext] No auth found, using dummy user for Demo environment.')
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    const { createClient: createAdmin } = await import('@supabase/supabase-js')
+    const adminSupabase = createAdmin(supabaseUrl, supabaseKey)
+
+    const { data: orgMembers } = await adminSupabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .limit(1)
+
+    if (orgMembers && orgMembers.length > 0) {
+      return { supabase, userId: user.id, orgId: orgMembers[0].organization_id }
+    }
   }
 
-  const { data: orgData } = await (supabase as any).from('organizations').select('id').eq('is_demo', true).single()
-  const orgId = orgData ? orgData.id : 'dummy-org-id'
+  console.warn('[getAuthContext] No auth found or no org member found, using dummy UUIDs.')
+  
+  // Attempt to get any existing organization for demo purposes
+  const { data: orgData } = await (supabase as any).from('organizations').select('id').limit(1).single()
+  const orgId = orgData ? orgData.id : '00000000-0000-0000-0000-000000000000'
+  const userId = '00000000-0000-0000-0000-000000000000'
 
   return { supabase, userId, orgId }
 }
@@ -86,7 +100,34 @@ export async function updateEmployeeAction(employeeId: string, input: UpdateEmpl
 export async function updateEmployeeBasicInfoAction(employeeId: string, input: any) {
   try {
     const { userId, orgId } = await getAuthContext()
-    const res = await employeeService.updatePersonalDetails(employeeId, input, userId, orgId)
+    
+    // Check if this is self-edit: the employee's user_id matches the acting user
+    const { employeeRepository } = await import('@/lib/repositories/employee.repository')
+    const empRes = await employeeRepository.findById(employeeId)
+    const isSelf = empRes.success && empRes.data.userId === userId
+    
+    // Only require permission for editing OTHER employees
+    if (!isSelf) {
+      await permissionService.authorize(userId, orgId, 'employee.profile.edit')
+    }
+
+    // Map the camelCase/custom payload to DB snake_case columns
+    const updatePayload: any = {}
+    if (input.full_name !== undefined) updatePayload.full_name = input.full_name
+    if (input.phone !== undefined) updatePayload.phone = input.phone
+    if (input.email !== undefined) updatePayload.email = input.email
+    if (input.profile_photo !== undefined) updatePayload.profile_photo = input.profile_photo
+    // For relationships that might be stored as text depending on the current schema state
+    if (input.designation !== undefined) updatePayload.designation = input.designation
+    if (input.department !== undefined) updatePayload.department = input.department
+    
+    // date_of_birth exists in the employees table
+    if (input.date_of_birth !== undefined) updatePayload.date_of_birth = input.date_of_birth
+    // if (input.manager_id !== undefined) updatePayload.manager_id = input.manager_id
+
+    const { employeeRepository: empRepo } = await import('@/lib/repositories/employee.repository')
+    const res = await empRepo.update(employeeId, updatePayload)
+    
     if (res.success) revalidatePath('/', 'layout')
     return res
   } catch (err) {
@@ -247,7 +288,7 @@ export async function getEmployeeSummaryAction(employeeId: string) {
     await permissionService.authorize(userId, orgId, 'employee.summary.view')
 
     const [tasksRes, leavesRes, attendanceRes] = await Promise.all([
-      (supabase as any).from('tasks').select('*').eq('assigned_to', employeeId).limit(5).order('created_at', { ascending: false }),
+      (supabase as any).from('task_assignments').select('task_id, tasks(*)').eq('employee_id', employeeId).limit(5).order('created_at', { ascending: false }),
       (supabase as any).from('leaves').select('*').eq('employee_id', employeeId).limit(5).order('created_at', { ascending: false }),
       (supabase as any).from('attendance').select('*').eq('employee_id', employeeId).limit(30).order('date', { ascending: false })
     ])

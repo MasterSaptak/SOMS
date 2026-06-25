@@ -33,6 +33,30 @@ const itemVars = {
   show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
 }
 
+const Field = ({ icon: Icon, label, value, field, type = 'text', canEdit, isEditing, formData, setFormData }: any) => {
+  const isEditable = isEditing && canEdit
+  return (
+    <motion.div variants={itemVars} className="flex flex-col gap-1.5 group">
+      <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+        <Icon className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity text-primary" /> 
+        {label}
+      </Label>
+      {isEditable ? (
+        <Input 
+          type={type} 
+          className="h-10 transition-all border-primary/20 focus-visible:ring-primary/30" 
+          value={formData[field as keyof typeof formData] || ''} 
+          onChange={e => setFormData({...formData, [field]: e.target.value})} 
+        />
+      ) : (
+        <div className="font-medium text-base p-2 -ml-2 rounded-md transition-colors hover:bg-muted/50">
+          {value || <span className="text-muted-foreground/50 italic">Not provided</span>}
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 export default function EmployeeProfileClient({ initialData, employeeId }: { initialData: any, employeeId: string }) {
   const router = useRouter()
   const { user } = useAuthStore()
@@ -50,8 +74,9 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
     email: initialData.employee.email || '',
     profile_photo: initialData.employee.avatarUrl || '',
     date_of_birth: initialData.employee.date_of_birth || '',
-    designation: initialData.employee.designation?.title || '',
-    department: initialData.employee.department?.name || '',
+    // Department and designation are plain text strings in the DB, not relation objects
+    designation: (typeof initialData.employee.designation === 'string' ? initialData.employee.designation : initialData.employee.designation?.title) || '',
+    department: (typeof initialData.employee.department === 'string' ? initialData.employee.department : initialData.employee.department?.name) || '',
     manager_id: initialData.employee.managerId || ''
   })
 
@@ -78,8 +103,26 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
 
       if (!res.success) throw new Error(res.error?.message || 'Failed to update')
       
+      // Re-fetch fresh data from server
+      const { getEmployee360Action } = await import('@/app/actions/employee.actions')
+      const freshData = await getEmployee360Action(employeeId)
+      if (freshData.success && freshData.data) {
+        const emp = freshData.data.employee
+        setEmployee(emp)
+        // Re-sync form data from fresh server data
+        setFormData({
+          full_name: `${emp.firstName} ${emp.lastName}`.trim(),
+          phone: emp.phone || '',
+          email: emp.email || '',
+          profile_photo: emp.avatarUrl || '',
+          date_of_birth: (emp as any).date_of_birth || '',
+          designation: (typeof emp.designation === 'string' ? emp.designation : emp.designation?.title) || '',
+          department: (typeof emp.department === 'string' ? emp.department : emp.department?.name) || '',
+          manager_id: emp.managerId || ''
+        })
+      }
+      
       setIsEditing(false)
-      setEmployee({ ...employee, ...formData })
     } catch (err: any) {
       alert(`Error saving: ${err.message}`)
     } finally {
@@ -91,29 +134,7 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
   const canEditSelfBasic = isSelf || isAdmin
   const canEditAll = isAdmin
 
-  const Field = ({ icon: Icon, label, value, field, type = 'text', canEdit }: any) => {
-    const isEditable = isEditing && canEdit
-    return (
-      <motion.div variants={itemVars} className="flex flex-col gap-1.5 group">
-        <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
-          <Icon className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity text-primary" /> 
-          {label}
-        </Label>
-        {isEditable ? (
-          <Input 
-            type={type} 
-            className="h-10 transition-all border-primary/20 focus-visible:ring-primary/30" 
-            value={formData[field as keyof typeof formData]} 
-            onChange={e => setFormData({...formData, [field]: e.target.value})} 
-          />
-        ) : (
-          <div className="font-medium text-base p-2 -ml-2 rounded-md transition-colors hover:bg-muted/50">
-            {value || <span className="text-muted-foreground/50 italic">Not provided</span>}
-          </div>
-        )}
-      </motion.div>
-    )
-  }
+
 
   return (
     <motion.div className="max-w-4xl mx-auto py-8 px-4 flex flex-col gap-8 pb-20" variants={containerVars} initial="hidden" animate="show">
@@ -139,7 +160,7 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
             <motion.div variants={itemVars} className="flex flex-col items-center gap-5 shrink-0 group w-full md:w-auto">
               <div className="relative">
                 <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-background shadow-xl transition-transform duration-500 group-hover:scale-105">
-                  <AvatarImage src={isEditing ? formData.profile_photo : employee.profile_photo} className="object-cover" />
+                  <AvatarImage src={isEditing ? formData.profile_photo : (employee.avatarUrl || employee.profile_photo)} className="object-cover" />
                   <AvatarFallback className="text-4xl bg-primary/10 text-primary font-bold">
                     {formData.full_name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
@@ -177,17 +198,17 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
               </motion.div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                <Field icon={UserCircle2} label="Full Name" value={employee.full_name} field="full_name" canEdit={canEditSelfBasic} />
-                <Field icon={Mail} label="Email Address" value={employee.email} field="email" type="email" canEdit={canEditSelfBasic} />
-                <Field icon={Phone} label="Phone Number" value={employee.phone} field="phone" canEdit={canEditSelfBasic} />
-                <Field icon={Calendar} label="Date of Birth" value={employee.date_of_birth} field="date_of_birth" type="date" canEdit={canEditAll} />
-                <Field icon={Briefcase} label="Department" value={employee.department} field="department" canEdit={canEditAll} />
-                <Field icon={Zap} label="Position" value={employee.designation} field="designation" canEdit={canEditAll} />
+                <Field icon={UserCircle2} label="Full Name" value={employee.full_name || `${employee.firstName} ${employee.lastName}`.trim()} field="full_name" canEdit={canEditSelfBasic} isEditing={isEditing} formData={formData} setFormData={setFormData} />
+                <Field icon={Mail} label="Email Address" value={employee.email} field="email" type="email" canEdit={canEditSelfBasic} isEditing={isEditing} formData={formData} setFormData={setFormData} />
+                <Field icon={Phone} label="Phone Number" value={employee.phone} field="phone" canEdit={canEditSelfBasic} isEditing={isEditing} formData={formData} setFormData={setFormData} />
+                <Field icon={Calendar} label="Date of Birth" value={employee.date_of_birth} field="date_of_birth" type="date" canEdit={canEditAll} isEditing={isEditing} formData={formData} setFormData={setFormData} />
+                <Field icon={Briefcase} label="Department" value={typeof employee.department === 'string' ? employee.department : employee.department?.name} field="department" canEdit={canEditAll} isEditing={isEditing} formData={formData} setFormData={setFormData} />
+                <Field icon={Zap} label="Position" value={typeof employee.designation === 'string' ? employee.designation : employee.designation?.title} field="designation" canEdit={canEditAll} isEditing={isEditing} formData={formData} setFormData={setFormData} />
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6 pt-6 border-t border-border/40">
-                <Field icon={Hash} label="Database UUID" value={<span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.id}</span>} field="id" canEdit={false} />
-                <Field icon={UserCircle2} label="Manager UUID" value={employee.manager_id ? <span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.manager_id}</span> : 'None'} field="manager_id" canEdit={canEditAll} />
+                <Field icon={Hash} label="Database UUID" value={<span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.id}</span>} field="id" canEdit={false} isEditing={isEditing} formData={formData} setFormData={setFormData} />
+                <Field icon={UserCircle2} label="Manager UUID" value={employee.manager_id ? <span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.manager_id}</span> : 'None'} field="manager_id" canEdit={canEditAll} isEditing={isEditing} formData={formData} setFormData={setFormData} />
               </div>
 
             </div>

@@ -369,6 +369,8 @@ export function AICopilot() {
           </motion.div>
         )}
       </AnimatePresence>
+
+
     </>
   )
 }
