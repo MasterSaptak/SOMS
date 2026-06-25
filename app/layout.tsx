@@ -33,6 +33,7 @@ import { CommandPalette } from '@/components/command-palette';
 import { AICopilot } from '@/components/ai-copilot';
 import { OfflineBanner } from '@/components/offline-banner';
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
+import { Analytics } from '@vercel/analytics/next';
 
 export default function RootLayout({
   children,
@@ -47,6 +48,7 @@ export default function RootLayout({
         {children}
         <CommandPalette />
         <AICopilot />
+        <Analytics />
       </body>
     </html>
   );
