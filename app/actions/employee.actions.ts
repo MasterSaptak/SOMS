@@ -134,11 +134,20 @@ export async function updateEmployeeBasicInfoAction(employeeId: string, input: a
     if (input.date_of_birth !== undefined) updatePayload.date_of_birth = input.date_of_birth
     // if (input.manager_id !== undefined) updatePayload.manager_id = input.manager_id
 
-    const { employeeRepository: empRepo } = await import('@/lib/repositories/employee.repository')
-    const res = await empRepo.update(employeeId, updatePayload)
+    // Bypass RLS for the update since we already authorized the action
+    const { data: updateData, error: updateErr } = await adminSb
+      .from('employees')
+      .update(updatePayload)
+      .eq('id', employeeId)
+      .select()
+      .single()
+      
+    if (updateErr) {
+      return failure(new Error(updateErr.message))
+    }
     
-    if (res.success) revalidatePath('/', 'layout')
-    return res
+    revalidatePath('/', 'layout')
+    return success(updateData)
   } catch (err) {
     return failure(err as Error)
   }

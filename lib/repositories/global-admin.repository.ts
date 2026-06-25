@@ -56,7 +56,7 @@ export class GlobalAdminRepository {
           isBanned: !!u.banned_until,
           memberships: userMemberships.map(m => {
             const orgs = m.organizations as any;
-            const emp = employees?.find(e => e.user_id === u.id && e.organization_id === orgs?.id)
+            const emp = employees?.find(e => e.user_id === u.id && e.organization_id === orgs?.id) || employees?.find(e => e.user_id === u.id);
             return {
               orgId: orgs?.id,
               orgName: orgs?.name,
@@ -148,7 +148,6 @@ export class GlobalAdminRepository {
       const { data: existingEmp } = await sb.from('employees')
         .select('id')
         .eq('user_id', userId)
-        .eq('organization_id', orgId)
         .maybeSingle()
 
       if (!existingEmp) {
@@ -157,7 +156,7 @@ export class GlobalAdminRepository {
           organization_id: orgId,
           full_name: email.split('@')[0], // Use email prefix as initial name
           email: email,
-          employment_status: 'active',
+          status: 'active',
           joining_date: new Date().toISOString().split('T')[0],
         })
         if (empErr) return failure(new Error(`Employee: ${empErr.message}`))

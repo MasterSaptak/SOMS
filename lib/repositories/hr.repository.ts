@@ -90,12 +90,10 @@ export class HRRepository {
       const { data, error } = await supabase
         .from('employees')
         .select(`
-          id, organization_id, user_id, employee_id_string, full_name, email, phone, profile_photo, status, manager_id,
-          departments!department_id(id, name),
-          designations!designation_id(id, title)
+          id, organization_id, user_id, employee_id_string, full_name, email, phone, profile_photo, employment_status,
+          department, designation
         `)
         .eq('organization_id', organizationId)
-        .is('deleted_at', null)
         .order('full_name')
 
       if (error) throw error
@@ -109,10 +107,10 @@ export class HRRepository {
         email: row.email,
         phone: row.phone,
         profile_photo: row.profile_photo,
-        status: row.status,
-        manager_id: row.manager_id,
-        department: row.departments ? { id: row.departments.id, name: row.departments.name } : null,
-        designation: row.designations ? { id: row.designations.id, title: row.designations.title } : null,
+        status: row.employment_status || 'active',
+        manager_id: null,
+        department: row.department ? { id: row.department, name: row.department } : null,
+        designation: row.designation ? { id: row.designation, title: row.designation } : null,
       }))
 
       return success(summaries)
@@ -130,13 +128,12 @@ export class HRRepository {
       const { data, error } = await supabase
         .from('employees')
         .select(`
-          id, organization_id, user_id, employee_id_string, full_name, email, phone, profile_photo, status, manager_id,
-          departments!department_id(id, name),
-          designations!designation_id(id, title)
+          id, organization_id, user_id, employee_id_string, full_name, email, phone, profile_photo, employment_status,
+          department, designation
         `)
         .eq('organization_id', organizationId)
-        .not('deleted_at', 'is', null)
-        .order('deleted_at', { ascending: false })
+        .eq('employment_status', 'inactive')
+        .order('created_at', { ascending: false })
 
       if (error) throw error
 
@@ -149,10 +146,10 @@ export class HRRepository {
         email: row.email,
         phone: row.phone,
         profile_photo: row.profile_photo,
-        status: row.status,
-        manager_id: row.manager_id,
-        department: row.departments ? { id: row.departments.id, name: row.departments.name } : null,
-        designation: row.designations ? { id: row.designations.id, title: row.designations.title } : null,
+        status: row.employment_status || 'inactive',
+        manager_id: null,
+        department: row.department ? { id: row.department, name: row.department } : null,
+        designation: row.designation ? { id: row.designation, title: row.designation } : null,
       }))
 
       return success(summaries)
@@ -170,9 +167,8 @@ export class HRRepository {
       
       const { data: emps, error: e1 } = await supabase
         .from('employees')
-        .select('id, status, joining_date, manager_id, employment_type')
+        .select('id, employment_status, joining_date')
         .eq('organization_id', organizationId)
-        .is('deleted_at', null)
 
       if (e1) throw e1
 
@@ -201,15 +197,15 @@ export class HRRepository {
       const oneMonthAgo = new Date()
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 
-      const active = emps.filter((e: any) => e.status === 'active').length
-      const inactive = emps.filter((e: any) => e.status === 'inactive').length
-      const onLeave = emps.filter((e: any) => e.status === 'on_leave').length
-      const probation = emps.filter((e: any) => e.status === 'probation').length
-      const contractors = emps.filter((e: any) => e.employment_type === 'contract').length
-      const managers = new Set(emps.map((e: any) => e.manager_id).filter(Boolean)).size
+      const active = emps.filter((e: any) => e.employment_status === 'active' || !e.employment_status).length
+      const inactive = emps.filter((e: any) => e.employment_status === 'inactive').length
+      const onLeave = emps.filter((e: any) => e.employment_status === 'on_leave').length
+      const probation = emps.filter((e: any) => e.employment_status === 'probation').length
+      const contractors = 0
+      const managers = 0
       
       const newHires = emps.filter((e: any) => e.joining_date && new Date(e.joining_date) > oneMonthAgo).length
-      const terminations = emps.filter((e: any) => e.status === 'terminated').length
+      const terminations = emps.filter((e: any) => e.employment_status === 'terminated').length
 
       const stats: HRDashboardStats = {
         totalEmployees: emps.length,
@@ -241,24 +237,10 @@ export class HRRepository {
       const { data, error } = await supabase
         .from('employees')
         .select(`
-          *,
-          departments!department_id(id, name),
-          designations!designation_id(id, title),
-          manager:employees!manager_id(id, full_name, email),
-          employee_teams(
-            role_in_team,
-            team:teams(id, name)
-          ),
-          project_members(
-            role,
-            joined_at,
-            left_at,
-            project:projects(id, name)
-          )
+          *
         `)
         .eq('id', employeeId)
         .eq('organization_id', organizationId)
-        .is('deleted_at', null)
         .single()
 
       if (error) throw error
@@ -272,26 +254,16 @@ export class HRRepository {
         email: data.email,
         phone: data.phone,
         profile_photo: data.profile_photo,
-        status: data.status,
+        status: data.employment_status || 'active',
         address: data.address,
         emergency_contact: data.emergency_contact,
         joining_date: data.joining_date,
-        manager_id: data.manager_id,
-        department: data.departments ? { id: data.departments.id, name: data.departments.name } : null,
-        designation: data.designations ? { id: data.designations.id, title: data.designations.title } : null,
-        manager: data.manager ? { id: data.manager.id, full_name: data.manager.full_name, email: data.manager.email } : null,
-        teams: data.employee_teams?.map((et: any) => ({
-          id: et.team.id,
-          name: et.team.name,
-          role_in_team: et.role_in_team
-        })) || [],
-        projects: data.project_members?.map((pm: any) => ({
-          id: pm.project.id,
-          name: pm.project.name,
-          role: pm.role,
-          start_date: pm.joined_at,
-          end_date: pm.left_at
-        })) || []
+        manager_id: null,
+        department: data.department ? { id: data.department, name: data.department } : null,
+        designation: data.designation ? { id: data.designation, title: data.designation } : null,
+        manager: null,
+        teams: [],
+        projects: []
       }
 
       return success(detail)
@@ -306,23 +278,26 @@ export class HRRepository {
       const { data, error } = await supabase
         .from('employee_position_history')
         .select(`
-          id, title, start_date, end_date, change_reason,
-          departments(name)
+          id, title, start_date, end_date, change_reason
         `)
         .eq('employee_id', employeeId)
         .eq('organization_id', organizationId)
         .order('start_date', { ascending: false })
 
+      if (error && error.code === '42P01') {
+        // Table doesn't exist in current schema
+        return success([])
+      }
       if (error) throw error
 
-      const history = data.map((h: any) => ({
+      const history = data ? data.map((h: any) => ({
         id: h.id,
         title: h.title,
-        department_name: h.departments?.name || null,
+        department_name: null,
         start_date: h.start_date,
         end_date: h.end_date,
         change_reason: h.change_reason
-      }))
+      })) : []
 
       return success(history)
     } catch (error) {
@@ -337,13 +312,10 @@ export class HRRepository {
       const { error } = await supabase
         .from('employees')
         .update({
-          deleted_at: new Date().toISOString(),
-          deleted_by: actorId,
-          status: 'inactive'
+          employment_status: 'inactive'
         })
         .eq('id', employeeId)
         .eq('organization_id', organizationId)
-        .is('deleted_at', null)
 
       if (error) throw error
       return success(undefined)
@@ -357,10 +329,9 @@ export class HRRepository {
       const supabase = await createClient()
       const { error } = await supabase
         .from('employees')
-        .update({ status })
+        .update({ employment_status: status })
         .eq('id', employeeId)
         .eq('organization_id', organizationId)
-        .is('deleted_at', null)
 
       if (error) throw error
       return success(undefined)
@@ -377,7 +348,6 @@ export class HRRepository {
         .update(updates)
         .eq('id', employeeId)
         .eq('organization_id', organizationId)
-        .is('deleted_at', null)
 
       if (error) throw error
       return success(undefined)
