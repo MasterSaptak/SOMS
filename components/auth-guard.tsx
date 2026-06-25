@@ -43,7 +43,8 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
         .eq('user_id', session.user.id)
         .single()
 
-      let activeRole = 'employee';
+      // Use the actual DB role, with Prime Admin override
+      let activeRole = profile?.role || 'employee';
       if (session.user.email === 'saptech.online009@gmail.com') {
         activeRole = 'super_admin';
       }
@@ -72,7 +73,8 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
 
       // If we require admin, check the role
       if (requireAdmin) {
-        if (activeRole !== 'super_admin') {
+        const adminRoles = ['super_admin', 'admin', 'hr_manager']
+        if (!adminRoles.includes(activeRole)) {
           setIsAuthorized(false)
           router.replace('/employee') // fallback
         } else {

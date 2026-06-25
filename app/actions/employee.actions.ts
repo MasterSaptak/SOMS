@@ -106,9 +106,18 @@ export async function updateEmployeeBasicInfoAction(employeeId: string, input: a
     const empRes = await employeeRepository.findById(employeeId)
     const isSelf = empRes.success && empRes.data.userId === userId
     
-    // Only require permission for editing OTHER employees
-    if (!isSelf) {
-      await permissionService.authorize(userId, orgId, 'employee.profile.edit')
+    // For admin users: check profile role directly as a bypass
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    const { createClient: createAdmin } = await import('@supabase/supabase-js')
+    const adminSb = createAdmin(supabaseUrl, supabaseKey)
+    const { data: profile } = await adminSb.from('profiles').select('role').eq('id', userId).single()
+    const isAdminRole = profile && ['super_admin', 'admin', 'hr_manager'].includes(profile.role)
+    
+    // Allow if self-edit OR admin role
+    if (!isSelf && !isAdminRole) {
+      const authRes = await permissionService.authorize(userId, orgId, 'employee.profile.edit')
+      if (!authRes.success) return authRes as any
     }
 
     // Map the camelCase/custom payload to DB snake_case columns

@@ -17,6 +17,15 @@ export class GlobalAdminService {
   async updateUserRole(userId: string, role: string): Promise<Result<boolean>> {
     return globalAdminRepository.updateUserRole(userId, role)
   }
+
+  async getAllOrganizations(): Promise<Result<any[]>> {
+    return globalAdminRepository.getAllOrganizations()
+  }
+
+  async assignUserToOrganization(userId: string, email: string, orgId: string, role?: string): Promise<Result<boolean>> {
+    return globalAdminRepository.assignUserToOrganization(userId, email, orgId, role)
+  }
 }
 
 export const globalAdminService = new GlobalAdminService()
+

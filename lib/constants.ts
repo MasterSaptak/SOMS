@@ -7,6 +7,7 @@ import type { UserRole, PermissionAction, PermissionResource, TaskStatus, TaskPr
 // --- Roles ---
 export const ROLES: Record<UserRole, { label: string; color: string }> = {
   super_admin: { label: 'Super Admin', color: 'bg-red-500' },
+  admin: { label: 'Admin', color: 'bg-orange-600' },
   hr_manager: { label: 'HR Manager', color: 'bg-purple-500' },
   dept_manager: { label: 'Dept Manager', color: 'bg-blue-500' },
   team_lead: { label: 'Team Lead', color: 'bg-cyan-500' },
@@ -17,6 +18,30 @@ export const ROLES: Record<UserRole, { label: string; color: string }> = {
 // --- Permission Matrix ---
 export const ROLE_PERMISSIONS: Record<UserRole, { resource: PermissionResource; actions: PermissionAction[] }[]> = {
   super_admin: [
+    { resource: 'dashboard', actions: ['view'] },
+    { resource: 'tasks', actions: ['view', 'create', 'update', 'delete', 'assign'] },
+    { resource: 'leaves', actions: ['view', 'create', 'update', 'approve', 'reject'] },
+    { resource: 'hr', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'payroll', actions: ['view', 'create', 'update'] },
+    { resource: 'assets', actions: ['view', 'create', 'update', 'delete', 'assign'] },
+    { resource: 'visitors', actions: ['view', 'create', 'update'] },
+    { resource: 'rooms', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'analytics', actions: ['view'] },
+    { resource: 'announcements', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'settings', actions: ['view', 'update'] },
+    { resource: 'timeline', actions: ['view'] },
+    { resource: 'calendar', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'chat', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'meetings', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'documents', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'goals', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'knowledge', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'surveys', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'workflows', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'features', actions: ['view', 'create', 'update', 'delete'] },
+    { resource: 'audit', actions: ['view'] },
+  ],
+  admin: [
     { resource: 'dashboard', actions: ['view'] },
     { resource: 'tasks', actions: ['view', 'create', 'update', 'delete', 'assign'] },
     { resource: 'leaves', actions: ['view', 'create', 'update', 'approve', 'reject'] },

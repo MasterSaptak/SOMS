@@ -1,3 +1,5 @@
+"use client"
+
 import React from "react"
 import { useRouter } from "next/navigation"
 import { WidgetShell } from "@/components/enterprise/widget-shell"

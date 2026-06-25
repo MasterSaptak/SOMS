@@ -118,6 +118,58 @@ export class GlobalAdminRepository {
       return failure(err as Error)
     }
   }
+
+  async getAllOrganizations(): Promise<Result<any[]>> {
+    try {
+      const sb = getServiceClient()
+      const { data, error } = await sb.from('organizations').select('id, name, slug')
+      if (error) return failure(new Error(error.message))
+      return success(data || [])
+    } catch (err) {
+      logger.error('[GlobalAdminRepository] getAllOrganizations failed', err)
+      return failure(err as Error)
+    }
+  }
+
+  async assignUserToOrganization(userId: string, email: string, orgId: string, role: string = 'employee'): Promise<Result<boolean>> {
+    try {
+      const sb = getServiceClient()
+
+      // 1. Create organization_members record
+      const { error: memErr } = await sb.from('organization_members').upsert({
+        user_id: userId,
+        organization_id: orgId,
+        role: role,
+        status: 'active'
+      }, { onConflict: 'user_id,organization_id' })
+      if (memErr) return failure(new Error(`Membership: ${memErr.message}`))
+
+      // 2. Create employee record if not exists
+      const { data: existingEmp } = await sb.from('employees')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('organization_id', orgId)
+        .maybeSingle()
+
+      if (!existingEmp) {
+        const { error: empErr } = await sb.from('employees').insert({
+          user_id: userId,
+          organization_id: orgId,
+          full_name: email.split('@')[0], // Use email prefix as initial name
+          email: email,
+          employment_status: 'active',
+          joining_date: new Date().toISOString().split('T')[0],
+        })
+        if (empErr) return failure(new Error(`Employee: ${empErr.message}`))
+      }
+
+      return success(true)
+    } catch (err) {
+      logger.error('[GlobalAdminRepository] assignUserToOrganization failed', err)
+      return failure(err as Error)
+    }
+  }
 }
 
 export const globalAdminRepository = new GlobalAdminRepository()
+

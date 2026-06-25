@@ -3,7 +3,7 @@
 // ============================================================
 
 // --- Identity & Auth ---
-export type UserRole = 'super_admin' | 'hr_manager' | 'dept_manager' | 'team_lead' | 'employee' | 'receptionist'
+export type UserRole = 'super_admin' | 'admin' | 'hr_manager' | 'dept_manager' | 'team_lead' | 'employee' | 'receptionist'
 
 export interface User {
   id: string

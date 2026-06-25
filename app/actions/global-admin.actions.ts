@@ -65,3 +65,23 @@ export async function adminUpdateUserRoleAction(userId: string, role: string) {
     return { success: false, error: { message: err.message } }
   }
 }
+
+export async function getAllOrganizationsAction() {
+  try {
+    await assertSuperAdmin()
+    return await globalAdminService.getAllOrganizations()
+  } catch (err: any) {
+    return { success: false, error: { message: err.message } }
+  }
+}
+
+export async function assignUserToOrgAction(userId: string, email: string, orgId: string, role?: string) {
+  try {
+    await assertSuperAdmin()
+    const result = await globalAdminService.assignUserToOrganization(userId, email, orgId, role)
+    if (result.success) revalidatePath('/admin/hr')
+    return result
+  } catch (err: any) {
+    return { success: false, error: { message: err.message } }
+  }
+}
