@@ -22,7 +22,11 @@ export function EmergencyContactsTab({ employeeId, canEdit, initialData }: { emp
     email: '',
     alternatePhone: '',
     address: '',
-    isPrimary: false
+    bloodGroup: '',
+    knownAllergies: '',
+    medicalNotes: '',
+    isPrimary: false,
+    isSecondary: false
   })
 
   const handleAdd = async () => {
@@ -39,7 +43,7 @@ export function EmergencyContactsTab({ employeeId, canEdit, initialData }: { emp
       if (!res.success) throw new Error('Failed to add contact')
       
       setIsAdding(false)
-      setFormData({ name: '', relationship: '', phone: '', email: '', alternatePhone: '', address: '', isPrimary: false })
+      setFormData({ name: '', relationship: '', phone: '', email: '', alternatePhone: '', address: '', bloodGroup: '', knownAllergies: '', medicalNotes: '', isPrimary: false, isSecondary: false })
       router.refresh()
     } catch (e: any) {
       alert(`Error adding contact: ${e.message}`)
@@ -102,9 +106,27 @@ export function EmergencyContactsTab({ employeeId, canEdit, initialData }: { emp
               <Label className="text-xs">Address (Optional)</Label>
               <Input className="mt-1 h-8" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
             </div>
-            <div className="col-span-full flex items-center gap-2 mt-2">
-              <input type="checkbox" id="is_primary" checked={formData.isPrimary} onChange={e => setFormData({...formData, isPrimary: e.target.checked})} className="rounded border-input" />
-              <Label htmlFor="is_primary" className="text-xs">Set as Primary Contact</Label>
+            <div>
+              <Label className="text-xs">Blood Group (Optional)</Label>
+              <Input className="mt-1 h-8" value={formData.bloodGroup} onChange={e => setFormData({...formData, bloodGroup: e.target.value})} placeholder="e.g. O+" />
+            </div>
+            <div>
+              <Label className="text-xs">Known Allergies (Optional)</Label>
+              <Input className="mt-1 h-8" value={formData.knownAllergies} onChange={e => setFormData({...formData, knownAllergies: e.target.value})} placeholder="e.g. Peanuts" />
+            </div>
+            <div className="col-span-full">
+              <Label className="text-xs">Medical Notes (Optional)</Label>
+              <Input className="mt-1 h-8" value={formData.medicalNotes} onChange={e => setFormData({...formData, medicalNotes: e.target.value})} />
+            </div>
+            <div className="col-span-full flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="is_primary" checked={formData.isPrimary} onChange={e => setFormData({...formData, isPrimary: e.target.checked})} className="rounded border-input" />
+                <Label htmlFor="is_primary" className="text-xs">Set as Primary Contact</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="is_secondary" checked={formData.isSecondary} onChange={e => setFormData({...formData, isSecondary: e.target.checked})} className="rounded border-input" />
+                <Label htmlFor="is_secondary" className="text-xs">Set as Secondary Contact</Label>
+              </div>
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-4">
@@ -145,6 +167,15 @@ export function EmergencyContactsTab({ employeeId, canEdit, initialData }: { emp
             {c.address && (
               <div className="text-sm">
                 <span className="font-medium">Address:</span> {c.address}
+              </div>
+            )}
+            
+            {(c.blood_group || c.known_allergies || c.medical_notes) && (
+              <div className="mt-3 pt-3 border-t border-border/50 flex flex-col gap-1 text-sm bg-muted/10 p-2 rounded">
+                <span className="font-semibold text-xs text-muted-foreground uppercase">Medical Info</span>
+                {c.blood_group && <div><span className="font-medium">Blood Group:</span> {c.blood_group}</div>}
+                {c.known_allergies && <div><span className="font-medium">Allergies:</span> <span className="text-red-500/80">{c.known_allergies}</span></div>}
+                {c.medical_notes && <div><span className="font-medium">Notes:</span> {c.medical_notes}</div>}
               </div>
             )}
           </div>

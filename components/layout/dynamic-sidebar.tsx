@@ -19,6 +19,7 @@ import { useAuthStore } from '@/store/use-auth-store'
 import { usePermissionStore } from '@/store/use-permission-store'
 import { useFeatureStore } from '@/store/use-feature-store'
 import { OrgSwitcher } from '@/components/org/org-switcher'
+import { NotificationBell } from '@/components/layout/notification-bell'
 import { createClient } from '@/lib/supabase/client'
 import type { Permission } from '@/types/permissions'
 import type { FeatureFlagKey } from '@/types/preferences'
@@ -61,6 +62,7 @@ const NAVIGATION: NavSection[] = [
       { label: 'Meetings', href: '/employee/meetings', icon: <Video size={18} />, feature: 'meetings', permission: 'meeting.read' },
       { label: 'Announcements', href: '/employee/announcements', icon: <Megaphone size={18} />, permission: 'announcement.read' },
       { label: 'Documents', href: '/employee/documents', icon: <FileText size={18} />, permission: 'document.read' },
+      { label: 'Org Chart', href: '/organization/chart', icon: <Users size={18} /> },
       { label: 'Timeline', href: '/employee/timeline', icon: <GitBranch size={18} /> },
       { label: 'Goals & OKRs', href: '/employee/goals', icon: <Target size={18} />, feature: 'goals' },
       { label: 'Knowledge Base', href: '/employee/knowledge', icon: <BookOpen size={18} />, feature: 'knowledge_base' },
@@ -213,6 +215,11 @@ export function DynamicSidebar() {
 
         <SidebarFooter>
           <div className="flex flex-col gap-2">
+            <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between px-2'} pb-2 border-b border-border/40`}>
+              {!collapsed && <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Profile</span>}
+              <NotificationBell />
+            </div>
+
             <Link
               href="/employee/profile"
               className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer group"

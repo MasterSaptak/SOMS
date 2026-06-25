@@ -60,7 +60,11 @@ export const createEmergencyContactSchema = z.object({
   email: z.string().email().optional().nullable(),
   alternatePhone: z.string().max(20).optional().nullable(),
   address: z.string().max(500).optional().nullable(),
-  isPrimary: z.boolean().default(false)
+  bloodGroup: z.string().max(10).optional().nullable(),
+  knownAllergies: z.string().max(500).optional().nullable(),
+  medicalNotes: z.string().max(1000).optional().nullable(),
+  isPrimary: z.boolean().default(false),
+  isSecondary: z.boolean().default(false)
 })
 
 export const updateEmergencyContactSchema = createEmergencyContactSchema.partial().omit({ employeeId: true })

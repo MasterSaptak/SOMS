@@ -12,7 +12,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
   const [isSaving, setIsSaving] = useState(false)
 
   const [formData, setFormData] = useState({
-    employmentType: data.employmentType || '',
+    employmentType: data.employmentType || 'full_time',
     probationEndDate: data.probationEndDate || '',
     noticePeriodDays: data.noticePeriodDays || 30,
     workSchedule: data.workSchedule || '',
@@ -67,7 +67,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
               <option value="intern">Intern</option>
             </select>
           ) : (
-            <div className="font-medium mt-1 capitalize text-base">{data?.employment_type?.replace('_', ' ') || 'N/A'}</div>
+            <div className="font-medium mt-1 capitalize text-base">{data?.employmentType?.replace('_', ' ') || 'N/A'}</div>
           )}
         </div>
 
@@ -76,7 +76,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input className="mt-1" value={formData.workSchedule} onChange={e => setFormData({...formData, workSchedule: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.work_schedule || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.workSchedule || 'N/A'}</div>
           )}
         </div>
 
@@ -94,7 +94,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input className="mt-1" value={formData.officeLocation} onChange={e => setFormData({...formData, officeLocation: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.office_location || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.officeLocation || 'N/A'}</div>
           )}
         </div>
 
@@ -103,7 +103,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input className="mt-1" value={formData.employeeGrade} onChange={e => setFormData({...formData, employeeGrade: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.employee_grade || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.employeeGrade || 'N/A'}</div>
           )}
         </div>
 
@@ -112,7 +112,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input className="mt-1" value={formData.employmentCategory} onChange={e => setFormData({...formData, employmentCategory: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.employment_category || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.employmentCategory || 'N/A'}</div>
           )}
         </div>
 
@@ -121,7 +121,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input className="mt-1" value={formData.costCenter} onChange={e => setFormData({...formData, costCenter: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.cost_center || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.costCenter || 'N/A'}</div>
           )}
         </div>
 
@@ -130,7 +130,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input className="mt-1" value={formData.payrollGroup} onChange={e => setFormData({...formData, payrollGroup: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.payroll_group || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.payrollGroup || 'N/A'}</div>
           )}
         </div>
 
@@ -139,7 +139,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input type="number" className="mt-1" value={formData.noticePeriodDays} onChange={e => setFormData({...formData, noticePeriodDays: parseInt(e.target.value)})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.notice_period_days || 0}</div>
+            <div className="font-medium mt-1 text-base">{data?.noticePeriodDays || 0}</div>
           )}
         </div>
 
@@ -148,7 +148,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input type="date" className="mt-1" value={formData.confirmationDate} onChange={e => setFormData({...formData, confirmationDate: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.confirmation_date || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.confirmationDate || 'N/A'}</div>
           )}
         </div>
 
@@ -157,7 +157,7 @@ export function EmploymentDetailsTab({ employeeId, isAdmin, initialData }: { emp
           {isEditing ? (
             <Input type="date" className="mt-1" value={formData.probationEndDate} onChange={e => setFormData({...formData, probationEndDate: e.target.value})} />
           ) : (
-            <div className="font-medium mt-1 text-base">{data?.probation_end_date || 'N/A'}</div>
+            <div className="font-medium mt-1 text-base">{data?.probationEndDate || 'N/A'}</div>
           )}
         </div>
       </div>

@@ -1,7 +1,6 @@
-// @ts-nocheck
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { WidgetShell } from "@/components/enterprise/widget-shell"
 import { MyTasksList } from "@/components/work/MyTasksList"
 import { TaskDetailSheet } from "@/components/work/TaskDetailSheet"
@@ -27,19 +26,21 @@ export default function EmployeeTasksPage() {
   }, [activeOrganizationId])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTasks()
-  }, [activeOrganizationId, loadTasks])
+  }, [loadTasks])
 
-  const myTasks = tasks.filter(t => t.assignments?.some(a => a.employee_id === user?.id))
+  const myTasks = tasks.filter(t => (t as any).task_assignments?.some((a: any) => a.employee_id === user?.id))
   const orgTasks = tasks.filter(t => t.category === "Organization Task")
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Work Management</h1>
-          <p className="text-muted-foreground">My Tasks, Projects, and Work Sessions</p>
+          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
+            <ListTodo className="w-8 h-8 text-primary" />
+            My Tasks
+          </h1>
+          <p className="text-muted-foreground">Manage your assignments and track organizational tasks.</p>
         </div>
       </div>
 

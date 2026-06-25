@@ -51,7 +51,7 @@ export function WorkloadHeatmap({ project }: { project: ProjectWithDetails }) {
 
   // Aggregate from tasks
   tasks.forEach(task => {
-    task.assignments?.forEach(assignee => {
+    task.task_assignments?.forEach(assignee => {
       if (!workloads.has(assignee.employee_id)) return
       
       const wl = workloads.get(assignee.employee_id)!

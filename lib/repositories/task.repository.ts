@@ -50,12 +50,12 @@ export interface TaskAssignment {
 }
 
 export interface TaskWithAssignees extends Task {
-  assignments?: Array<{
+  task_assignments?: Array<{
     employee_id: string
     assigned_by: string
     employees?: { id: string; full_name: string; profile_photo: string | null }
   }>
-  labels?: Array<{ id: string; label: string; color: string }>
+  task_labels?: Array<{ id: string; label: string; color: string }>
   projects?: { id: string; name: string; project_code: string | null } | null
   dependencies?: Array<{
     depends_on_id: string

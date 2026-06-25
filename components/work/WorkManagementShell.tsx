@@ -68,7 +68,7 @@ export function WorkManagementShell() {
     }
   }
 
-  const myTasks = tasks.filter(t => t.assignments?.some(a => a.employee_id === user?.id))
+  const myTasks = tasks.filter(t => (t as any).task_assignments?.some((a: any) => a.employee_id === user?.id))
 
   return (
     <div className="space-y-6">

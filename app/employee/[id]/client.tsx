@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
   ChevronLeft, Save, Edit2, AlertCircle, Briefcase, 
   Zap, HeartPulse, PieChart, Mail, Phone, Calendar, 
-  Hash, Building2, UserCircle2, GraduationCap, Award, FileText 
+  Hash, Building2, UserCircle2, GraduationCap, Award, FileText, Server, Clock
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EmploymentDetailsTab } from '@/components/employee/employment-details-tab'
@@ -19,9 +19,11 @@ import { EmergencyContactsTab } from '@/components/employee/emergency-contacts-t
 import { SkillsTab } from '@/components/employee/skills-tab'
 import { SummariesTab } from '@/components/employee/summaries-tab'
 import { OrgPositionTrail } from '@/components/employee/org-position-trail'
+import { ProfileCompletionWidget } from '@/components/employee/profile-completion-widget'
 import { EducationTab } from '@/components/employee/education-tab'
 import { ExperienceTab } from '@/components/employee/experience-tab'
 import { CertificationsTab } from '@/components/employee/certifications-tab'
+import { TimelineTab } from '@/components/employee/timeline-tab'
 import { DocumentsTab } from '@/components/employee/documents-tab'
 
 const containerVars = {
@@ -61,7 +63,7 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
   const router = useRouter()
   const { user } = useAuthStore()
   
-  const isAdmin = user?.role === 'super_admin'
+  const isAdmin = ['super_admin', 'admin', 'hr_manager', 'prime_admin'].includes(user?.role || '')
 
   const [employee, setEmployee] = useState<any>(initialData.employee)
   const [isEditing, setIsEditing] = useState(false)
@@ -190,11 +192,17 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
             {/* Details Section */}
             <div className="flex-1 w-full flex flex-col gap-8">
               
-              <motion.div variants={itemVars} className="flex flex-col gap-2 p-4 bg-muted/30 rounded-2xl border border-border/50">
-                <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-primary" /> Organization Hierarchy
-                </Label>
-                <OrgPositionTrail employeeId={employeeId} />
+              <motion.div variants={itemVars} className="flex flex-col gap-4 p-4 bg-muted/30 rounded-2xl border border-border/50">
+                <div className="flex flex-col gap-2">
+                  <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-primary" /> Organization Hierarchy
+                  </Label>
+                  <OrgPositionTrail employee={employee} />
+                </div>
+                
+                <div className="mt-2 border-t border-border/50 pt-4">
+                  <ProfileCompletionWidget employeeId={employeeId} />
+                </div>
               </motion.div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
@@ -205,12 +213,6 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
                 <Field icon={Briefcase} label="Department" value={typeof employee.department === 'string' ? employee.department : employee.department?.name} field="department" canEdit={canEditAll} isEditing={isEditing} formData={formData} setFormData={setFormData} />
                 <Field icon={Zap} label="Position" value={typeof employee.designation === 'string' ? employee.designation : employee.designation?.title} field="designation" canEdit={canEditAll} isEditing={isEditing} formData={formData} setFormData={setFormData} />
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6 pt-6 border-t border-border/40">
-                <Field icon={Hash} label="Database UUID" value={<span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.id}</span>} field="id" canEdit={false} isEditing={isEditing} formData={formData} setFormData={setFormData} />
-                <Field icon={UserCircle2} label="Manager UUID" value={employee.manager_id ? <span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.manager_id}</span> : 'None'} field="manager_id" canEdit={canEditAll} isEditing={isEditing} formData={formData} setFormData={setFormData} />
-              </div>
-
             </div>
           </div>
 
@@ -251,12 +253,14 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
               { id: 'experience', icon: Briefcase, label: 'Experience' },
               { id: 'certifications', icon: Award, label: 'Certifications' },
               { id: 'documents', icon: FileText, label: 'Documents' },
+              { id: 'timeline', icon: Clock, label: 'Timeline' },
               { id: 'summaries', icon: PieChart, label: 'Summaries' },
+              ...(isAdmin ? [{ id: 'system_info', icon: Server, label: 'System Info' }] : []),
             ].map(tab => (
               <TabsTrigger 
                 key={tab.id}
                 value={tab.id} 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 pb-3 pt-2 gap-2 whitespace-nowrap transition-colors"
+                className="rounded-t-lg border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary hover:text-primary data-[state=active]:bg-primary/10 hover:bg-primary/5 data-[state=active]:shadow-sm px-4 pb-3 pt-3 gap-2 whitespace-nowrap transition-all duration-300 font-semibold"
               >
                 <tab.icon className="w-4 h-4" /> {tab.label}
               </TabsTrigger>
@@ -283,24 +287,47 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
               </TabsContent>
 
               <TabsContent value="education" className="m-0 focus-visible:outline-none focus-visible:ring-0">
-                <div className="p-8 text-center text-muted-foreground border rounded-2xl bg-muted/20">Education integration coming soon.</div>
+                <EducationTab employeeId={employeeId} canEdit={canEditSelfBasic} isAdmin={isAdmin} initialData={initialData.education} />
               </TabsContent>
 
               <TabsContent value="experience" className="m-0 focus-visible:outline-none focus-visible:ring-0">
-                <div className="p-8 text-center text-muted-foreground border rounded-2xl bg-muted/20">Experience integration coming soon.</div>
+                <ExperienceTab employeeId={employeeId} canEdit={canEditSelfBasic} isAdmin={isAdmin} initialData={initialData.experience} />
               </TabsContent>
 
               <TabsContent value="certifications" className="m-0 focus-visible:outline-none focus-visible:ring-0">
-                <div className="p-8 text-center text-muted-foreground border rounded-2xl bg-muted/20">Certifications integration coming soon.</div>
+                <CertificationsTab employeeId={employeeId} canEdit={canEditSelfBasic} isAdmin={isAdmin} initialData={initialData.certifications} />
               </TabsContent>
 
               <TabsContent value="documents" className="m-0 focus-visible:outline-none focus-visible:ring-0">
-                <div className="p-8 text-center text-muted-foreground border rounded-2xl bg-muted/20">Documents integration coming soon.</div>
+                <DocumentsTab employeeId={employeeId} canEdit={canEditSelfBasic} isAdmin={isAdmin} initialData={initialData.documents} />
+              </TabsContent>
+
+              <TabsContent value="timeline" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+                <TimelineTab employeeId={employeeId} />
               </TabsContent>
 
               <TabsContent value="summaries" className="m-0 focus-visible:outline-none focus-visible:ring-0">
                 <SummariesTab employeeId={employeeId} />
               </TabsContent>
+
+              {isAdmin && (
+                <TabsContent value="system_info" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+                  <div className="bg-card border border-border/50 rounded-xl p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <Server className="w-5 h-5 text-primary" />
+                        Developer & System Information
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                      <Field icon={Hash} label="Database UUID" value={<span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.id}</span>} field="id" canEdit={false} isEditing={false} formData={formData} setFormData={setFormData} />
+                      <Field icon={UserCircle2} label="Manager UUID" value={employee.manager_id || employee.managerId ? <span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.manager_id || employee.managerId}</span> : 'None'} field="manager_id" canEdit={false} isEditing={false} formData={formData} setFormData={setFormData} />
+                      <Field icon={Hash} label="User UUID" value={<span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.userId || employee.user_id}</span>} field="user_id" canEdit={false} isEditing={false} formData={formData} setFormData={setFormData} />
+                      <Field icon={Building2} label="Organization UUID" value={<span className="font-mono text-sm bg-muted/50 px-2 py-1 rounded">{employee.organizationId || employee.organization_id}</span>} field="organization_id" canEdit={false} isEditing={false} formData={formData} setFormData={setFormData} />
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
             </motion.div>
           </AnimatePresence>
         </Tabs>

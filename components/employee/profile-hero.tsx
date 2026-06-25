@@ -77,13 +77,18 @@ export function ProfileHero({ employee, isAdminView, onEditClick }: ProfileHeroP
                 </div>
 
                 <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap justify-end">
                     <Badge variant="outline" className={`capitalize ${statusColor}`}>
                       {employee.status.replace('_', ' ')}
                     </Badge>
                     <Badge variant="outline" className="font-mono bg-muted/50">
                       {employee.employeeCode}
                     </Badge>
+                    {(employee as any).rbacRoles && (employee as any).rbacRoles.length > 0 && (employee as any).rbacRoles.map((role: string) => (
+                      <Badge key={role} variant="default" className="bg-primary/90 hover:bg-primary text-[10px] uppercase tracking-wider font-bold shadow-sm">
+                        {role.replace('_', ' ')}
+                      </Badge>
+                    ))}
                   </div>
                   <Button variant="outline" size="sm" className="gap-1.5 h-8 mt-1" onClick={onEditClick}>
                     <Edit className="w-3.5 h-3.5" />

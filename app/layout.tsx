@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Outfit } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
+const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-sans',
 });
@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
       <body className="bg-background text-foreground min-h-screen flex flex-col">
         <OfflineBanner />
         <PwaInstallPrompt />

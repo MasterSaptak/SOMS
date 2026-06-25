@@ -19,6 +19,13 @@ import {
 import type { Employee, EmploymentDetails, EmergencyContact, EmployeeSkill } from '@/lib/types'
 
 export class EmployeeService {
+  private async checkSelfOrAuthorize(actingUserId: string, orgId: string, employeeId: string, permission: any): Promise<Result<true>> {
+    const empResult = await employeeRepository.findById(employeeId)
+    const isSelf = empResult.success && empResult.data.userId === actingUserId
+    if (isSelf) return success(true as const)
+    return await permissionService.authorize(actingUserId, orgId, permission)
+  }
+
   async getEmployee360(employeeId: string, actingUserId: string, orgId: string): Promise<Result<{
     employee: Employee,
     employmentDetails: EmploymentDetails | null,
@@ -51,8 +58,24 @@ export class EmployeeService {
         employeeRepository.findPreferences(emp.id)
       ])
 
+      let rbacRoles: string[] = []
+      if (emp.email === 'saptech.online009@gmail.com') {
+        rbacRoles.push('Prime Admin')
+      } else {
+        try {
+          const { PermissionRepository } = await import('@/lib/repositories/permission.repository')
+          const permRepo = new PermissionRepository()
+          const effPerms = await permRepo.getEffectivePermissions(emp.userId, orgId)
+          if (effPerms.success && effPerms.data.roles) {
+            rbacRoles = effPerms.data.roles
+          }
+        } catch(e) {
+          logger.error('Failed to load user roles', e)
+        }
+      }
+
       return success({
-        employee: emp,
+        employee: { ...emp, rbacRoles } as Employee & { rbacRoles: string[] },
         employmentDetails: detailsRes.success ? detailsRes.data : null,
         emergencyContacts: contactsRes.success ? contactsRes.data : [],
         skills: skillsRes.success ? skillsRes.data : [],
@@ -108,7 +131,7 @@ export class EmployeeService {
   }
 
   async updateEmploymentDetails(employeeId: string, input: UpdateEmploymentDetailsInput, actingUserId: string, orgId: string): Promise<Result<EmploymentDetails>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.employment.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.employment.edit')
     if (!authRes.success) return failure(authRes.error)
 
     const validation = updateEmploymentDetailsSchema.safeParse(input)
@@ -134,13 +157,13 @@ export class EmployeeService {
   }
 
   async getEmergencyContacts(employeeId: string, actingUserId: string, orgId: string): Promise<Result<EmergencyContact[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.contacts.view')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.contacts.view')
     if (!authRes.success) return failure(authRes.error)
     return await employeeRepository.findEmergencyContacts(employeeId)
   }
 
   async addEmergencyContact(input: CreateEmergencyContactInput, actingUserId: string, orgId: string): Promise<Result<EmergencyContact[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.contacts.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, input.employeeId, 'employee.contacts.edit')
     if (!authRes.success) return failure(authRes.error)
 
     const validation = createEmergencyContactSchema.safeParse(input)
@@ -149,7 +172,9 @@ export class EmployeeService {
     const payload = {
       employee_id: validation.data.employeeId, name: validation.data.name, relationship: validation.data.relationship,
       phone: validation.data.phone, email: validation.data.email || null, alternate_phone: validation.data.alternatePhone || null,
-      address: validation.data.address || null, is_primary: validation.data.isPrimary
+      address: validation.data.address || null, is_primary: validation.data.isPrimary,
+      blood_group: validation.data.bloodGroup || null, known_allergies: validation.data.knownAllergies || null,
+      medical_notes: validation.data.medicalNotes || null, is_secondary: validation.data.isSecondary
     }
 
     const res = await employeeRepository.insertEmergencyContact(payload)
@@ -158,7 +183,7 @@ export class EmployeeService {
   }
 
   async deleteEmergencyContact(employeeId: string, contactId: string, actingUserId: string, orgId: string): Promise<Result<EmergencyContact[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.contacts.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.contacts.edit')
     if (!authRes.success) return failure(authRes.error)
 
     const res = await employeeRepository.deleteEmergencyContact(contactId)
@@ -171,13 +196,13 @@ export class EmployeeService {
   }
 
   async getEmployeeSkills(employeeId: string, actingUserId: string, orgId: string): Promise<Result<EmployeeSkill[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.skills.view')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.skills.view')
     if (!authRes.success) return failure(authRes.error)
     return await employeeRepository.findSkills(employeeId)
   }
 
   async addEmployeeSkill(input: CreateEmployeeSkillInput, actingUserId: string, orgId: string): Promise<Result<EmployeeSkill[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.skills.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, input.employeeId, 'employee.skills.edit')
     if (!authRes.success) return failure(authRes.error)
 
     // Check if the user is an admin to auto-verify the skill. 
@@ -188,18 +213,24 @@ export class EmployeeService {
     if (!validation.success) return failure(new ValidationError('Invalid skill data', validation.error.flatten().fieldErrors))
 
     const payload = {
-      employee_id: validation.data.employeeId, skill_id: validation.data.skillId, proficiency: validation.data.proficiency,
-      years_of_experience: validation.data.yearsOfExperience || null, certification: validation.data.certification || null,
-      notes: validation.data.notes || null, is_verified: canVerify
+      employee_id: validation.data.employeeId, 
+      skill_id: validation.data.skillId, 
+      proficiency: validation.data.proficiency,
+      years_of_experience: validation.data.yearsOfExperience || null, 
+      certification: validation.data.certification || null,
+      notes: validation.data.notes || null, 
+      is_verified: canVerify,
+      verified_by: canVerify ? actingUserId : null,
+      verification_status: canVerify ? 'verified' : 'pending'
     }
 
-    const res = await employeeRepository.insertEmployeeSkill(payload)
+    const res = await employeeRepository.insertEmployeeSkill(payload, orgId)
     if (!res.success) return failure(res.error)
     return await employeeRepository.findSkills(validation.data.employeeId)
   }
 
   async deleteEmployeeSkill(employeeId: string, skillId: string, actingUserId: string, orgId: string): Promise<Result<EmployeeSkill[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.skills.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.skills.edit')
     if (!authRes.success) return failure(authRes.error)
 
     const res = await employeeRepository.deleteEmployeeSkill(skillId)
@@ -213,24 +244,24 @@ export class EmployeeService {
 
   // Documents
   async getDocuments(employeeId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.documents.view')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.documents.view')
     if (!authRes.success) return failure(authRes.error)
     return await employeeRepository.findDocuments(employeeId)
   }
 
   async addDocument(input: CreateEmployeeDocumentInput, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.documents.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, input.employeeId, 'employee.documents.edit')
     if (!authRes.success) return failure(authRes.error)
     const validation = createEmployeeDocumentSchema.safeParse(input)
     if (!validation.success) return failure(new ValidationError('Invalid document data', validation.error.flatten().fieldErrors))
     
-    const res = await employeeRepository.insertDocument(validation.data)
+    const res = await employeeRepository.insertDocument({ ...validation.data, organizationId: orgId, verifiedBy: actingUserId })
     if (!res.success) return failure(res.error)
     return await employeeRepository.findDocuments(validation.data.employeeId)
   }
 
   async deleteDocument(employeeId: string, documentId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.documents.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.documents.edit')
     if (!authRes.success) return failure(authRes.error)
     const res = await employeeRepository.deleteDocument(documentId)
     if (!res.success) return failure(res.error)
@@ -239,24 +270,24 @@ export class EmployeeService {
 
   // Certifications
   async getCertifications(employeeId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.certifications.view')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.certifications.view')
     if (!authRes.success) return failure(authRes.error)
     return await employeeRepository.findCertifications(employeeId)
   }
 
   async addCertification(input: CreateEmployeeCertificationInput, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.certifications.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, input.employeeId, 'employee.certifications.edit')
     if (!authRes.success) return failure(authRes.error)
     const validation = createEmployeeCertificationSchema.safeParse(input)
     if (!validation.success) return failure(new ValidationError('Invalid cert data', validation.error.flatten().fieldErrors))
     
-    const res = await employeeRepository.insertCertification(validation.data)
+    const res = await employeeRepository.insertCertification({ ...validation.data, organizationId: orgId, verifiedBy: actingUserId })
     if (!res.success) return failure(res.error)
     return await employeeRepository.findCertifications(validation.data.employeeId)
   }
 
   async deleteCertification(employeeId: string, certId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.certifications.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.certifications.edit')
     if (!authRes.success) return failure(authRes.error)
     const res = await employeeRepository.deleteCertification(certId)
     if (!res.success) return failure(res.error)
@@ -265,24 +296,24 @@ export class EmployeeService {
 
   // Education
   async getEducation(employeeId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.education.view')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.education.view')
     if (!authRes.success) return failure(authRes.error)
     return await employeeRepository.findEducation(employeeId)
   }
 
   async addEducation(input: CreateEmployeeEducationInput, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.education.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, input.employeeId, 'employee.education.edit')
     if (!authRes.success) return failure(authRes.error)
     const validation = createEmployeeEducationSchema.safeParse(input)
     if (!validation.success) return failure(new ValidationError('Invalid education data', validation.error.flatten().fieldErrors))
     
-    const res = await employeeRepository.insertEducation(validation.data)
+    const res = await employeeRepository.insertEducation({ ...validation.data, organizationId: orgId, verifiedBy: actingUserId })
     if (!res.success) return failure(res.error)
     return await employeeRepository.findEducation(validation.data.employeeId)
   }
 
   async deleteEducation(employeeId: string, eduId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.education.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.education.edit')
     if (!authRes.success) return failure(authRes.error)
     const res = await employeeRepository.deleteEducation(eduId)
     if (!res.success) return failure(res.error)
@@ -291,24 +322,24 @@ export class EmployeeService {
 
   // Experience
   async getExperience(employeeId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.experience.view')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.experience.view')
     if (!authRes.success) return failure(authRes.error)
     return await employeeRepository.findExperience(employeeId)
   }
 
   async addExperience(input: CreateEmployeeExperienceInput, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.experience.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, input.employeeId, 'employee.experience.edit')
     if (!authRes.success) return failure(authRes.error)
     const validation = createEmployeeExperienceSchema.safeParse(input)
     if (!validation.success) return failure(new ValidationError('Invalid experience data', validation.error.flatten().fieldErrors))
     
-    const res = await employeeRepository.insertExperience(validation.data)
+    const res = await employeeRepository.insertExperience({ ...validation.data, organizationId: orgId, verifiedBy: actingUserId })
     if (!res.success) return failure(res.error)
     return await employeeRepository.findExperience(validation.data.employeeId)
   }
 
   async deleteExperience(employeeId: string, expId: string, actingUserId: string, orgId: string): Promise<Result<any[]>> {
-    const authRes = await permissionService.authorize(actingUserId, orgId, 'employee.experience.edit')
+    const authRes = await this.checkSelfOrAuthorize(actingUserId, orgId, employeeId, 'employee.experience.edit')
     if (!authRes.success) return failure(authRes.error)
     const res = await employeeRepository.deleteExperience(expId)
     if (!res.success) return failure(res.error)

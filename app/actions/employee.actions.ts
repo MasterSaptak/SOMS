@@ -171,7 +171,30 @@ export async function deleteEmergencyContactAction(employeeId: string, contactId
 export async function getAllSkillsAction() {
   try {
     await getAuthContext()
-    return await employeeService.getAllSkills()
+    let result = await employeeService.getAllSkills()
+    if (result.success && result.data.length === 0) {
+      // Auto-seed skills if empty
+      const { createClient } = await import('@supabase/supabase-js')
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+      const { data: cats } = await supabase.from('skill_categories').select('id, name')
+      const getCatId = (name: string) => cats?.find((c: any) => c.name === name)?.id
+      const skillsToInsert = [
+        { name: 'JavaScript', category_id: getCatId('Technical') },
+        { name: 'TypeScript', category_id: getCatId('Technical') },
+        { name: 'React', category_id: getCatId('Technical') },
+        { name: 'Node.js', category_id: getCatId('Technical') },
+        { name: 'Python', category_id: getCatId('Technical') },
+        { name: 'PostgreSQL', category_id: getCatId('Database') },
+        { name: 'AWS', category_id: getCatId('Cloud') },
+        { name: 'Docker', category_id: getCatId('DevOps') },
+        { name: 'Public Speaking', category_id: getCatId('Communication') },
+        { name: 'Team Leadership', category_id: getCatId('Leadership') },
+        { name: 'Project Management', category_id: getCatId('Management') }
+      ].filter(s => s.category_id)
+      await supabase.from('skills').upsert(skillsToInsert, { onConflict: 'name' })
+      result = await employeeService.getAllSkills()
+    }
+    return result
   } catch (err) {
     return failure(err as Error)
   }
@@ -273,6 +296,59 @@ export async function deleteEmployeeExperienceAction(employeeId: string, expId: 
   } catch (err) { return failure(err as Error) }
 }
 
+export async function verifySkillAction(employeeId: string, recordId: string, status: 'verified' | 'rejected', notes?: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    await permissionService.authorize(userId, orgId, 'employee.profile.verify' as any)
+    const { employeeRepository } = await import('@/lib/repositories/employee.repository')
+    const res = await employeeRepository.verifySkill(orgId, employeeId, recordId, status, userId, notes)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function verifyCertificationAction(employeeId: string, recordId: string, status: 'verified' | 'rejected', notes?: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    await permissionService.authorize(userId, orgId, 'employee.profile.verify' as any)
+    const { employeeRepository } = await import('@/lib/repositories/employee.repository')
+    const res = await employeeRepository.verifyCertification(orgId, employeeId, recordId, status, userId, notes)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function verifyEducationAction(employeeId: string, recordId: string, status: 'verified' | 'rejected', notes?: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    await permissionService.authorize(userId, orgId, 'employee.profile.verify' as any)
+    const { employeeRepository } = await import('@/lib/repositories/employee.repository')
+    const res = await employeeRepository.verifyEducation(orgId, employeeId, recordId, status, userId, notes)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function verifyExperienceAction(employeeId: string, recordId: string, status: 'verified' | 'rejected', notes?: string) {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    await permissionService.authorize(userId, orgId, 'employee.profile.verify' as any)
+    const { employeeRepository } = await import('@/lib/repositories/employee.repository')
+    const res = await employeeRepository.verifyExperience(orgId, employeeId, recordId, status, userId, notes)
+    if (res.success) revalidatePath('/', 'layout')
+    return res
+  } catch (err) { return failure(err as Error) }
+}
+
+export async function getPendingVerificationsAction() {
+  try {
+    const { userId, orgId } = await getAuthContext()
+    await permissionService.authorize(userId, orgId, 'employee.profile.verify' as any)
+    const { employeeRepository } = await import('@/lib/repositories/employee.repository')
+    return await employeeRepository.getPendingVerifications(orgId)
+  } catch (err) { return failure(err as Error) }
+}
+
 export async function updateEmployeePreferenceAction(employeeId: string, input: any) {
   try {
     const { userId, orgId } = await getAuthContext()
@@ -298,6 +374,80 @@ export async function getEmployeeSummaryAction(employeeId: string) {
       leaves: leavesRes.data || [],
       attendance: attendanceRes.data || []
     })
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function getProfileCompletionAction(employeeId: string) {
+  try {
+    const { orgId } = await getAuthContext()
+    const { employeeRepository } = await import('@/lib/repositories/employee.repository')
+    return await employeeRepository.calculateProfileCompletion(employeeId)
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function getTimelineEventsAction(employeeId: string) {
+  try {
+    const { supabase, orgId } = await getAuthContext()
+    const { data, error } = await (supabase as any)
+      .from('employee_timeline_events')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .order('event_date', { ascending: false })
+    
+    if (error) throw error
+    return success(data)
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function getNotificationsAction() {
+  try {
+    const { supabase, userId } = await getAuthContext()
+    const { data, error } = await (supabase as any)
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    
+    if (error) throw error
+    return success(data)
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function markNotificationReadAction(notificationId: string) {
+  try {
+    const { supabase, userId } = await getAuthContext()
+    const { error } = await (supabase as any)
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .eq('user_id', userId)
+    
+    if (error) throw error
+    return success(true)
+  } catch (err) {
+    return failure(err as Error)
+  }
+}
+
+export async function getOrganizationHierarchyAction() {
+  try {
+    const { supabase, orgId } = await getAuthContext()
+    const { data, error } = await (supabase as any)
+      .from('employees')
+      .select('id, full_name, profile_photo, manager_id, department, designation')
+      .eq('organization_id', orgId)
+    
+    if (error) throw error
+    return success(data)
   } catch (err) {
     return failure(err as Error)
   }

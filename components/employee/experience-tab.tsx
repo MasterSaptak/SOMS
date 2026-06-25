@@ -4,10 +4,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Plus, Trash2, Briefcase } from 'lucide-react'
-import { addEmployeeExperienceAction, deleteEmployeeExperienceAction } from '@/app/actions/employee.actions'
+import { addEmployeeExperienceAction, deleteEmployeeExperienceAction, verifyExperienceAction } from '@/app/actions/employee.actions'
+import { VerificationBadge } from '@/components/profile/VerificationBadge'
 import { useRouter } from 'next/navigation'
 
-export function ExperienceTab({ employeeId, canEdit, initialData }: { employeeId: string, canEdit: boolean, initialData: any[] }) {
+export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { employeeId: string, canEdit: boolean, isAdmin: boolean, initialData: any[] }) {
   const router = useRouter()
   const [experience, setExperience] = useState<any[]>(initialData || [])
   const [isAdding, setIsAdding] = useState(false)
@@ -62,6 +63,21 @@ export function ExperienceTab({ employeeId, canEdit, initialData }: { employeeId
     }
   }
 
+  const handleVerify = async (id: string, status: 'verified' | 'rejected') => {
+    if (!isAdmin) return
+    try {
+      const res = await verifyExperienceAction(employeeId, id, status)
+      if (!res.success) throw new Error(`Failed to mark as ${status}`)
+      
+      // Update locally
+      const updated = experience.map(e => e.id === id ? { ...e, verificationStatus: status, isVerified: status === 'verified' } : e)
+      setExperience(updated)
+      router.refresh()
+    } catch (e: any) {
+      alert(`Error verifying experience: ${e.message}`)
+    }
+  }
+
   return (
     <div className="bg-card border border-border/50 rounded-xl p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
@@ -113,11 +129,14 @@ export function ExperienceTab({ employeeId, canEdit, initialData }: { employeeId
       )}
 
       <div className="grid grid-cols-1 gap-4">
-        {initialData?.map(e => (
-          <div key={e.id} className="border border-border/50 rounded-lg p-4 flex justify-between items-start group">
+        {(experience.length > 0 ? experience : initialData)?.map(e => (
+          <div key={e.id} className="border border-border/50 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start group gap-4 relative">
             <div className="flex flex-col gap-1 w-full">
-              <span className="font-semibold text-lg">{e.title}</span>
-              <span className="text-muted-foreground">{e.companyName}{e.location ? ` - ${e.location}` : ''}</span>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-lg">{e.title}</span>
+                <VerificationBadge status={e.verificationStatus || e.verification_status} notes={e.verificationNotes || e.verification_notes} />
+              </div>
+              <span className="text-muted-foreground font-medium">{e.companyName}{e.location ? ` - ${e.location}` : ''}</span>
               <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                 {(e.startDate || e.endDate) && (
                   <span>
@@ -126,14 +145,26 @@ export function ExperienceTab({ employeeId, canEdit, initialData }: { employeeId
                 )}
               </div>
               {e.description && (
-                <p className="mt-3 text-sm">{e.description}</p>
+                <p className="mt-3 text-sm text-foreground/90 leading-relaxed">{e.description}</p>
               )}
             </div>
-            {canEdit && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 shrink-0 ml-4" onClick={() => handleDelete(e.id)}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
+            <div className="flex items-center gap-2 sm:self-start shrink-0">
+              {isAdmin && (e.verificationStatus || e.verification_status) === 'pending' && (
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" className="h-8 text-xs bg-green-50 text-green-700 hover:bg-green-100 border-green-200" onClick={() => handleVerify(e.id, 'verified')}>
+                    Verify
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs bg-red-50 text-red-700 hover:bg-red-100 border-red-200" onClick={() => handleVerify(e.id, 'rejected')}>
+                    Reject
+                  </Button>
+                </div>
+              )}
+              {canEdit && (
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(e.id)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
         ))}
         {(!initialData || initialData.length === 0) && !isAdding && (

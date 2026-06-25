@@ -126,7 +126,11 @@ export interface EmergencyContact {
   email: string | null
   alternatePhone?: string | null
   address?: string | null
+  bloodGroup?: string | null
+  knownAllergies?: string | null
+  medicalNotes?: string | null
   isPrimary: boolean
+  isSecondary?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -139,6 +143,8 @@ export interface Skill {
   updatedAt: string
 }
 
+export type VerificationStatus = 'pending' | 'verified' | 'rejected'
+
 export interface EmployeeSkill {
   id: string
   employeeId: string
@@ -147,7 +153,11 @@ export interface EmployeeSkill {
   yearsOfExperience?: number | null
   certification?: string | null
   notes?: string | null
+  verificationStatus?: VerificationStatus
   isVerified: boolean
+  verifiedBy?: string | null
+  verifiedAt?: string | null
+  verificationNotes?: string | null
   createdAt: string
   updatedAt: string
   
@@ -503,6 +513,11 @@ export interface EmployeeDocument {
   employeeId: string
   documentType: string
   fileUrl: string
+  verificationStatus?: VerificationStatus
+  isVerified?: boolean
+  verifiedBy?: string | null
+  verifiedAt?: string | null
+  verificationNotes?: string | null
   uploadedAt: string
 }
 
@@ -514,6 +529,11 @@ export interface EmployeeCertification {
   issueDate: string | null
   expiryDate: string | null
   credentialUrl: string | null
+  verificationStatus?: VerificationStatus
+  isVerified?: boolean
+  verifiedBy?: string | null
+  verifiedAt?: string | null
+  verificationNotes?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -527,6 +547,11 @@ export interface EmployeeEducation {
   startDate: string | null
   endDate: string | null
   cgpa: string | null
+  verificationStatus?: VerificationStatus
+  isVerified?: boolean
+  verifiedBy?: string | null
+  verifiedAt?: string | null
+  verificationNotes?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -540,6 +565,11 @@ export interface EmployeeExperience {
   endDate: string | null
   location: string | null
   description: string | null
+  verificationStatus?: VerificationStatus
+  isVerified?: boolean
+  verifiedBy?: string | null
+  verifiedAt?: string | null
+  verificationNotes?: string | null
   createdAt: string
   updatedAt: string
 }

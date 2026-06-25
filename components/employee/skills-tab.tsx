@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Plus, Trash2, Zap, CheckCircle2 } from 'lucide-react'
-import { addEmployeeSkillAction, deleteEmployeeSkillAction, getAllSkillsAction } from '@/app/actions/employee.actions'
+import { addEmployeeSkillAction, deleteEmployeeSkillAction, verifySkillAction } from '@/app/actions/employee.actions'
+import { VerificationBadge } from '@/components/profile/VerificationBadge'
 
 import { useRouter } from 'next/navigation'
 
@@ -39,7 +40,7 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
         certification: formData.certification,
         notes: formData.notes
       })
-      if (!res.success) throw new Error('Failed to add skill')
+      if (!res.success) throw new Error(res.error?.message || 'Failed to add skill')
       
       setIsAdding(false)
       setFormData({ skillId: availableSkills[0]?.id || '', proficiency: 'intermediate', yearsOfExperience: 0, certification: '', notes: '' })
@@ -77,7 +78,21 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
     }
   }
 
+  const handleVerify = async (id: string, status: 'verified' | 'rejected') => {
+    if (!isAdmin) return
+    try {
+      const res = await verifySkillAction(employeeId, id, status)
+      if (!res.success) throw new Error(`Failed to mark as ${status}`)
+      
+      setEmployeeSkills(employeeSkills.map(s => s.id === id ? { ...s, verification_status: status, is_verified: status === 'verified' } : s))
+      router.refresh()
+    } catch (e: any) {
+      alert(`Error verifying skill: ${e.message}`)
+    }
+  }
+
   const expert = employeeSkills.filter(s => s.proficiency === 'expert')
+  const advanced = employeeSkills.filter(s => s.proficiency === 'advanced')
   const intermediate = employeeSkills.filter(s => s.proficiency === 'intermediate')
   const beginner = employeeSkills.filter(s => s.proficiency === 'beginner')
 
@@ -86,29 +101,51 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
     return (
       <div className="mb-4">
         <p className="text-xs text-muted-foreground uppercase font-semibold mb-3 tracking-wider">{title} ({list.length})</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-3">
           {list.map(s => (
-            <Badge key={s.id} variant="outline" className={`py-1.5 px-3 bg-card relative group shadow-sm flex flex-col items-start gap-1 ${colorClass}`}>
-              <div className="flex items-center">
-                <span className="font-medium">{s.skill?.name || 'Unknown Skill'}</span>
-                {s.is_verified && <CheckCircle2 className="w-3 h-3 ml-1.5 text-blue-500 inline-block" />}
-              </div>
-              {(s.years_of_experience > 0 || s.certification) && (
-                <div className="text-[10px] text-muted-foreground font-normal">
-                  {s.years_of_experience ? `${s.years_of_experience} yrs` : ''} 
-                  {s.years_of_experience && s.certification ? ' • ' : ''}
-                  {s.certification}
+            <div key={s.id} className={`p-3 rounded-lg border bg-card shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative group ${colorClass}`}>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{s.skill?.name || 'Unknown Skill'}</span>
+                  <VerificationBadge status={s.verificationStatus || s.verification_status} notes={s.verificationNotes || s.verification_notes} />
                 </div>
-              )}
-              {canEdit && (
-                <button 
-                  onClick={() => handleDelete(s.id)}
-                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="w-2.5 h-2.5" />
-                </button>
-              )}
-            </Badge>
+                {(s.years_of_experience > 0 || s.certification) && (
+                  <div className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+                    {s.years_of_experience ? `${s.years_of_experience} yrs` : ''} 
+                    {s.years_of_experience && s.certification ? <span className="opacity-50">•</span> : ''}
+                    {s.certification}
+                  </div>
+                )}
+                {s.notes && (
+                  <div className="text-[11px] text-muted-foreground italic">
+                    Note: {s.notes}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {isAdmin && (s.verificationStatus || s.verification_status) === 'pending' && (
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" className="h-7 text-xs bg-green-50 text-green-700 hover:bg-green-100 border-green-200" onClick={() => handleVerify(s.id, 'verified')}>
+                      Verify
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-7 text-xs bg-red-50 text-red-700 hover:bg-red-100 border-red-200" onClick={() => handleVerify(s.id, 'rejected')}>
+                      Reject
+                    </Button>
+                  </div>
+                )}
+                {canEdit && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleDelete(s.id)}
+                    className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -145,7 +182,7 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
                     onChange={e => setFormData({...formData, skillId: e.target.value})}
                   >
                     {availableSkills.map(sk => (
-                      <option key={sk.id} value={sk.id}>{sk.name} ({sk.category})</option>
+                      <option key={sk.id} value={sk.id}>{sk.name} {sk.category ? `(${sk.category})` : ''}</option>
                     ))}
                   </select>
                 </div>
@@ -189,7 +226,7 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {renderSection('Expert', expert, 'border-emerald-500/20')}
+          {renderSection('Expert', expert, 'border-indigo-500/20')}
           {renderSection('Intermediate', intermediate, 'border-blue-500/20')}
           {renderSection('Beginner', beginner, 'border-amber-500/20')}
         </div>
