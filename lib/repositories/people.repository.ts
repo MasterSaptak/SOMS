@@ -153,7 +153,7 @@ export class PeopleRepository {
 
       const { data, error } = await sb
         .from('employees')
-        .select('*')
+        .select('id, user_id, organization_id, department_id, team_id, designation_id, work_location_id, manager_id, employee_id_string, full_name, email, phone, profile_photo, joining_date, employment_status, date_of_birth, gender, blood_group, nationality, marital_status, personal_email, address, aadhaar_nid, passport_no, visa_status, driving_license, department, team, designation, created_at, updated_at')
         .eq('id', employeeId)
         .single()
 

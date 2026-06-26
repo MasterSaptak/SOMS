@@ -44,7 +44,6 @@ export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { em
       
       setIsAdding(false)
       setFormData({ school: '', degree: '', fieldOfStudy: '', startDate: '', endDate: '', cgpa: '' })
-      router.refresh()
     } catch (e: any) {
       alert(`Error adding education: ${e.message}`)
     }
@@ -58,7 +57,6 @@ export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { em
       if (!res.success) throw new Error('Failed to delete education')
       
       setEducation(education.filter(e => e.id !== id))
-      router.refresh()
     } catch (e: any) {
       alert(`Error deleting education: ${e.message}`)
     }
@@ -72,7 +70,6 @@ export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { em
       
       const updated = education.map(e => e.id === id ? { ...e, verificationStatus: status, isVerified: status === 'verified' } : e)
       setEducation(updated)
-      router.refresh()
     } catch (e: any) {
       alert(`Error verifying education: ${e.message}`)
     }

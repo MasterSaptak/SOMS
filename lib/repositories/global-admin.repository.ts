@@ -26,7 +26,7 @@ export class GlobalAdminRepository {
       // 2. Fetch all profiles to get roles
       const { data: profiles, error: profError } = await sb
         .from('profiles')
-        .select('*')
+        .select('id, role')
       if (profError) return failure(new Error(profError.message))
       
       // 3. Fetch all organization memberships

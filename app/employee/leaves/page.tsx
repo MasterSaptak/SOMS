@@ -544,7 +544,7 @@ export default function LeavesPage() {
       <motion.div variants={itemVars} className="flex flex-col gap-4 mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Leave History</h2>
+            <h2 className="text-xl font-bold">Attendance & Leaves History</h2>
             <TabsList className="bg-muted/50 rounded-full">
               <TabsTrigger value="history" className="rounded-full px-4">All History</TabsTrigger>
               <TabsTrigger value="calendar" className="rounded-full px-4">Calendar View</TabsTrigger>

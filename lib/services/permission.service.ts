@@ -2,8 +2,12 @@ import { permissionRepository } from '@/lib/repositories/permission.repository'
 import { Result, success, failure } from '@/lib/utils/result'
 import { PermissionError } from '@/lib/errors'
 import { logger } from '@/lib/logger/logger'
-import { createClient } from '@/lib/supabase/server'
 import type { Permission, EffectivePermissions, Role } from '@/types/permissions'
+
+// Prime Admin email — checked without creating a new Supabase client
+const PRIME_ADMIN_EMAIL = 'saptech.online009@gmail.com'
+// Cache prime admin user IDs to avoid repeated lookups
+const primeAdminUserIds = new Set<string>()
 
 // Cache structure: key = `${userId}:${orgId}`
 const permissionCache = new Map<string, { data: EffectivePermissions; expiresAt: number }>()
@@ -38,6 +42,14 @@ export class PermissionService {
   }
 
   /**
+   * Register a user as Prime Admin (bypasses all permission checks).
+   * Called once during auth context resolution when the email matches.
+   */
+  registerPrimeAdmin(userId: string): void {
+    primeAdminUserIds.add(userId)
+  }
+
+  /**
    * Resolve and cache effective permissions for a user.
    */
   async resolvePermissions(userId: string, orgId: string): Promise<Result<EffectivePermissions>> {
@@ -59,14 +71,8 @@ export class PermissionService {
    * Check if user has a single permission.
    */
   async can(userId: string, orgId: string, permission: Permission): Promise<boolean> {
-    // Prime Admin Bypass
-    try {
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user && user.email === 'saptech.online009@gmail.com') return true
-    } catch (e) {
-      // ignore
-    }
+    // Prime Admin Bypass — uses cached set, no Supabase call
+    if (primeAdminUserIds.has(userId)) return true
 
     const result = await this.resolvePermissions(userId, orgId)
     if (!result.success) return false
@@ -83,12 +89,7 @@ export class PermissionService {
    * Check if user has ALL given permissions.
    */
   async canAll(userId: string, orgId: string, permissions: Permission[]): Promise<boolean> {
-    // Prime Admin Bypass
-    try {
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user && user.email === 'saptech.online009@gmail.com') return true
-    } catch (e) {}
+    if (primeAdminUserIds.has(userId)) return true
 
     const result = await this.resolvePermissions(userId, orgId)
     if (!result.success) return false
@@ -103,12 +104,7 @@ export class PermissionService {
    * Check if user has ANY of the given permissions.
    */
   async canAny(userId: string, orgId: string, permissions: Permission[]): Promise<boolean> {
-    // Prime Admin Bypass
-    try {
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user && user.email === 'saptech.online009@gmail.com') return true
-    } catch (e) {}
+    if (primeAdminUserIds.has(userId)) return true
 
     const result = await this.resolvePermissions(userId, orgId)
     if (!result.success) return false

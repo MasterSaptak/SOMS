@@ -44,7 +44,6 @@ export function EmergencyContactsTab({ employeeId, canEdit, initialData }: { emp
       
       setIsAdding(false)
       setFormData({ name: '', relationship: '', phone: '', email: '', alternatePhone: '', address: '', bloodGroup: '', knownAllergies: '', medicalNotes: '', isPrimary: false, isSecondary: false })
-      router.refresh()
     } catch (e: any) {
       alert(`Error adding contact: ${e.message}`)
     }
@@ -58,7 +57,6 @@ export function EmergencyContactsTab({ employeeId, canEdit, initialData }: { emp
       if (!res.success) throw new Error('Failed to delete contact')
       
       setContacts(contacts.filter(c => c.id !== id))
-      router.refresh()
     } catch (e: any) {
       alert(`Error deleting contact: ${e.message}`)
     }

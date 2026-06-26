@@ -237,7 +237,7 @@ export class ProjectRepository {
       const client = await this.getClient()
       const { data, error } = await client
         .from('project_budget_entries')
-        .select('*')
+        .select('id, project_id, organization_id, category, description, amount, date, type, created_by, created_at')
         .eq('project_id', projectId)
         .eq('organization_id', organizationId)
         .order('date', { ascending: false })

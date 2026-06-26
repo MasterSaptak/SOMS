@@ -45,8 +45,6 @@ export default function LoginPage() {
       } else {
         router.push('/employee')
       }
-      
-      router.refresh()
     } catch (err: any) {
       setError(err.message || 'Failed to sign in. Please check your credentials.')
     } finally {

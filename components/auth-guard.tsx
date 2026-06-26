@@ -31,15 +31,15 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
       }
 
       // Fetch profile and employee info
-      const { data: profile } = await supabase
+      const { data: profile } = await (supabase as any)
         .from('profiles')
-        .select('*')
+        .select('id, role')
         .eq('id', session.user.id)
         .single()
         
-      const { data: employeeData } = await supabase
+      const { data: employeeData } = await (supabase as any)
         .from('employees')
-        .select('*')
+        .select('id, user_id, employee_id_string, full_name, department, designation, phone, profile_photo, joining_date, employment_status, created_at, organization_id')
         .eq('user_id', session.user.id)
         .single()
 

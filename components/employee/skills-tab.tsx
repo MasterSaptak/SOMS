@@ -57,8 +57,6 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
           notes: formData.notes
         }])
       }
-      
-      router.refresh()
     } catch (e: any) {
       alert(`Error adding skill: ${e.message}`)
     }
@@ -72,7 +70,6 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
       if (!res.success) throw new Error('Failed to delete skill')
       
       setEmployeeSkills(employeeSkills.filter(s => s.id !== id))
-      router.refresh()
     } catch (e: any) {
       alert(`Error deleting skill: ${e.message}`)
     }
@@ -85,7 +82,6 @@ export function SkillsTab({ employeeId, canEdit, isAdmin, initialData, available
       if (!res.success) throw new Error(`Failed to mark as ${status}`)
       
       setEmployeeSkills(employeeSkills.map(s => s.id === id ? { ...s, verification_status: status, is_verified: status === 'verified' } : s))
-      router.refresh()
     } catch (e: any) {
       alert(`Error verifying skill: ${e.message}`)
     }

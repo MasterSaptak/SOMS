@@ -13,14 +13,14 @@ import { QueueViewer } from "@/components/queue-viewer"
 import { PullToRefresh } from "@/components/gesture/pull-to-refresh"
 import { Sun, Moon, LayoutDashboard, Clock, CheckSquare, CalendarRange } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 
 const TABS = [
   { label: 'Overview', href: '/employee', icon: <LayoutDashboard className="w-4 h-4" /> },
   { label: 'Work Session', href: '/employee/session', icon: <Clock className="w-4 h-4" /> },
   { label: 'Tasks', href: '/employee/tasks', icon: <CheckSquare className="w-4 h-4" /> },
-  { label: 'Leaves', href: '/employee/leaves', icon: <CalendarRange className="w-4 h-4" /> },
+  { label: 'Leave & Attendance', href: '/employee/leaves', icon: <CalendarRange className="w-4 h-4" /> },
 ]
 
 function ThemeToggle() {
@@ -42,6 +42,8 @@ function ThemeToggle() {
 }
 
 import { AppUpdater } from "@/components/app-updater"
+import { useTransition, useState, useEffect } from "react"
+import { Loader2 } from "lucide-react"
 
 export default function EmployeeLayout({
   children,
@@ -49,6 +51,29 @@ export default function EmployeeLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [optimisticPath, setOptimisticPath] = useState(pathname)
+
+  // Sync optimistic path when real path changes
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    setOptimisticPath(pathname)
+  }, [pathname])
+
+  const handleTabClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+    if (href === pathname) return
+    
+    // Instantly update the visual active state
+    setOptimisticPath(href)
+    
+    // Start Next.js route transition
+    startTransition(() => {
+      router.push(href)
+    })
+  }
+
   return (
     <ThemeProvider>
       <AuthGuard>
@@ -70,15 +95,16 @@ export default function EmployeeLayout({
                 </div>
               </header>
               
-              {/* Employee Tabs Navigation */}
-              <div className="hidden md:flex border-b border-border/40 bg-surface-base px-6 shrink-0 z-10 gap-6 overflow-x-auto hide-scrollbar">
+              {/* Employee Tabs Navigation (Optimized for Mobile & Fast Switching) */}
+              <div className="flex border-b border-border/40 bg-surface-base px-4 md:px-6 shrink-0 z-10 gap-2 md:gap-6 overflow-x-auto hide-scrollbar scroll-smooth">
                 {TABS.map(tab => {
-                  const isActive = pathname === tab.href;
+                  const isActive = optimisticPath === tab.href;
                   return (
                     <Link
                       key={tab.href}
                       href={tab.href}
-                      className={`flex items-center gap-2 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+                      onClick={(e) => handleTabClick(e, tab.href)}
+                      className={`flex items-center gap-2 py-3 px-2 md:px-0 text-sm font-semibold border-b-2 transition-all whitespace-nowrap relative ${
                         isActive 
                           ? 'border-primary text-primary' 
                           : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
@@ -86,6 +112,10 @@ export default function EmployeeLayout({
                     >
                       {tab.icon}
                       {tab.label}
+                      {/* Show mini spinner if this tab is currently loading */}
+                      {isActive && isPending && (
+                        <Loader2 className="w-3 h-3 animate-spin absolute -right-4 text-primary" />
+                      )}
                     </Link>
                   )
                 })}
@@ -94,8 +124,8 @@ export default function EmployeeLayout({
               <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
                 <PullToRefresh 
                   onRefresh={async () => {
-                    // Force Next.js router refresh to emulate a full data refetch
-                    window.location.reload()
+                    // Use Next.js router refresh to refetch server data without full page reload
+                    router.refresh()
                   }}
                   className="p-6 md:p-8 pb-24 md:pb-8"
                 >

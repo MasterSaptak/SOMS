@@ -9,6 +9,9 @@ async function getUntypedClient(): Promise<any> {
   return await createClient()
 }
 
+// Explicit column list for the employee table — avoids SELECT *
+const EMPLOYEE_COLUMNS = 'id, user_id, organization_id, department_id, team_id, designation_id, work_location_id, manager_id, employee_id_string, full_name, phone, email, profile_photo, joining_date, employment_status, created_at, date_of_birth, gender, blood_group, nationality, marital_status, personal_email, address, aadhaar_nid, passport_no, visa_status, driving_license, department, team, designation'
+
 export class EmployeeRepository extends BaseRepository<'employees'> {
   constructor() {
     super('employees')
@@ -20,7 +23,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('employees')
-        .select(`*`)
+        .select(EMPLOYEE_COLUMNS)
         .eq('id', id)
         .single()
 
@@ -38,7 +41,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('employees')
-        .select(`*`)
+        .select(EMPLOYEE_COLUMNS)
         .eq('user_id', userId)
         .single()
 
@@ -100,7 +103,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('employees')
-        .select(`*`)
+        .select(EMPLOYEE_COLUMNS)
         .eq('organization_id', orgId)
         .order('full_name')
 
@@ -120,7 +123,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('employment_details')
-        .select('*')
+        .select('id, employee_id, employment_type, probation_end_date, notice_period_days, work_schedule, confirmation_date, shift, office_location, employee_grade, employment_category, cost_center, payroll_group, created_at, updated_at')
         .eq('employee_id', employeeId)
         .single()
 
@@ -157,7 +160,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('emergency_contacts')
-        .select('*')
+        .select('id, employee_id, name, relationship, phone, email, alternate_phone, address, blood_group, known_allergies, medical_notes, is_primary, is_secondary, created_at, updated_at')
         .eq('employee_id', employeeId)
         .order('is_primary', { ascending: false })
 
@@ -194,8 +197,8 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
       const { data, error } = await client
         .from('employee_skills')
         .select(`
-          *,
-          skill:skills(*)
+          id, employee_id, skill_id, proficiency, years_of_experience, certification, notes, verification_status, is_verified, verified_by, verified_at, verification_notes, created_at, updated_at,
+          skill:skills(id, name, category, created_at, updated_at)
         `)
         .eq('employee_id', employeeId)
 
@@ -235,7 +238,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
   async getAllSkills(): Promise<Result<any[]>> {
     try {
       const client = await getUntypedClient()
-      const { data, error } = await client.from('skills').select('*').order('name')
+      const { data, error } = await client.from('skills').select('id, name, category, created_at, updated_at').order('name')
       if (error) throw error
       return success(data)
     } catch (err) {
@@ -360,7 +363,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
   async findDocuments(employeeId: string): Promise<Result<any[]>> {
     try {
       const client = await getUntypedClient()
-      const { data, error } = await client.from('employee_documents').select('*').eq('employee_id', employeeId).order('uploaded_at', { ascending: false })
+      const { data, error } = await client.from('employee_documents').select('id, employee_id, category, visibility, file_url, file_name, uploaded_at, uploaded_by').eq('employee_id', employeeId).order('uploaded_at', { ascending: false })
       if (error) throw error
       return success(data.map((d: any) => ({
         id: d.id, employeeId: d.employee_id, category: d.category, visibility: d.visibility, fileUrl: d.file_url, uploadedAt: d.uploaded_at, uploadedBy: d.uploaded_by
@@ -392,7 +395,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
   async findCertifications(employeeId: string): Promise<Result<any[]>> {
     try {
       const client = await getUntypedClient()
-      const { data, error } = await client.from('employee_certifications').select('*').eq('employee_id', employeeId).order('issue_date', { ascending: false })
+      const { data, error } = await client.from('employee_certifications').select('id, employee_id, name, issuer, issuing_authority, issue_date, expiry_date, credential_url, credential_id, verification_status, is_verified, verified_by, verified_at, verification_notes').eq('employee_id', employeeId).order('issue_date', { ascending: false })
       if (error) throw error
       return success(data.map((d: any) => ({
         id: d.id, employeeId: d.employee_id, name: d.name, issuer: d.issuer, issueDate: d.issue_date, expiryDate: d.expiry_date, credentialUrl: d.credential_url,
@@ -426,7 +429,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
   async findEducation(employeeId: string): Promise<Result<any[]>> {
     try {
       const client = await getUntypedClient()
-      const { data, error } = await client.from('employee_education').select('*').eq('employee_id', employeeId).order('start_date', { ascending: false })
+      const { data, error } = await client.from('employee_education').select('id, employee_id, school, degree, field_of_study, start_date, end_date, cgpa, verification_status, is_verified, verified_by, verified_at, verification_notes').eq('employee_id', employeeId).order('start_date', { ascending: false })
       if (error) throw error
       return success(data.map((d: any) => ({
         id: d.id, employeeId: d.employee_id, school: d.school, degree: d.degree, fieldOfStudy: d.field_of_study, startDate: d.start_date, endDate: d.end_date, cgpa: d.cgpa,
@@ -460,7 +463,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
   async findExperience(employeeId: string): Promise<Result<any[]>> {
     try {
       const client = await getUntypedClient()
-      const { data, error } = await client.from('employee_experience').select('*').eq('employee_id', employeeId).order('start_date', { ascending: false })
+      const { data, error } = await client.from('employee_experience').select('id, employee_id, company_name, title, start_date, end_date, location, description, verification_status, is_verified, verified_by, verified_at, verification_notes').eq('employee_id', employeeId).order('start_date', { ascending: false })
       if (error) throw error
       return success(data.map((d: any) => ({
         id: d.id, employeeId: d.employee_id, companyName: d.company_name, title: d.title, startDate: d.start_date, endDate: d.end_date, location: d.location, description: d.description,
@@ -494,7 +497,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
   async findPreferences(employeeId: string): Promise<Result<any>> {
     try {
       const client = await getUntypedClient()
-      const { data, error } = await client.from('employee_preferences').select('*').eq('employee_id', employeeId).single()
+      const { data, error } = await client.from('employee_preferences').select('employee_id, theme, language, timezone, dashboard_widgets, notification_settings').eq('employee_id', employeeId).single()
       if (error && error.code !== 'PGRST116') throw error
       if (!data) return success(null)
       return success({

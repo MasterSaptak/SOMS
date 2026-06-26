@@ -43,7 +43,6 @@ export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { e
       
       setIsAdding(false)
       setFormData({ companyName: '', title: '', location: '', startDate: '', endDate: '', description: '' })
-      router.refresh()
     } catch (e: any) {
       alert(`Error adding experience: ${e.message}`)
     }
@@ -57,7 +56,6 @@ export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { e
       if (!res.success) throw new Error('Failed to delete experience')
       
       setExperience(experience.filter(e => e.id !== id))
-      router.refresh()
     } catch (e: any) {
       alert(`Error deleting experience: ${e.message}`)
     }
@@ -72,7 +70,6 @@ export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { e
       // Update locally
       const updated = experience.map(e => e.id === id ? { ...e, verificationStatus: status, isVerified: status === 'verified' } : e)
       setExperience(updated)
-      router.refresh()
     } catch (e: any) {
       alert(`Error verifying experience: ${e.message}`)
     }

@@ -22,7 +22,7 @@ export class OrganizationRepository extends BaseRepository<'organizations'> {
       const client = await this.getClient()
       const { data, error } = await client
         .from('organizations')
-        .select('*')
+        .select('id, name, slug, logo_url, industry, size, plan_type, subscription_status, created_at, updated_at')
         .eq('slug' as never, slug)
         .single()
 
@@ -56,7 +56,7 @@ export class OrganizationRepository extends BaseRepository<'organizations'> {
       const sb = await getUntypedClient()
       const { data, error } = await sb
         .from('organization_members')
-        .select('*')
+        .select('id, organization_id, user_id, role, status, joined_at')
         .eq('organization_id', orgId)
         .eq('user_id', userId)
         .single()
@@ -181,7 +181,7 @@ export class OrganizationRepository extends BaseRepository<'organizations'> {
       const sb = await getUntypedClient()
       const { data, error } = await sb
         .from('organization_invitations')
-        .select('*')
+        .select('id, organization_id, email, role, token, status, invited_by, expires_at, created_at')
         .eq('token', token)
         .eq('status', 'pending')
         .single()

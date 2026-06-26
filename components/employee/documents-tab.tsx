@@ -40,7 +40,6 @@ export function DocumentsTab({ employeeId, canEdit, isAdmin, initialData }: { em
       
       setIsAdding(false)
       setFormData({ category: '', visibility: 'hr_only', fileUrl: '', fileName: '' })
-      router.refresh()
     } catch (e: any) {
       alert(`Error adding document: ${e.message}`)
     }
@@ -54,7 +53,6 @@ export function DocumentsTab({ employeeId, canEdit, isAdmin, initialData }: { em
       if (!res.success) throw new Error('Failed to delete document')
       
       setDocuments(documents.filter(d => d.id !== id))
-      router.refresh()
     } catch (e: any) {
       alert(`Error deleting document: ${e.message}`)
     }

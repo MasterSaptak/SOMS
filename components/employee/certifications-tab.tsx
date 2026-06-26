@@ -41,7 +41,6 @@ export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }:
       
       setIsAdding(false)
       setFormData({ name: '', issuer: '', issueDate: '', expiryDate: '', credentialUrl: '' })
-      router.refresh()
     } catch (e: any) {
       alert(`Error adding certification: ${e.message}`)
     }
@@ -55,7 +54,6 @@ export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }:
       if (!res.success) throw new Error('Failed to delete certification')
       
       setCertifications(certifications.filter(c => c.id !== id))
-      router.refresh()
     } catch (e: any) {
       alert(`Error deleting certification: ${e.message}`)
     }
@@ -69,7 +67,6 @@ export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }:
       
       const updated = certifications.map(c => c.id === id ? { ...c, verificationStatus: status, isVerified: status === 'verified' } : c)
       setCertifications(updated)
-      router.refresh()
     } catch (e: any) {
       alert(`Error verifying certification: ${e.message}`)
     }

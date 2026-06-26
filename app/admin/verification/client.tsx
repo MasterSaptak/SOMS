@@ -36,8 +36,6 @@ export default function VerificationCenterClient({ pendingData }: { pendingData:
         ...prev,
         [entityType + 's']: prev[entityType + 's'].filter((item: any) => item.id !== recordId)
       }))
-      
-      router.refresh()
     } catch (err: any) {
       alert(`Error: ${err.message}`)
     }

@@ -26,7 +26,27 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import dynamic from 'next/dynamic'
+
+// Lazy load recharts — removes ~300KB from initial bundle
+const LazyChart = dynamic(() => import('recharts').then(mod => {
+  const { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } = mod
+  // Return a wrapper component
+  return { default: ({ data }: { data: any[] }) => (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+        <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
+      </AreaChart>
+    </ResponsiveContainer>
+  )}
+}), { ssr: false, loading: () => <div className="h-[120px] w-full animate-pulse bg-muted/30 rounded-lg" /> })
 
 const productivityData = [
   { time: '9am', score: 65 },
@@ -58,19 +78,21 @@ export default function EmployeeDashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data: emp } = await supabase
+      const { data: emp } = await (supabase as any)
         .from('employees')
-        .select('*')
+        .select('id, user_id, organization_id, full_name, profile_photo, employment_status')
         .eq('user_id', user.id)
         .single()
       
       if (emp) {
         setEmployee(emp)
+        // Fetch tasks in parallel — don't block on sequential await
         const { getEmployeeTasksAction } = await import('@/app/actions/task.actions')
-        const myTasksRes = await getEmployeeTasksAction(emp.id, (emp as any).organization_id)
-        if (myTasksRes.success) {
-          setTasks(myTasksRes.data)
-        }
+        getEmployeeTasksAction(emp.id, (emp as any).organization_id).then(myTasksRes => {
+          if (myTasksRes.success) {
+            setTasks(myTasksRes.data)
+          }
+        })
       }
       
       setIsLoading(false)
@@ -169,18 +191,7 @@ export default function EmployeeDashboard() {
         <BentoSlot>
           <WidgetShell title="Productivity Trend" isLoading={isLoading} className="pb-0 px-0">
             <div className="h-[120px] w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={productivityData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-                  <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <LazyChart data={productivityData} />
             </div>
           </WidgetShell>
         </BentoSlot>

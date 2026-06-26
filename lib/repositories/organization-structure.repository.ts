@@ -18,7 +18,7 @@ export class DepartmentRepository extends BaseRepository<'departments'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('departments')
-        .select('*')
+        .select('id, organization_id, name, description, head_id, created_at')
         .eq('organization_id', orgId)
         .order('name')
 
@@ -41,7 +41,7 @@ export class TeamRepository extends BaseRepository<'teams'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('teams')
-        .select('*')
+        .select('id, department_id, name, description, lead_id, created_at')
         .eq('department_id', deptId)
         .order('name')
 
@@ -65,7 +65,7 @@ export class DesignationRepository extends BaseRepository<'designations'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('designations')
-        .select('*')
+        .select('id, organization_id, title, name, level, department_id, created_at')
         .eq('organization_id', orgId)
         .order('level', { ascending: false })
 
@@ -89,7 +89,7 @@ export class WorkLocationRepository extends BaseRepository<'work_locations'> {
       const client = await getUntypedClient()
       const { data, error } = await client
         .from('work_locations')
-        .select('*')
+        .select('id, organization_id, name, address, city, country, type, created_at')
         .eq('organization_id', orgId)
         .order('name')
 

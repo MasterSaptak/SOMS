@@ -1,12 +1,14 @@
 "use client"
 
-import React, { useState } from 'react'
-import { ChevronLeft, ChevronRight, Palmtree, Stethoscope, Siren, Building2 } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, Palmtree, Stethoscope, Siren, Building2, Clock, CheckCircle2 } from 'lucide-react'
 import { useLeaveStore } from '@/store/use-leave-store'
 import { useAuthStore } from '@/store/use-auth-store'
 import { MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { createClient } from '@/lib/supabase/client'
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -19,8 +21,24 @@ const COMPANY_HOLIDAYS = [
 export function LeaveCalendar() {
   const { employee } = useAuthStore()
   const { leaves } = useLeaveStore()
+  const [attendance, setAttendance] = useState<any[]>([])
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   
   const [currentDate, setCurrentDate] = useState(new Date('2026-06-01T00:00:00')) // Mocking around June 2026 based on legacy data
+
+  useEffect(() => {
+    async function fetchAttendance() {
+      if (!employee?.id) return
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('employee_id', employee.id)
+      
+      if (data) setAttendance(data)
+    }
+    fetchAttendance()
+  }, [employee?.id])
 
   // Calendar math
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
@@ -49,7 +67,7 @@ export function LeaveCalendar() {
 
   const getEventsForDay = (date: Date) => {
     const dStr = dateStr(date)
-    const events: { type: 'me' | 'team' | 'holiday', title: string, icon: any, color: string }[] = []
+    const events: { type: 'me' | 'team' | 'holiday' | 'attendance', title: string, icon: any, color: string }[] = []
 
     // Check holidays
     const holiday = COMPANY_HOLIDAYS.find(h => h.date === dStr)
@@ -80,6 +98,17 @@ export function LeaveCalendar() {
       }
     })
 
+    // Check Attendance
+    const todayAttendance = attendance.find(a => a.date === dStr)
+    if (todayAttendance) {
+      if (todayAttendance.clock_out) {
+        const hours = todayAttendance.total_working_hours?.toFixed(1) || '0'
+        events.push({ type: 'attendance', title: `${hours}h worked`, icon: CheckCircle2, color: 'bg-emerald-500/10 text-emerald-600 border-emerald-200' })
+      } else {
+        events.push({ type: 'attendance', title: `Clocked In`, icon: Clock, color: 'bg-emerald-500/10 text-emerald-600 border-emerald-200' })
+      }
+    }
+
     return events
   }
 
@@ -102,6 +131,7 @@ export function LeaveCalendar() {
             <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary" /> Me</span>
             <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-muted-foreground/50" /> Team</span>
             <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-purple-500" /> Holiday</span>
+            <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Attendance</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -127,7 +157,8 @@ export function LeaveCalendar() {
           return (
             <div 
               key={idx} 
-              className={`border-b border-r border-border/50 p-2 flex flex-col gap-1 transition-colors hover:bg-muted/10 ${!isCurrentMonth ? 'bg-muted/20 opacity-50' : ''}`}
+              onClick={() => setSelectedDate(day)}
+              className={`border-b border-r border-border/50 p-2 flex flex-col gap-1 transition-colors hover:bg-muted/10 cursor-pointer ${!isCurrentMonth ? 'bg-muted/20 opacity-50' : ''}`}
             >
               <div className="flex justify-between items-start mb-1">
                 <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-primary text-primary-foreground' : ''}`}>
@@ -149,6 +180,39 @@ export function LeaveCalendar() {
           )
         })}
       </div>
+
+      {/* Day Details Dialog */}
+      <Dialog open={!!selectedDate} onOpenChange={(open) => !open && setSelectedDate(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{selectedDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</DialogTitle>
+            <DialogDescription>
+              Activity and details for this day.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            {selectedDate && (() => {
+              const events = getEventsForDay(selectedDate)
+              if (events.length === 0) return <p className="text-sm text-muted-foreground text-center py-4">No activity on this date.</p>
+              
+              return events.map((evt, idx) => {
+                const Icon = evt.icon
+                return (
+                  <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl border ${evt.color}`}>
+                    <div className="p-2 rounded-full bg-background/50">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm">{evt.title}</span>
+                      <span className="text-xs opacity-80 uppercase tracking-wider">{evt.type === 'me' ? 'My Leave' : evt.type}</span>
+                    </div>
+                  </div>
+                )
+              })
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

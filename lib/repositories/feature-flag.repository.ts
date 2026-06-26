@@ -15,7 +15,7 @@ export class FeatureFlagRepository {
       const sb = await getSB()
       const { data, error } = await sb
         .from('features')
-        .select('*')
+        .select('id, key, name, description, is_enabled, rollout_percentage, created_at, updated_at')
         .order('name', { ascending: true })
 
       if (error) return failure(new Error(error.message))
@@ -31,7 +31,7 @@ export class FeatureFlagRepository {
       const sb = await getSB()
       const { data, error } = await sb
         .from('features')
-        .select('*')
+        .select('id, key, name, description, is_enabled, rollout_percentage, created_at, updated_at')
         .eq('key', key)
         .single()
 
@@ -48,7 +48,7 @@ export class FeatureFlagRepository {
       const sb = await getSB()
       const { data, error } = await sb
         .from('organization_features')
-        .select('*')
+        .select('id, organization_id, feature_key, is_enabled, enabled_at, enabled_by')
         .eq('organization_id', organizationId)
 
       if (error) return failure(new Error(error.message))

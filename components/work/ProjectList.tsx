@@ -21,7 +21,7 @@ export function ProjectList({ onSelectProject }: { onSelectProject: (id: string)
     if (res.success) {
       setProjects(res.data)
     }
-  }, [activeOrganizationId, fetchProjects])
+  }, [activeOrganizationId])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

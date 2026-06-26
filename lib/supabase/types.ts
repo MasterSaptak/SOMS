@@ -288,10 +288,53 @@ export type Database = {
         Relationships: []
       }
       assets: {
-        Row: { id: string; name: string; type: string; serial_number: string | null; status: string; purchase_date: string | null; created_at: string | null; }
-        Insert: { id?: string; name: string; type: string; serial_number?: string | null; status?: string; purchase_date?: string | null; created_at?: string | null; }
-        Update: { id?: string; name?: string; type?: string; serial_number?: string | null; status?: string; purchase_date?: string | null; created_at?: string | null; }
-        Relationships: []
+        Row: { id: string; organization_id: string | null; name: string; description: string | null; type: string; serial_number: string | null; status: string; price: number | null; quantity: number; location: string | null; supplier: string | null; purchase_date: string | null; created_at: string | null; }
+        Insert: { id?: string; organization_id?: string | null; name: string; description?: string | null; type: string; serial_number?: string | null; status?: string; price?: number | null; quantity?: number; location?: string | null; supplier?: string | null; purchase_date?: string | null; created_at?: string | null; }
+        Update: { id?: string; organization_id?: string | null; name?: string; description?: string | null; type?: string; serial_number?: string | null; status?: string; price?: number | null; quantity?: number; location?: string | null; supplier?: string | null; purchase_date?: string | null; created_at?: string | null; }
+        Relationships: [
+          {
+            foreignKeyName: "assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      consumables: {
+        Row: { id: string; organization_id: string; name: string; description: string | null; category: string | null; quantity: number; minimum_stock: number; unit: string | null; unit_price: number | null; location: string | null; supplier: string | null; status: string | null; created_at: string | null; updated_at: string | null; }
+        Insert: { id?: string; organization_id: string; name: string; description?: string | null; category?: string | null; quantity?: number; minimum_stock?: number; unit?: string | null; unit_price?: number | null; location?: string | null; supplier?: string | null; status?: string | null; created_at?: string | null; updated_at?: string | null; }
+        Update: { id?: string; organization_id?: string; name?: string; description?: string | null; category?: string | null; quantity?: number; minimum_stock?: number; unit?: string | null; unit_price?: number | null; location?: string | null; supplier?: string | null; status?: string | null; created_at?: string | null; updated_at?: string | null; }
+        Relationships: [
+          {
+            foreignKeyName: "consumables_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      inventory_checkups: {
+        Row: { id: string; organization_id: string; item_type: string; item_id: string; action: string; quantity_change: number | null; performed_by: string | null; notes: string | null; created_at: string | null; }
+        Insert: { id?: string; organization_id: string; item_type: string; item_id: string; action: string; quantity_change?: number | null; performed_by?: string | null; notes?: string | null; created_at?: string | null; }
+        Update: { id?: string; organization_id?: string; item_type?: string; item_id?: string; action?: string; quantity_change?: number | null; performed_by?: string | null; notes?: string | null; created_at?: string | null; }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_checkups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_checkups_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       asset_assignments: {
         Row: { id: string; asset_id: string; employee_id: string; assigned_at: string | null; returned_at: string | null; condition_notes: string | null; }
