@@ -32,7 +32,6 @@ export const metadata: Metadata = {
 import { CommandPalette } from '@/components/command-palette';
 import { AICopilot } from '@/components/ai-copilot';
 import { OfflineBanner } from '@/components/offline-banner';
-import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
 import { QueryProvider } from '@/components/query-provider';
 
 export default function RootLayout({
@@ -42,22 +41,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            window.deferredPrompt = null;
-            window.addEventListener('beforeinstallprompt', (e) => {
-              e.preventDefault();
-              window.deferredPrompt = e;
-              window.dispatchEvent(new Event('deferredpromptready'));
-            });
-          `
-        }} />
-      </head>
       <body className="bg-background text-foreground min-h-screen flex flex-col">
         <QueryProvider>
           <OfflineBanner />
-          <PwaInstallPrompt />
           {children}
           <CommandPalette />
           <AICopilot />

@@ -56,12 +56,7 @@ const productivityData = [
   { time: '5pm', score: 88 },
 ]
 
-const activityFeed = [
-  { id: 1, title: 'Meeting completed', desc: 'Q3 Planning with Design Team', time: '10 mins ago', icon: <CheckCircle className="w-4 h-4 text-emerald-500" /> },
-  { id: 2, title: 'Task assigned', desc: 'Update component library', time: '1 hour ago', icon: <Bell className="w-4 h-4 text-blue-500" /> },
-  { id: 3, title: 'Leave approved', desc: 'Annual vacation (Oct 12-15)', time: '2 hours ago', icon: <Calendar className="w-4 h-4 text-purple-500" /> },
-  { id: 4, title: 'Check-in', desc: 'Started work', time: '5 hours ago', icon: <Clock className="w-4 h-4 text-amber-500" /> },
-]
+
 
 export default function EmployeeDashboard() {
   const { sessionState, totalWorkSeconds } = useAppStore()
@@ -101,7 +96,7 @@ export default function EmployeeDashboard() {
     loadDashboard()
   }, [])
 
-  const firstName = employee?.full_name?.split(' ')[0] || 'Saptak' // Using prompt suggestion
+  const firstName = employee?.full_name?.split(' ')[0] || 'there'
   const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'in_progress')
   const completedTasks = tasks.filter(t => t.status === 'completed')
 
@@ -111,6 +106,33 @@ export default function EmployeeDashboard() {
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  const dynamicActivityFeed = [
+    ...completedTasks.slice(0, 2).map((t: any) => ({
+      id: `c-${t.id}`,
+      title: 'Task completed',
+      desc: t.title,
+      time: 'Recently',
+      icon: <CheckCircle className="w-4 h-4 text-emerald-500" />
+    })),
+    ...pendingTasks.slice(0, 2).map((t: any) => ({
+      id: `p-${t.id}`,
+      title: 'Task assigned',
+      desc: t.title,
+      time: 'Pending',
+      icon: <Bell className="w-4 h-4 text-blue-500" />
+    }))
+  ]
+
+  if (dynamicActivityFeed.length === 0) {
+    dynamicActivityFeed.push({
+      id: 'empty',
+      title: 'Welcome to SOMS',
+      desc: 'Your activity will appear here',
+      time: 'Just now',
+      icon: <Sparkles className="w-4 h-4 text-purple-500" />
+    })
+  }
 
   return (
     <div className="flex flex-col gap-6 pb-12 w-full animate-in fade-in duration-700">
@@ -211,7 +233,7 @@ export default function EmployeeDashboard() {
               </div>
               <div className="flex flex-col">
                 <p className="text-sm font-medium leading-relaxed">
-                  Hi Saptak! Your productivity peaks around <span className="text-purple-500 font-bold">3:00 PM</span>. I recommend scheduling your deep-work task <span className="font-semibold text-foreground">"Update component library"</span> for that time block to maximize efficiency.
+                  Hi {firstName}! Your productivity peaks around <span className="text-purple-500 font-bold">3:00 PM</span>. I recommend scheduling your deep-work task <span className="font-semibold text-foreground">"{pendingTasks.length > 0 ? pendingTasks[0].title : 'Planning & Strategy'}"</span> for that time block to maximize efficiency.
                 </p>
                 <div className="flex gap-2 mt-4">
                   <Button size="sm" variant="secondary" className="rounded-full text-xs h-8 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 border-0">
@@ -233,7 +255,7 @@ export default function EmployeeDashboard() {
             isLoading={isLoading}
           >
             <div className="flex flex-col gap-6 mt-4 relative before:absolute before:inset-y-0 before:left-[11px] before:w-[2px] before:bg-border/50">
-              {activityFeed.map((activity) => (
+              {dynamicActivityFeed.map((activity) => (
                 <div key={activity.id} className="flex gap-4 relative z-10">
                   <div className="w-6 h-6 rounded-full bg-surface-primary border-2 border-border flex items-center justify-center shrink-0 mt-0.5">
                     {activity.icon}
