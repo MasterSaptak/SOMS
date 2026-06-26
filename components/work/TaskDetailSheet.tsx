@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Clock, Calendar, AlertCircle, Trash2, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 export function TaskDetailSheet({
   task,
@@ -27,6 +28,7 @@ export function TaskDetailSheet({
   onOpenChange: (open: boolean) => void
   onDelete?: (task: Task) => void
 }) {
+  const router = useRouter()
   if (!task) return null
 
   return (
@@ -43,8 +45,18 @@ export function TaskDetailSheet({
                 <Badge variant="outline">{task.category}</Badge>
               </div>
               {onDelete && (
-                <Button variant="ghost" size="icon" onClick={() => onDelete(task)} className="text-destructive hover:bg-destructive/10">
-                  <Trash2 className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => { onOpenChange(false); router.push('/employee/calendar'); }}>
+                    <Calendar className="w-4 h-4 mr-1" /> View Timeline
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => onDelete(task)} className="text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              {!onDelete && (
+                <Button variant="outline" size="sm" onClick={() => { onOpenChange(false); router.push('/employee/calendar'); }}>
+                  <Calendar className="w-4 h-4 mr-1" /> View Timeline
                 </Button>
               )}
             </div>

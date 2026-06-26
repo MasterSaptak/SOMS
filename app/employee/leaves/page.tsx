@@ -13,7 +13,7 @@ import { useLeaveStore } from '@/store/use-leave-store'
 import { useAuthStore } from '@/store/use-auth-store'
 import { usePolicyStore } from '@/store/use-policy-store'
 import { ApplyLeaveWizard } from '@/components/leaves/apply-leave-wizard'
-import { LeaveCalendar } from '@/components/leaves/leave-calendar'
+import { EnterpriseTimeline } from '@/components/calendar/EnterpriseTimeline'
 import { LEAVE_TYPES, LEAVE_STATUSES } from '@/lib/constants'
 import { MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
 import type { LeaveType, LeaveStatus } from '@/lib/types'
@@ -574,8 +574,8 @@ export default function LeavesPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="calendar" className="m-0">
-          <LeaveCalendar />
+        <TabsContent value="calendar" className="m-0 border border-border/50 rounded-2xl overflow-hidden bg-background">
+          <EnterpriseTimeline />
         </TabsContent>
       </Tabs>
     </motion.div>

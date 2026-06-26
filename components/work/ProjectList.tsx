@@ -10,8 +10,11 @@ import { useOrganizationStore } from "@/store/use-organization-store"
 import { ProjectWithDetails } from "@/lib/repositories/project.repository"
 import { Briefcase, Calendar, Users, AlertCircle } from "lucide-react"
 import { format } from "date-fns"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
 
 export function ProjectList({ onSelectProject }: { onSelectProject: (id: string) => void }) {
+  const router = useRouter()
   const [projects, setProjects] = useState<ProjectWithDetails[]>([])
   const { activeOrganizationId } = useOrganizationStore()
 
@@ -64,7 +67,20 @@ export function ProjectList({ onSelectProject }: { onSelectProject: (id: string)
                   {project.department?.name || 'No Department'}
                 </div>
               </div>
-              <Badge variant={getStatusVariant(project.status)}>{project.status}</Badge>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant={getStatusVariant(project.status)}>{project.status}</Badge>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-xs px-2 text-muted-foreground hover:text-primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/employee/calendar?project_id=${project.id}`);
+                  }}
+                >
+                  <Calendar className="w-3 h-3 mr-1" /> View Timeline
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
