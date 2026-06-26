@@ -42,6 +42,7 @@ function ThemeToggle() {
 }
 
 import { AppUpdater } from "@/components/app-updater"
+import { PwaInstallButton } from "@/components/pwa-install-button"
 import { useTransition, useState, useEffect } from "react"
 import { Loader2 } from "lucide-react"
 
@@ -89,6 +90,7 @@ function EmployeeLayoutInner({
                 <div className="flex items-center gap-2">
                    <QueueViewer />
                    <UniversalSearch />
+                   <PwaInstallButton />
                    <AppUpdater />
                    <ThemeToggle />
                    <NotificationCenter />

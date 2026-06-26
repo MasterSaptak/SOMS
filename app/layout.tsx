@@ -42,6 +42,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.deferredPrompt = null;
+            window.addEventListener('beforeinstallprompt', (e) => {
+              e.preventDefault();
+              window.deferredPrompt = e;
+              window.dispatchEvent(new Event('deferredpromptready'));
+            });
+          `
+        }} />
+      </head>
       <body className="bg-background text-foreground min-h-screen flex flex-col">
         <QueryProvider>
           <OfflineBanner />

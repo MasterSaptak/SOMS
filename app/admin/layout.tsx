@@ -12,6 +12,7 @@ import { QueueViewer } from "@/components/queue-viewer"
 import { Search, Sun, Moon } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
 import { AppUpdater } from "@/components/app-updater"
+import { PwaInstallButton } from "@/components/pwa-install-button"
 import { GlobalSearch } from "@/components/global-search"
 
 function ThemeToggle() {
@@ -37,6 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="flex items-center gap-2">
                   <GlobalSearch />
                   <QueueViewer />
+                  <PwaInstallButton />
                   <AppUpdater />
                   <ThemeToggle />
                   <NotificationCenter />
