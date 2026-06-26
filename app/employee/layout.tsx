@@ -20,7 +20,7 @@ const TABS = [
   { label: 'Overview', href: '/employee', icon: <LayoutDashboard className="w-4 h-4" /> },
   { label: 'Work Session', href: '/employee/session', icon: <Clock className="w-4 h-4" /> },
   { label: 'Tasks', href: '/employee/tasks', icon: <CheckSquare className="w-4 h-4" /> },
-  { label: 'Leave & Attendance', href: '/employee/leaves', icon: <CalendarRange className="w-4 h-4" /> },
+  { label: 'Leave & Attendance Calendar', href: '/employee/calendar', icon: <CalendarRange className="w-4 h-4" /> },
 ]
 
 function ThemeToggle() {

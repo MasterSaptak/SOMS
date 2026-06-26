@@ -1,10 +1,14 @@
 "use client"
 
-import React, { useState } from 'react'
-import { motion } from 'motion/react'
+import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ApplyLeaveWizard } from '@/components/leaves/apply-leave-wizard'
+import { LeaveBalancesWidget } from '@/components/leaves/leave-balances-widget'
+import { CalendarService, CalendarEvent } from '@/lib/calendar/calendar.service'
+import { Country } from '@/lib/calendar/holiday.engine'
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,48 +17,14 @@ import {
   Clock,
   MapPin,
   Users,
+  Search,
+  Globe,
+  Filter,
+  Settings,
+  Sparkles
 } from 'lucide-react'
 
-type ViewMode = 'month' | 'week' | 'day'
-
-interface CalendarEvent {
-  id: string
-  title: string
-  type: 'meeting' | 'leave' | 'holiday' | 'birthday' | 'deadline' | 'company_event'
-  date: string
-  startTime?: string
-  endTime?: string
-  allDay?: boolean
-  location?: string
-  attendees?: string[]
-  color: string
-}
-
-const EVENT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  meeting: { bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', border: 'border-l-blue-500' },
-  leave: { bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-l-emerald-500' },
-  holiday: { bg: 'bg-red-500/10', text: 'text-red-600 dark:text-red-400', border: 'border-l-red-500' },
-  birthday: { bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', border: 'border-l-purple-500' },
-  deadline: { bg: 'bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', border: 'border-l-orange-500' },
-  company_event: { bg: 'bg-cyan-500/10', text: 'text-cyan-600 dark:text-cyan-400', border: 'border-l-cyan-500' },
-}
-
-const MOCK_EVENTS: CalendarEvent[] = [
-  { id: 'ce1', title: 'Design Review', type: 'meeting', date: '2026-06-20', startTime: '10:00', endTime: '11:00', location: 'Apollo Room', attendees: ['Sarah Chen', 'John Doe'], color: 'blue' },
-  { id: 'ce2', title: 'Sprint Planning', type: 'meeting', date: '2026-06-20', startTime: '14:00', endTime: '15:30', location: 'Orion Room', attendees: ['Mike Johnson', 'Alice Wong', 'Bob Martinez'], color: 'blue' },
-  { id: 'ce3', title: 'Alice Wong — Medical Leave', type: 'leave', date: '2026-06-20', allDay: true, color: 'emerald' },
-  { id: 'ce4', title: 'John Doe — Casual Leave', type: 'leave', date: '2026-06-23', allDay: true, color: 'emerald' },
-  { id: 'ce5', title: 'John Doe — Casual Leave', type: 'leave', date: '2026-06-24', allDay: true, color: 'emerald' },
-  { id: 'ce6', title: 'Q3 All-Hands Meeting', type: 'company_event', date: '2026-07-01', startTime: '10:00', endTime: '12:00', location: 'Main Auditorium', color: 'cyan' },
-  { id: 'ce7', title: 'Independence Day', type: 'holiday', date: '2026-08-15', allDay: true, color: 'red' },
-  { id: 'ce8', title: 'API Integration Testing Due', type: 'deadline', date: '2026-06-19', color: 'orange' },
-  { id: 'ce9', title: 'HR Sync', type: 'meeting', date: '2026-06-18', startTime: '09:00', endTime: '09:30', location: 'Gemini Room', color: 'blue' },
-  { id: 'ce10', title: 'Team Outing', type: 'company_event', date: '2026-07-19', allDay: true, color: 'cyan' },
-  { id: 'ce11', title: 'Team Outing', type: 'company_event', date: '2026-07-20', allDay: true, color: 'cyan' },
-  { id: 'ce12', title: 'Sarah Chen Birthday 🎂', type: 'birthday', date: '2026-06-25', allDay: true, color: 'purple' },
-  { id: 'ce13', title: 'Marketing Landing Page Due', type: 'deadline', date: '2026-06-28', color: 'orange' },
-  { id: 'ce14', title: 'CI/CD Pipeline Due', type: 'deadline', date: '2026-06-21', color: 'orange' },
-]
+type ViewMode = 'month' | 'week' | 'day' | 'agenda' | 'timeline'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -89,21 +59,37 @@ function formatDateKey(year: number, month: number, date: number) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`
 }
 
-export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date())
+export default function EnterpriseCalendarPlatform() {
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 1)) // Starting in June 2026 for demo
   const [viewMode, setViewMode] = useState<ViewMode>('month')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [showApplyDialog, setShowApplyDialog] = useState(false)
+  
+  // Platform State
+  const [country, setCountry] = useState<Country>('India')
+  const [activeLayers, setActiveLayers] = useState<string[]>(['holidays', 'company_events', 'attendance', 'leaves', 'meetings'])
+  const [events, setEvents] = useState<CalendarEvent[]>([])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
+  const monthDays = getMonthDays(year, month)
+  
   const today = new Date()
   const todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate())
 
-  const monthDays = getMonthDays(year, month)
+  // Load events from the Calendar Engine
+  useEffect(() => {
+    async function loadEvents() {
+      const fetchedEvents = await CalendarService.getMonthlyEvents(year, month, country, activeLayers)
+      setEvents(fetchedEvents)
+    }
+    loadEvents()
+  }, [year, month, country, activeLayers])
 
-  const eventsByDate = MOCK_EVENTS.reduce<Record<string, CalendarEvent[]>>((acc, event) => {
-    if (!acc[event.date]) acc[event.date] = []
-    acc[event.date].push(event)
+  const eventsByDate = events.reduce<Record<string, CalendarEvent[]>>((acc, event) => {
+    const dateKey = formatDateKey(event.date.getFullYear(), event.date.getMonth(), event.date.getDate())
+    if (!acc[dateKey]) acc[dateKey] = []
+    acc[dateKey].push(event)
     return acc
   }, {})
 
@@ -111,123 +97,193 @@ export default function CalendarPage() {
     setCurrentDate(new Date(year, month + direction, 1))
   }
 
-  const goToToday = () => {
-    setCurrentDate(new Date())
-  }
+  const goToToday = () => setCurrentDate(new Date())
 
   const selectedEvents = selectedDate ? eventsByDate[selectedDate] || [] : []
 
   return (
     <motion.div
-      className="flex flex-col gap-6 pb-12"
+      className="flex flex-col h-full gap-4 pb-12"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
-          <p className="text-muted-foreground mt-1">Manage your schedule, meetings, and events</p>
+      {/* Top Toolbar */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-4 rounded-2xl border border-border/50 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary">
+            <CalendarDays className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">Enterprise Calendar</h1>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              Powered by SOMS Calendar Engine
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goToToday}>
-            Today
-          </Button>
-          <Button variant="outline" size="sm" className="hidden md:flex" onClick={() => {}}>
+        
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+          {/* Country Selector */}
+          <div className="flex items-center bg-muted/50 rounded-lg p-1 mr-2 border border-border/50">
+            <Globe className="w-4 h-4 ml-2 text-muted-foreground" />
+            <select 
+              value={country} 
+              onChange={(e) => setCountry(e.target.value as Country)}
+              className="bg-transparent text-sm font-medium border-none focus:ring-0 outline-none px-2 py-1"
+            >
+              <option value="India">India</option>
+              <option value="Bangladesh">Bangladesh</option>
+              <option value="Austria">Austria</option>
+              <option value="Global">Global</option>
+            </select>
+          </div>
+
+          <Button variant="outline" size="sm" onClick={goToToday} className="hidden sm:flex">Today</Button>
+          <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
+            {(['month', 'week', 'day', 'agenda'] as ViewMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${
+                  viewMode === mode
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <Button variant="default" size="sm" className="hidden md:flex shadow-md" onClick={() => setShowApplyDialog(true)}>
             <Plus className="w-4 h-4 mr-1" />
-            New Event
+            Apply Leave
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Calendar Grid */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader className="pb-3">
+      <div className="px-1">
+        <LeaveBalancesWidget />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 flex-1">
+        {/* Left Sidebar (Filters) */}
+        <div className="hidden lg:flex flex-col gap-4">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-3 pt-4 px-4">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <Filter className="w-4 h-4" /> Calendar Layers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="flex flex-col gap-3">
+                {[
+                  { id: 'attendance', label: 'Attendance', color: 'bg-emerald-500' },
+                  { id: 'leaves', label: 'Leaves', color: 'bg-orange-500' },
+                  { id: 'company_events', label: 'Company Events', color: 'bg-blue-500' },
+                  { id: 'holidays', label: 'Holidays', color: 'bg-purple-500' },
+                  { id: 'meetings', label: 'Meetings', color: 'bg-indigo-500' },
+                  { id: 'birthdays', label: 'Birthdays', color: 'bg-pink-500' }
+                ].map(layer => (
+                  <label key={layer.id} className="flex items-center gap-3 cursor-pointer group">
+                    <input 
+                      type="checkbox" 
+                      checked={activeLayers.includes(layer.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) setActiveLayers([...activeLayers, layer.id])
+                        else setActiveLayers(activeLayers.filter(l => l !== layer.id))
+                      }}
+                      className="rounded border-border/50 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                    />
+                    <div className={`w-2.5 h-2.5 rounded-full ${layer.color} opacity-80 group-hover:opacity-100 transition-opacity`} />
+                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{layer.label}</span>
+                  </label>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Mini Calendar Placeholder */}
+          <Card className="border-border/50 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-center min-h-[200px] text-muted-foreground text-sm font-medium bg-muted/20">
+              Mini Calendar Preview
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Calendar Grid Center */}
+        <div className="lg:col-span-2 flex flex-col">
+          <Card className="border-border/50 shadow-sm flex-1 flex flex-col">
+            <CardHeader className="py-3 px-4 border-b border-border/50 bg-muted/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="sm" onClick={() => navigateMonth(-1)}>
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navigateMonth(-1)}>
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <h2 className="text-xl font-semibold min-w-[180px] text-center">
+                  <h2 className="text-lg font-bold min-w-[160px] text-center">
                     {MONTHS[month]} {year}
                   </h2>
-                  <Button variant="ghost" size="sm" onClick={() => navigateMonth(1)}>
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navigateMonth(1)}>
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
-                  {(['month', 'week', 'day'] as ViewMode[]).map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => setViewMode(mode)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${
-                        viewMode === mode
-                          ? 'bg-background shadow-sm text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {mode}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                    <Search className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0 flex-1 flex flex-col">
               {/* Day Headers */}
-              <div className="grid grid-cols-7 gap-px mb-1">
+              <div className="grid grid-cols-7 border-b border-border/50 bg-muted/30">
                 {DAYS.map((day) => (
-                  <div key={day} className="text-center text-xs font-semibold text-muted-foreground py-2">
+                  <div key={day} className="text-center text-xs font-bold text-muted-foreground py-2 tracking-wider uppercase">
                     {day}
                   </div>
                 ))}
               </div>
 
-              {/* Calendar Grid */}
-              <div className="grid grid-cols-7 gap-px bg-border/30 rounded-xl overflow-hidden">
+              {/* Grid */}
+              <div className="grid grid-cols-7 flex-1 auto-rows-fr bg-border gap-px border-b border-border">
                 {monthDays.map((day, index) => {
                   const dateKey = formatDateKey(day.year, day.month, day.date)
                   const dayEvents = eventsByDate[dateKey] || []
                   const isToday = dateKey === todayKey
                   const isSelected = dateKey === selectedDate
+                  
+                  // Mock Company Holiday logic (Wed & Sun)
+                  const dayOfWeek = new Date(day.year, day.month, day.date).getDay()
+                  const isCompanyHoliday = dayOfWeek === 0 || dayOfWeek === 3 // Sun, Wed
+                  const bgClass = day.isCurrentMonth 
+                    ? (isCompanyHoliday ? 'bg-[url(/stripes.png)] bg-muted/30' : 'bg-card') 
+                    : 'bg-muted/10 opacity-60'
 
                   return (
-                    <button
+                    <div
                       key={index}
                       onClick={() => setSelectedDate(dateKey)}
-                      className={`min-h-[100px] p-1.5 text-left transition-all border border-transparent hover:border-primary/20 ${
-                        day.isCurrentMonth ? 'bg-card' : 'bg-muted/30'
-                      } ${isSelected ? 'ring-2 ring-primary/30 bg-primary/5' : ''}`}
+                      className={`min-h-[100px] p-1.5 flex flex-col transition-all cursor-pointer hover:bg-muted/50 ${bgClass} ${isSelected ? 'ring-2 ring-primary/50 z-10' : ''}`}
                     >
-                      <div className={`text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full ${
-                        isToday
-                          ? 'bg-primary text-primary-foreground'
-                          : day.isCurrentMonth
-                          ? 'text-foreground'
-                          : 'text-muted-foreground/50'
-                      }`}>
-                        {day.date}
+                      <div className="flex justify-between items-start mb-1">
+                        <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${
+                          isToday
+                            ? 'bg-primary text-primary-foreground shadow-md'
+                            : isCompanyHoliday ? 'text-muted-foreground' : 'text-foreground'
+                        }`}>
+                          {day.date}
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-0.5">
-                        {dayEvents.slice(0, 3).map((event) => {
-                          const colors = EVENT_COLORS[event.type]
-                          return (
-                            <div
-                              key={event.id}
-                              className={`text-[10px] px-1.5 py-0.5 rounded truncate font-medium border-l-2 ${colors.bg} ${colors.text} ${colors.border}`}
-                            >
-                              {event.title}
-                            </div>
-                          )
-                        })}
-                        {dayEvents.length > 3 && (
-                          <span className="text-[10px] text-muted-foreground pl-1.5">
-                            +{dayEvents.length - 3} more
-                          </span>
-                        )}
+                      
+                      <div className="flex flex-col gap-0.5 overflow-y-auto no-scrollbar">
+                        {dayEvents.map((event) => (
+                          <div
+                            key={event.id}
+                            className={`text-[10px] px-1.5 py-0.5 rounded-sm truncate font-medium border border-transparent hover:border-black/10 dark:hover:border-white/10 transition-colors ${event.color}`}
+                          >
+                            {event.title}
+                          </div>
+                        ))}
                       </div>
-                    </button>
+                    </div>
                   )
                 })}
               </div>
@@ -235,114 +291,71 @@ export default function CalendarPage() {
           </Card>
         </div>
 
-        {/* Sidebar */}
+        {/* Right Sidebar (AI Insights & Day Details) */}
         <div className="flex flex-col gap-4">
-          {/* Selected Day Events */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">
-                {selectedDate
-                  ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-                  : 'Select a date'}
+          <Card className="border-border/50 shadow-sm bg-gradient-to-b from-primary/5 to-transparent">
+            <CardHeader className="pb-3 pt-4 px-4">
+              <CardTitle className="text-sm font-bold flex items-center gap-2 text-primary">
+                <Sparkles className="w-4 h-4" /> AI Insights
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {selectedEvents.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  {selectedDate ? 'No events on this day' : 'Click a date to see events'}
-                </p>
+            <CardContent className="px-4 pb-4">
+              <div className="flex flex-col gap-3">
+                <div className="p-3 bg-background rounded-xl shadow-sm border border-border/50 text-sm">
+                  <p className="font-semibold mb-1">Leave Prediction</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    18 employees requested leave before Durga Puja. Recommend temporary staffing.
+                  </p>
+                </div>
+                <div className="p-3 bg-background rounded-xl shadow-sm border border-border/50 text-sm">
+                  <p className="font-semibold mb-1">Expected Attendance</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-emerald-600">92%</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Tomorrow</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm flex-1">
+            <CardHeader className="pb-3 pt-4 px-4 border-b border-border/50">
+              <CardTitle className="text-sm font-bold flex items-center justify-between">
+                <span>{selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Day Details'}</span>
+                {selectedDate && <Badge variant="outline" className="text-[10px] uppercase">Selected</Badge>}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {!selectedDate ? (
+                <div className="flex flex-col items-center justify-center h-full text-center opacity-50 py-10">
+                  <CalendarDays className="w-10 h-10 mb-2" />
+                  <p className="text-sm font-medium">Select a day to view timeline</p>
+                </div>
+              ) : selectedEvents.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No events scheduled.</p>
               ) : (
-                <div className="flex flex-col gap-3">
-                  {selectedEvents.map((event) => {
-                    const colors = EVENT_COLORS[event.type]
-                    return (
-                      <div
-                        key={event.id}
-                        className={`p-3 rounded-xl border-l-4 ${colors.bg} ${colors.border}`}
-                      >
-                        <h4 className={`text-sm font-semibold ${colors.text}`}>{event.title}</h4>
-                        {event.startTime && (
-                          <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            {event.startTime} — {event.endTime}
-                          </div>
-                        )}
-                        {event.allDay && (
-                          <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
-                            <CalendarDays className="w-3 h-3" />
-                            All day
-                          </div>
-                        )}
-                        {event.location && (
-                          <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-                            <MapPin className="w-3 h-3" />
-                            {event.location}
-                          </div>
-                        )}
-                        {event.attendees && event.attendees.length > 0 && (
-                          <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-                            <Users className="w-3 h-3" />
-                            {event.attendees.join(', ')}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                <div className="flex flex-col gap-3 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+                  {selectedEvents.map((event, idx) => (
+                    <div key={event.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                       <div className="flex items-center justify-center w-6 h-6 rounded-full border-4 border-background bg-primary shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10" />
+                       <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-xl border border-border/50 bg-card shadow-sm">
+                         <div className="flex items-center justify-between mb-1">
+                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{event.type}</span>
+                         </div>
+                         <h4 className="text-sm font-semibold">{event.title}</h4>
+                         {event.metadata?.description && (
+                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.metadata.description}</p>
+                         )}
+                       </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Event Type Legend */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Event Types</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-2">
-                {Object.entries(EVENT_COLORS).map(([type, colors]) => (
-                  <div key={type} className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-sm ${colors.bg} border-l-2 ${colors.border}`} />
-                    <span className="text-xs capitalize text-muted-foreground">
-                      {type.replace('_', ' ')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Events */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Upcoming</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-2">
-                {MOCK_EVENTS
-                  .filter((e) => e.date >= todayKey)
-                  .sort((a, b) => a.date.localeCompare(b.date))
-                  .slice(0, 5)
-                  .map((event) => {
-                    const colors = EVENT_COLORS[event.type]
-                    return (
-                      <div key={event.id} className="flex items-center gap-2 py-1">
-                        <div className={`w-1.5 h-1.5 rounded-full ${colors.bg.replace('/10', '')}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{event.title}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            {event.startTime ? ` • ${event.startTime}` : ''}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
+      {showApplyDialog && <ApplyLeaveWizard onClose={() => setShowApplyDialog(false)} />}
     </motion.div>
   )
 }
