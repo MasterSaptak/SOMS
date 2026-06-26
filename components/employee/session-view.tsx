@@ -36,13 +36,13 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 // Extracted Components
-import { CircularProgress } from './_components/circular-progress'
-import { StatusBadge } from './_components/status-badge'
-import { SmartWarning } from './_components/smart-warning'
-import { EarlyExitDialog } from './_components/early-exit-dialog'
-import { SessionSummaryDialog } from './_components/session-summary-dialog'
-import { InteractiveTimeline } from './_components/interactive-timeline'
-import { SessionResultCard } from './_components/session-result-card'
+import { CircularProgress } from './session-components/circular-progress'
+import { StatusBadge } from './session-components/status-badge'
+import { SmartWarning } from './session-components/smart-warning'
+import { EarlyExitDialog } from './session-components/early-exit-dialog'
+import { SessionSummaryDialog } from './session-components/session-summary-dialog'
+import { InteractiveTimeline } from './session-components/interactive-timeline'
+import { SessionResultCard } from './session-components/session-result-card'
 
 // ============================================================
 // Constants

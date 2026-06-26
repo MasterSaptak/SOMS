@@ -13,14 +13,14 @@ import { QueueViewer } from "@/components/queue-viewer"
 import { PullToRefresh } from "@/components/gesture/pull-to-refresh"
 import { Sun, Moon, LayoutDashboard, Clock, CheckSquare, CalendarRange } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 const TABS = [
-  { label: 'Overview', href: '/employee', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: 'Work Session', href: '/employee/session', icon: <Clock className="w-4 h-4" /> },
-  { label: 'Tasks', href: '/employee/tasks', icon: <CheckSquare className="w-4 h-4" /> },
-  { label: 'Leave and Attendence Calender', href: '/employee/leaves', icon: <Sun className="w-4 h-4" /> },
+  { label: 'Overview', href: '/employee?tab=overview', icon: <LayoutDashboard className="w-4 h-4" /> },
+  { label: 'Work Session', href: '/employee?tab=session', icon: <Clock className="w-4 h-4" /> },
+  { label: 'Tasks', href: '/employee?tab=tasks', icon: <CheckSquare className="w-4 h-4" /> },
+  { label: 'Leave and Attendence Calender', href: '/employee?tab=leaves', icon: <Sun className="w-4 h-4" /> },
 ]
 
 function ThemeToggle() {
@@ -52,26 +52,26 @@ export default function EmployeeLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [optimisticPath, setOptimisticPath] = useState(pathname)
+  const searchParams = useSearchParams()
+  const activeTab = searchParams?.get('tab') || 'overview'
+  const [optimisticPath, setOptimisticPath] = useState(activeTab)
 
   // Sync optimistic path when real path changes
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setOptimisticPath(pathname)
-  }, [pathname])
+    setOptimisticPath(searchParams?.get('tab') || 'overview')
+  }, [searchParams])
 
   const handleTabClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
-    if (href === pathname) return
+    const targetTab = new URL(href, window.location.origin).searchParams.get('tab') || 'overview'
+    if (targetTab === activeTab) return
     
     // Instantly update the visual active state
-    setOptimisticPath(href)
+    setOptimisticPath(targetTab)
     
-    // Start Next.js route transition
-    startTransition(() => {
-      router.push(href)
-    })
+    // Use regular router.push since it's just a shallow query update
+    router.push(href)
   }
 
   return (
@@ -98,7 +98,8 @@ export default function EmployeeLayout({
               {/* Employee Tabs Navigation (Optimized for Mobile & Fast Switching) */}
               <div className="flex border-b border-border/40 bg-surface-base px-4 md:px-6 shrink-0 z-10 gap-2 md:gap-6 overflow-x-auto hide-scrollbar scroll-smooth">
                 {TABS.map(tab => {
-                  const isActive = optimisticPath === tab.href;
+                  const tabParam = new URL(tab.href, 'http://localhost').searchParams.get('tab') || 'overview'
+                  const isActive = optimisticPath === tabParam;
                   return (
                     <Link
                       key={tab.href}
@@ -112,10 +113,6 @@ export default function EmployeeLayout({
                     >
                       {tab.icon}
                       {tab.label}
-                      {/* Show mini spinner if this tab is currently loading */}
-                      {isActive && isPending && (
-                        <Loader2 className="w-3 h-3 animate-spin absolute -right-4 text-primary" />
-                      )}
                     </Link>
                   )
                 })}

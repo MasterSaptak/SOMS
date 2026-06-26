@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CacheManager } from '@/lib/cache/cache-manager'
 
 export function AppUpdater() {
   const [isUpdating, setIsUpdating] = useState(false)
@@ -27,6 +28,9 @@ export function AppUpdater() {
           await registration.unregister()
         }
       }
+
+      // 3. Clear IndexedDB Database Cache
+      await CacheManager.clearAll()
 
       // 3. Clear local storage/session storage to force a clean slate
       localStorage.clear()

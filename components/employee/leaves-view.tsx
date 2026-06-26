@@ -387,7 +387,7 @@ export default function LeavesPage() {
   const { employee } = useAuthStore()
   const { getForEmployee, getBalance, cancelLeave } = useLeaveStore()
   const [showApplyDialog, setShowApplyDialog] = useState(false)
-  const [activeTab, setActiveTab] = useState('history')
+  const [activeTab, setActiveTab] = useState('calendar')
 
   const myLeaves = employee ? getForEmployee(employee.id) : []
   const balance = employee ? getBalance(employee.id) : { casual: 2, medical: 2, emergency: 0 }
@@ -416,7 +416,7 @@ export default function LeavesPage() {
 
       {/* Modern Bento Leave Dashboard */}
       <motion.div variants={itemVars}>
-        <BentoGrid className="grid-cols-1 md:grid-cols-4 auto-rows-[160px]">
+        <BentoGrid className="grid-cols-1 md:grid-cols-4 auto-rows-[220px]">
           
           {/* Casual Leave */}
           <BentoSlot className="col-span-1 row-span-1">
