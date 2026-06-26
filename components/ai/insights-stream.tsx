@@ -2,12 +2,13 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, AlertCircle, Info, ArrowRight } from 'lucide-react'
-import { MOCK_AI_INSIGHTS, getEmployeeById, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 
 export function InsightsStream() {
-  const sortedInsights = [...MOCK_AI_INSIGHTS].sort((a, b) => {
-    const sevScore = { critical: 3, warning: 2, info: 1 }
-    return sevScore[b.severity] - sevScore[a.severity]
+  const sortedInsights = [...([] as any[])].sort((a: any, b: any) => {
+    const sevScore: Record<string, number> = { critical: 3, warning: 2, info: 1 }
+    return (sevScore[b.severity] || 0) - (sevScore[a.severity] || 0)
   })
 
   return (
@@ -21,14 +22,14 @@ export function InsightsStream() {
             </span>
             Live Insights Feed
           </CardTitle>
-          <Badge variant="secondary" className="font-normal text-xs">{MOCK_AI_INSIGHTS.length} active</Badge>
+          <Badge variant="secondary" className="font-normal text-xs">{([] as any[]).length} active</Badge>
         </div>
       </CardHeader>
       
       <CardContent className="p-0 flex-1 overflow-y-auto">
         <div className="flex flex-col divide-y divide-border/30">
           {sortedInsights.map(insight => {
-            const employee = getEmployeeById(insight.employeeId)
+            const employee: any = undefined
             let Icon = Info
             let iconColor = 'text-blue-500'
             let bgStyle = ''
@@ -64,7 +65,7 @@ export function InsightsStream() {
                     <div className="flex items-center justify-between">
                       {employee && (
                         <Badge variant="outline" className="text-[10px] font-normal bg-background/50">
-                          {getFullName(employee)}
+                          {(employee ? `${employee.firstName} ${employee.lastName}` : "Unknown")}
                         </Badge>
                       )}
                       <div className="flex items-center text-[10px] font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 transform duration-200">

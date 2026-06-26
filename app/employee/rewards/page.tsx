@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_REWARDS, MOCK_EMPLOYEES, getFullName, getDepartmentById } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import { Wallet, Gift, Star, Zap, TrendingUp, ShoppingBag, ArrowRight, Coins } from 'lucide-react'
 
 const containerVars = {
@@ -29,14 +30,14 @@ const rewardItems = [
 export default function RewardsPage() {
   const { employee } = useAuthStore()
 
-  const myRewards = MOCK_REWARDS.filter(r => r.employeeId === employee?.id)
+  const myRewards = ([] as any[]).filter(r => r.employeeId === employee?.id)
   const totalEarned = myRewards.reduce((sum, r) => sum + r.amount, 0)
   const totalSpent = myRewards.filter(r => r.type === 'spent').reduce((sum, r) => sum + Math.abs(r.amount), 0)
   const balance = myRewards.reduce((sum, r) => sum + r.amount, 0)
 
   // Top earners leaderboard
-  const employeeCredits = MOCK_EMPLOYEES.map(emp => {
-    const earned = MOCK_REWARDS.filter(r => r.employeeId === emp.id).reduce((sum, r) => sum + r.amount, 0)
+  const employeeCredits = ([] as any[]).map(emp => {
+    const earned = ([] as any[]).filter(r => r.employeeId === emp.id).reduce((sum, r) => sum + r.amount, 0)
     return { employee: emp, credits: earned }
   }).sort((a, b) => b.credits - a.credits).slice(0, 5)
 
@@ -106,12 +107,12 @@ export default function RewardsPage() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {employeeCredits.map((entry, i) => {
-                const dept = getDepartmentById(entry.employee.departmentId)
+                const dept = undefined as any
                 return (
                   <div key={entry.employee.id} className="flex items-center gap-3">
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-amber-500 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-amber-700 text-white' : 'bg-muted text-muted-foreground'}`}>{i + 1}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{getFullName(entry.employee)}</p>
+                      <p className="text-sm font-medium truncate">{(entry.employee ? `${entry.employee.firstName} ${entry.employee.lastName}` : "Unknown")}</p>
                       <p className="text-[10px] text-muted-foreground">{dept?.name}</p>
                     </div>
                     <span className="text-sm font-bold text-primary">{entry.credits}</span>

@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Task, TaskStatus, TaskPriority, TaskComment } from '@/lib/types'
-import { MOCK_TASKS } from '@/lib/demo/generators/legacy-mock-data'
+import { createClient } from '@/lib/supabase/client'
 
 interface TaskFilters {
   status: TaskStatus | 'all'
@@ -18,6 +18,15 @@ interface TaskState {
   view: 'kanban' | 'list'
   comments: TaskComment[]
 
+  loading: boolean
+  initialized: boolean
+  error?: string
+
+  // Actions
+  loadTasks: () => Promise<void>
+  refreshTasks: () => Promise<void>
+  clear: () => void
+
   // View
   setView: (view: 'kanban' | 'list') => void
 
@@ -26,13 +35,13 @@ interface TaskState {
   resetFilters: () => void
 
   // CRUD
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void
-  updateTask: (id: string, updates: Partial<Task>) => void
-  deleteTask: (id: string) => void
-  moveTask: (id: string, newStatus: TaskStatus) => void
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>
+  deleteTask: (id: string) => Promise<void>
+  moveTask: (id: string, newStatus: TaskStatus) => Promise<void>
 
   // Comments
-  addComment: (comment: Omit<TaskComment, 'id' | 'createdAt'>) => void
+  addComment: (comment: Omit<TaskComment, 'id' | 'createdAt'>) => Promise<void>
 
   // Computed
   getFilteredTasks: () => Task[]
@@ -51,15 +60,58 @@ const defaultFilters: TaskFilters = {
 export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
-      tasks: MOCK_TASKS,
+      tasks: [],
       filters: defaultFilters,
       view: 'kanban',
-      comments: [
-        { id: 'tc1', taskId: 't1', authorId: 'e4', content: 'Please prioritize the color palette updates first.', createdAt: '2026-06-16T10:00:00Z' },
-        { id: 'tc2', taskId: 't1', authorId: 'e3', content: 'Working on it. Will share the updated tokens by EOD.', createdAt: '2026-06-16T14:00:00Z' },
-        { id: 'tc3', taskId: 't4', authorId: 'e5', content: 'Make sure to cover the edge cases for pagination.', createdAt: '2026-06-15T09:00:00Z' },
-        { id: 'tc4', taskId: 't6', authorId: 'e8', content: 'Blocked on schema approval from the DBA team.', createdAt: '2026-06-16T11:00:00Z' },
-      ],
+      comments: [],
+
+      loading: false,
+      initialized: false,
+      error: undefined,
+
+      loadTasks: async () => {
+        if (get().initialized) return
+        set({ loading: true, error: undefined })
+        try {
+          const supabase = createClient()
+          const { data, error } = await supabase.from('tasks' as any).select('*')
+          if (error) throw error
+          
+          set({ 
+            tasks: (data as any[]) || [], 
+            initialized: true, 
+            loading: false 
+          })
+        } catch (err: any) {
+          set({ error: err.message, loading: false })
+        }
+      },
+
+      refreshTasks: async () => {
+        set({ loading: true, error: undefined })
+        try {
+          const supabase = createClient()
+          const { data, error } = await supabase.from('tasks' as any).select('*')
+          if (error) throw error
+          
+          set({ 
+            tasks: (data as any[]) || [], 
+            loading: false 
+          })
+        } catch (err: any) {
+          set({ error: err.message, loading: false })
+        }
+      },
+
+      clear: () => {
+        set({
+          tasks: [],
+          comments: [],
+          initialized: false,
+          error: undefined,
+          loading: false
+        })
+      },
 
       setView: (view) => set({ view }),
 
@@ -70,52 +122,69 @@ export const useTaskStore = create<TaskState>()(
 
       resetFilters: () => set({ filters: defaultFilters }),
 
-      addTask: (task) => {
-        const newTask: Task = {
-          ...task,
-          id: `t${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
-        set((state) => ({ tasks: [newTask, ...state.tasks] }))
+      addTask: async (task) => {
+        const supabase = createClient()
+        // Optimistic update omitted to keep it simple, or we can just refetch
+        const { data, error } = await supabase.from('tasks' as any).insert([task as any]).select().single()
+        if (error) throw error
+        set((state) => ({ tasks: [data as any, ...state.tasks] }))
       },
 
-      updateTask: (id, updates) => {
+      updateTask: async (id, updates) => {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('tasks' as any)
+          .update({ ...(updates as any), updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .select()
+          .single()
+        
+        if (error) throw error
+        
         set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t
-          ),
+          tasks: state.tasks.map((t) => (t.id === id ? data as any : t)),
         }))
       },
 
-      deleteTask: (id) => {
+      deleteTask: async (id) => {
+        const supabase = createClient()
+        const { error } = await supabase.from('tasks' as any).delete().eq('id', id)
+        if (error) throw error
+        
         set((state) => ({
           tasks: state.tasks.filter((t) => t.id !== id),
         }))
       },
 
-      moveTask: (id, newStatus) => {
+      moveTask: async (id, newStatus) => {
+        const supabase = createClient()
+        const updates: any = {
+            status: newStatus,
+            updated_at: new Date().toISOString()
+        }
+        if (newStatus === 'completed') {
+            updates.completed_at = new Date().toISOString()
+        }
+        
+        const { data, error } = await supabase
+          .from('tasks' as any)
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single()
+
+        if (error) throw error
+
         set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  status: newStatus,
-                  updatedAt: new Date().toISOString(),
-                  completedAt: newStatus === 'completed' ? new Date().toISOString() : t.completedAt,
-                }
-              : t
-          ),
+          tasks: state.tasks.map((t) => (t.id === id ? data as any : t)),
         }))
       },
 
-      addComment: (comment) => {
-        const newComment: TaskComment = {
-          ...comment,
-          id: `tc${Date.now()}`,
-          createdAt: new Date().toISOString(),
-        }
-        set((state) => ({ comments: [...state.comments, newComment] }))
+      addComment: async (comment) => {
+        const supabase = createClient()
+        const { data, error } = await supabase.from('task_comments' as any).insert([comment as any]).select().single()
+        if (error) throw error
+        set((state) => ({ comments: [...state.comments, data as any] }))
       },
 
       getFilteredTasks: () => {
@@ -144,9 +213,8 @@ export const useTaskStore = create<TaskState>()(
     {
       name: 'soms-tasks',
       partialize: (state) => ({
-        tasks: state.tasks,
         view: state.view,
-        comments: state.comments,
+        // We do not persist tasks and comments anymore to ensure they are fetched from server
       }),
     }
   )

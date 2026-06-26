@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MOCK_EMPLOYEES, MOCK_DEPARTMENTS, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import type { Department } from '@/lib/types'
 
 interface DepartmentFormProps {
@@ -57,9 +58,9 @@ export function DepartmentForm({ open, onOpenChange, department }: DepartmentFor
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No head assigned</SelectItem>
-                {MOCK_EMPLOYEES.map(emp => (
+                {([] as any[]).map(emp => (
                   <SelectItem key={emp.id} value={emp.id}>
-                    {getFullName(emp)} — {emp.employeeCode}
+                    {(emp ? `${emp.firstName} ${emp.lastName}` : "Unknown")} — {emp.employeeCode}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -75,9 +76,9 @@ export function DepartmentForm({ open, onOpenChange, department }: DepartmentFor
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No parent (top-level)</SelectItem>
-                {MOCK_DEPARTMENTS
-                  .filter(d => d.id !== department?.id)
-                  .map(dept => (
+                {([] as any[])
+                  .filter((d: any) => d.id !== department?.id)
+                  .map((dept: any) => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
                     </SelectItem>

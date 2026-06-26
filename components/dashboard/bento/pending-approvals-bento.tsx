@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, XCircle, CalendarRange, ArrowRight } from 'lucide-react'
-import { MOCK_LEAVES, getEmployeeById, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import Link from 'next/link'
 import type { WidgetState } from '@/components/enterprise/tokens'
 
@@ -24,7 +25,7 @@ const typeColors: Record<string, string> = {
 }
 
 export function PendingApprovalsBento({ state = 'idle', className }: PendingApprovalsBentoProps) {
-  const [leaves, setLeaves] = useState(MOCK_LEAVES.filter((l) => l.status === 'pending'))
+  const [leaves, setLeaves] = useState(([] as any[]).filter((l) => l.status === 'pending'))
   const [actioned, setActioned] = useState<Record<string, 'approved' | 'rejected'>>({})
 
   const handleAction = (id: string, action: 'approved' | 'rejected') => {
@@ -52,7 +53,7 @@ export function PendingApprovalsBento({ state = 'idle', className }: PendingAppr
     >
       <div className="flex flex-col divide-y divide-border/20">
         {leaves.map((leave) => {
-          const employee = getEmployeeById(leave.employeeId)
+          const employee: any = undefined
           const isActioned = !!actioned[leave.id]
           const actionType = actioned[leave.id]
 
@@ -78,7 +79,7 @@ export function PendingApprovalsBento({ state = 'idle', className }: PendingAppr
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-xs font-semibold truncate">
-                      {employee ? getFullName(employee) : 'Unknown'}
+                      {employee ? (employee ? `${employee.firstName} ${employee.lastName}` : "Unknown") : 'Unknown'}
                     </span>
                     <Badge variant="outline" className={cn('text-[8px] capitalize shrink-0 h-4 px-1', typeColors[leave.leaveType] || '')}>
                       {leave.leaveType}

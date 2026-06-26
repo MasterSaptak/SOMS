@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { useLeaveStore } from '@/store/use-leave-store'
 import { usePolicyStore } from '@/store/use-policy-store'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import type { LeavePolicy } from '@/lib/types'
 import { X, ArrowRight, ArrowLeft, Palmtree, Stethoscope, Siren, UploadCloud, Calendar, FileText, CheckCircle2 } from 'lucide-react'
 
@@ -38,7 +39,7 @@ export function ApplyLeaveWizard({ onClose }: { onClose: () => void }) {
   const [isHalfDay, setIsHalfDay] = useState(false)
   const [files, setFiles] = useState<File[]>([])
 
-  const managers = MOCK_EMPLOYEES.filter(e => e.id !== employee?.id)
+  const managers = ([] as any[]).filter(e => e.id !== employee?.id)
 
   const handleNext = () => setStep(s => s + 1)
   const handleBack = () => setStep(s => s - 1)
@@ -189,7 +190,7 @@ export function ApplyLeaveWizard({ onClose }: { onClose: () => void }) {
                   >
                     <option value="">Select manager...</option>
                     {managers.map((mgr) => (
-                      <option key={mgr.id} value={mgr.id}>{getFullName(mgr)} — {(mgr.designation as any)?.name || (mgr.designation as unknown as string) || ''}</option>
+                      <option key={mgr.id} value={mgr.id}>{(mgr ? `${mgr.firstName} ${mgr.lastName}` : "Unknown")} — {(mgr.designation as any)?.name || (mgr.designation as unknown as string) || ''}</option>
                     ))}
                   </select>
                 </div>

@@ -16,21 +16,20 @@ import { SystemUpdateCenter } from '@/components/dashboard/bento/system-update-c
 import {
   Users, Clock, CalendarRange, Activity, Calendar, CheckSquare, Briefcase,
 } from 'lucide-react'
-import {
-  MOCK_EMPLOYEES, MOCK_TASKS, MOCK_LEAVES, MOCK_PRODUCTIVITY, MOCK_ATTENDANCE, MOCK_AI_INSIGHTS,
-} from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 
 export default function AdminDashboard() {
   // ─── Compute KPIs (same logic as before) ─── //
-  const activeEmployeesCount = MOCK_EMPLOYEES.filter((e) => e.status === 'active').length
+  const activeEmployeesCount = ([] as any[]).filter((e) => e.status === 'active').length
   const today = '2026-06-17'
-  const todayAttendance = MOCK_ATTENDANCE.filter(
+  const todayAttendance = ([] as any[]).filter(
     (a) => a.date === today && (a.status === 'present' || a.status === 'wfh')
   ).length
   const attendanceRate =
     activeEmployeesCount > 0 ? Math.round((todayAttendance / activeEmployeesCount) * 100) : 0
-  const pendingLeavesCount = MOCK_LEAVES.filter((l) => l.status === 'pending').length
-  const activeProductivity = MOCK_PRODUCTIVITY.filter((p) => p.score > 0)
+  const pendingLeavesCount = ([] as any[]).filter((l) => l.status === 'pending').length
+  const activeProductivity = ([] as any[]).filter((p) => p.score > 0)
   const orgHealthScore =
     activeProductivity.length > 0
       ? Math.round(
@@ -38,7 +37,7 @@ export default function AdminDashboard() {
         )
       : 0
 
-  const pendingTasks = MOCK_TASKS.filter((t) => t.status === 'pending' || t.status === 'in_progress').length
+  const pendingTasks = ([] as any[]).filter((t) => t.status === 'pending' || t.status === 'in_progress').length
 
   // ─── Chart Data (same as before) ─── //
   const attendanceTrend = [
@@ -101,7 +100,7 @@ export default function AdminDashboard() {
   }, [])
 
   // ─── AI Insights (existing mock data) ─── //
-  const aiInsights = MOCK_AI_INSIGHTS.map((i) => ({
+  const aiInsights = ([] as any[]).map((i) => ({
     id: i.id,
     title: i.title,
     content: i.content,
@@ -143,7 +142,7 @@ export default function AdminDashboard() {
             value={activeEmployeesCount}
             trend={1}
             trendLabel="+1 this month"
-            subtitle={`${MOCK_EMPLOYEES.length} total headcount`}
+            subtitle={`${([] as any[]).length} total headcount`}
             icon={<Users className="w-4 h-4" />}
             sparklineData={[6, 7, 7, 8, 8, 9, 9]}
             sparklineColor="blue"

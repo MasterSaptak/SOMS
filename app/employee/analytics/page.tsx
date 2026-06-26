@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Sparkles, TrendingUp, TrendingDown, Target, Brain, Calendar, Clock, AlertTriangle } from 'lucide-react'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_AI_INSIGHTS, MOCK_PRODUCTIVITY } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts'
 import { cn } from '@/lib/utils'
 
@@ -59,8 +60,8 @@ export default function AnalyticsPage() {
 
   if (!mounted) return null
 
-  const myInsights = MOCK_AI_INSIGHTS.filter(i => i.employeeId === employee?.id)
-  const myScore = MOCK_PRODUCTIVITY.find(p => p.employeeId === employee?.id)?.score || 85
+  const myInsights = ([] as any[]).filter(i => i.employeeId === employee?.id)
+  const myScore = ([] as any[]).find(p => p.employeeId === employee?.id)?.score || 85
 
   return (
     <motion.div className="flex flex-col gap-6 pb-12" variants={containerVars} initial="hidden" animate="show">

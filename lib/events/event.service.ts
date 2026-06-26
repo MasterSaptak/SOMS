@@ -34,7 +34,7 @@ export class EventService {
     endDate: Date,
     sourceFilter?: EventSource[]
   ): Promise<EnterpriseEvent[]> {
-    const supabase = getAdminClient()
+    const supabase: any = getAdminClient()
 
     let query = supabase
       .from('enterprise_events')
@@ -65,7 +65,7 @@ export class EventService {
     ownerId: string,
     limit: number = 50
   ): Promise<EnterpriseEvent[]> {
-    const supabase = getAdminClient()
+    const supabase: any = getAdminClient()
 
     const { data, error } = await supabase
       .from('enterprise_events')

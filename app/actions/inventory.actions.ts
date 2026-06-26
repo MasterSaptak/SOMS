@@ -12,17 +12,24 @@ async function getAuthContext() {
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) throw new AuthError('Not authenticated')
 
+  const { data: membership } = await (supabase as any)
+    .from('organization_members')
+    .select('organization_id')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .single()
+
+  if (!membership?.organization_id) {
+    throw new AuthError('No organization found for user')
+  }
+  
   const { data: employee } = await supabase
     .from('employees')
-    .select('organization_id, id')
+    .select('id')
     .eq('user_id', user.id)
     .single()
 
-  if (!employee?.organization_id) {
-    throw new AuthError('No organization found for user')
-  }
-
-  return { userId: user.id, organizationId: employee.organization_id, employeeId: employee.id }
+  return { userId: user.id, organizationId: membership.organization_id, employeeId: employee?.id || '' }
 }
 
 // ==========================================================
@@ -34,8 +41,8 @@ export async function getAssetsAction(): Promise<Result<any[]>> {
     const { userId, organizationId } = await getAuthContext()
     
     // Check permission
-    const hasPermission = await permissionService.can(userId, organizationId, 'view', 'assets')
-    if (!hasPermission.data) throw new PermissionError()
+    const hasPermission = await permissionService.can(userId, organizationId, 'assets.view' as any)
+    if (!hasPermission) throw new PermissionError()
 
     const res = await inventoryRepository.getAssets(organizationId)
     if (!res.success) throw res.error
@@ -50,8 +57,8 @@ export async function createAssetAction(payload: any): Promise<Result<any>> {
   try {
     const { userId, organizationId } = await getAuthContext()
     
-    const hasPermission = await permissionService.can(userId, organizationId, 'create', 'assets')
-    if (!hasPermission.data) throw new PermissionError()
+    const hasPermission = await permissionService.can(userId, organizationId, 'assets.create' as any)
+    if (!hasPermission) throw new PermissionError()
 
     const dataToInsert = {
       ...payload,
@@ -76,8 +83,8 @@ export async function getConsumablesAction(): Promise<Result<any[]>> {
   try {
     const { userId, organizationId } = await getAuthContext()
     
-    const hasPermission = await permissionService.can(userId, organizationId, 'view', 'assets') // reuse assets permission for now
-    if (!hasPermission.data) throw new PermissionError()
+    const hasPermission = await permissionService.can(userId, organizationId, 'assets.view' as any) // reuse assets permission for now
+    if (!hasPermission) throw new PermissionError()
 
     const res = await inventoryRepository.getConsumables(organizationId)
     if (!res.success) throw res.error
@@ -92,8 +99,8 @@ export async function createConsumableAction(payload: any): Promise<Result<any>>
   try {
     const { userId, organizationId } = await getAuthContext()
     
-    const hasPermission = await permissionService.can(userId, organizationId, 'create', 'assets')
-    if (!hasPermission.data) throw new PermissionError()
+    const hasPermission = await permissionService.can(userId, organizationId, 'assets.create' as any)
+    if (!hasPermission) throw new PermissionError()
 
     // Determine status based on quantity and min stock
     const qty = payload.quantity || 0
@@ -128,8 +135,8 @@ export async function adjustConsumableStockAction(
   try {
     const { userId, organizationId, employeeId } = await getAuthContext()
     
-    const hasPermission = await permissionService.can(userId, organizationId, 'edit', 'assets')
-    if (!hasPermission.data) throw new PermissionError()
+    const hasPermission = await permissionService.can(userId, organizationId, 'assets.edit' as any)
+    if (!hasPermission) throw new PermissionError()
 
     const newQty = Math.max(0, currentQty + adjustment)
     
@@ -162,8 +169,8 @@ export async function getCheckupsAction(itemType: string, itemId: string): Promi
   try {
     const { userId, organizationId } = await getAuthContext()
     
-    const hasPermission = await permissionService.can(userId, organizationId, 'view', 'assets')
-    if (!hasPermission.data) throw new PermissionError()
+    const hasPermission = await permissionService.can(userId, organizationId, 'assets.view' as any)
+    if (!hasPermission) throw new PermissionError()
 
     const res = await inventoryRepository.getCheckups(organizationId, itemType, itemId)
     if (!res.success) throw res.error
@@ -178,8 +185,8 @@ export async function logAssetCheckupAction(payload: any): Promise<Result<any>> 
   try {
     const { userId, organizationId, employeeId } = await getAuthContext()
     
-    const hasPermission = await permissionService.can(userId, organizationId, 'edit', 'assets')
-    if (!hasPermission.data) throw new PermissionError()
+    const hasPermission = await permissionService.can(userId, organizationId, 'assets.edit' as any)
+    if (!hasPermission) throw new PermissionError()
 
     const dataToInsert = {
       ...payload,

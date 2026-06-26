@@ -5,12 +5,8 @@ import { ChevronDown, ChevronUp, Building2, Users, Edit, User } from 'lucide-rea
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  getDepartmentEmployees,
-  getEmployeeById,
-  getFullName,
-  MOCK_TEAMS,
-} from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import type { Department } from '@/lib/types'
 
 const BORDER_COLORS = [
@@ -30,9 +26,9 @@ interface DepartmentCardProps {
 export function DepartmentCard({ department, index = 0, onEdit }: DepartmentCardProps) {
   const [expanded, setExpanded] = useState(false)
 
-  const head        = department.headId ? getEmployeeById(department.headId) : null
-  const members     = getDepartmentEmployees(department.id)
-  const teams       = MOCK_TEAMS.filter(t => t.departmentId === department.id)
+  const head: any   = department.headId ? undefined : null
+  const members     = ([] as any[])
+  const teams       = ([] as any[]).filter(t => t.departmentId === department.id)
   const borderColor = BORDER_COLORS[index % BORDER_COLORS.length]
 
   return (
@@ -65,7 +61,7 @@ export function DepartmentCard({ department, index = 0, onEdit }: DepartmentCard
                   {head.firstName[0]}{head.lastName[0]}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-xs text-muted-foreground truncate">{getFullName(head)}</span>
+              <span className="text-xs text-muted-foreground truncate">{(head ? `${head.firstName} ${head.lastName}` : "Unknown")}</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5 mt-1">
@@ -93,14 +89,14 @@ export function DepartmentCard({ department, index = 0, onEdit }: DepartmentCard
         <div className="px-4 pb-4 border-t border-border/30 pt-3 flex flex-col gap-2">
           <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-1">Teams</p>
           {teams.map(team => {
-            const lead         = team.leadId ? getEmployeeById(team.leadId) : null
-            const teamMembers  = getDepartmentEmployees(department.id).filter(e => e.teamId === team.id)
+            const lead: any         = team.leadId ? undefined : null
+            const teamMembers  = ([] as any[]).filter((e: any) => e.teamId === team.id)
             return (
               <div key={team.id} className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2">
                 <div>
                   <p className="text-sm font-medium">{team.name}</p>
                   {lead && (
-                    <p className="text-xs text-muted-foreground">Lead: {getFullName(lead)}</p>
+                    <p className="text-xs text-muted-foreground">Lead: {(lead ? `${lead.firstName} ${lead.lastName}` : "Unknown")}</p>
                   )}
                 </div>
                 <Badge variant="outline" className="text-[10px]">

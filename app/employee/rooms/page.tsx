@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MOCK_ROOMS, MOCK_BOOKINGS, MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import { useAuthStore } from '@/store/use-auth-store'
 import { DoorOpen, Users, Tv, Mic, Video, PenLine, Calendar, Clock, X, Plus, Check, MapPin } from 'lucide-react'
 
@@ -51,7 +52,7 @@ function BookRoomDialog({ onClose }: { onClose: () => void }) {
             <label className="text-sm font-medium">Room</label>
             <select value={roomId} onChange={e => setRoomId(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
               <option value="">Select room...</option>
-              {MOCK_ROOMS.filter(r => r.isActive).map(r => <option key={r.id} value={r.id}>{r.name} (Cap: {r.capacity})</option>)}
+              {([] as any[]).filter(r => r.isActive).map(r => <option key={r.id} value={r.id}>{r.name} (Cap: {r.capacity})</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -75,22 +76,22 @@ function BookRoomDialog({ onClose }: { onClose: () => void }) {
 export default function RoomsPage() {
   const [showBookDialog, setShowBookDialog] = useState(false)
 
-  const todayBookings = MOCK_BOOKINGS.filter(b => b.status === 'confirmed')
+  const todayBookings = ([] as any[]).filter(b => b.status === 'confirmed')
 
   return (
     <motion.div className="flex flex-col gap-6 pb-12" variants={containerVars} initial="hidden" animate="show">
       <motion.div variants={itemVars} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Meeting Rooms</h1>
-          <p className="text-muted-foreground mt-1">{MOCK_ROOMS.filter(r => r.isActive).length} rooms available · {todayBookings.length} bookings today</p>
+          <p className="text-muted-foreground mt-1">{([] as any[]).filter(r => r.isActive).length} rooms available · {todayBookings.length} bookings today</p>
         </div>
         <Button onClick={() => setShowBookDialog(true)} className="gap-1.5"><Plus className="w-4 h-4" />Book Room</Button>
       </motion.div>
 
       {/* Room Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {MOCK_ROOMS.map(room => {
-          const roomBookings = MOCK_BOOKINGS.filter(b => b.roomId === room.id && b.status === 'confirmed')
+        {([] as any[]).map(room => {
+          const roomBookings = ([] as any[]).filter(b => b.roomId === room.id && b.status === 'confirmed')
           const isOccupied = roomBookings.some(b => {
             const now = new Date()
             return new Date(b.startTime) <= now && new Date(b.endTime) >= now
@@ -123,7 +124,7 @@ export default function RoomsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
-                    {room.amenities.map(amenity => (
+                    {room.amenities.map((amenity: string) => (
                       <span key={amenity} className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-muted text-muted-foreground">
                         {amenityIcons[amenity] || <Check className="w-3 h-3" />}
                         {amenity}
@@ -136,7 +137,7 @@ export default function RoomsPage() {
                     <div className="border-t border-border/40 pt-3">
                       <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Today&apos;s Schedule</p>
                       {roomBookings.map(booking => {
-                        const booker = MOCK_EMPLOYEES.find(e => e.id === booking.bookedBy)
+                        const booker = ([] as any[]).find(e => e.id === booking.bookedBy)
                         return (
                           <div key={booking.id} className="flex items-center justify-between text-xs py-1">
                             <div className="flex items-center gap-2">

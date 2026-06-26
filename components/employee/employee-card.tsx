@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { MapPin, Calendar, Building2, Mail, Phone } from 'lucide-react'
-import { getDesignationById, getDepartmentById, getWorkLocationById } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import type { Employee } from '@/lib/types'
 
 interface EmployeeCardProps {
@@ -13,9 +14,9 @@ interface EmployeeCardProps {
 }
 
 export function EmployeeCard({ employee, onClick }: EmployeeCardProps) {
-  const designation = getDesignationById(employee.designationId)
-  const department = getDepartmentById(employee.departmentId)
-  const location = getWorkLocationById(employee.workLocationId)
+  const designation: any = undefined
+  const department: any = undefined
+  const location: any = undefined
 
   const initials = `${employee.firstName[0]}${employee.lastName[0]}`
   

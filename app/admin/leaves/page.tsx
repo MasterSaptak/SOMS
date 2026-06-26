@@ -13,7 +13,8 @@ import { usePolicyStore } from '@/store/use-policy-store'
 import { LEAVE_TYPES, LEAVE_STATUSES } from '@/lib/constants'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
-import { MOCK_EMPLOYEES, MOCK_DEPARTMENTS, getFullName, getDepartmentById } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import type { LeaveType, LeaveStatus, LeaveRequest } from '@/lib/types'
 import { 
   Search, CheckCircle2, XCircle, Clock, FileText, 
@@ -44,14 +45,14 @@ export default function AdminLeavesPage() {
 
   // Enrich leaves with employee data
   const enrichedLeaves = leaves.map(leave => {
-    const emp = MOCK_EMPLOYEES.find(e => e.id === leave.employeeId)
-    const dept = emp ? getDepartmentById(emp.departmentId) : undefined
+    const emp = ([] as any[]).find(e => e.id === leave.employeeId)
+    const dept: any = emp ? undefined : undefined
     return { ...leave, employee: emp, department: dept }
   })
 
   // Apply filters
   const filteredLeaves = enrichedLeaves.filter(leave => {
-    const empName = leave.employee ? getFullName(leave.employee).toLowerCase() : ''
+    const empName = leave.employee ? (leave.employee ? `${leave.employee.firstName} ${leave.employee.lastName}` : "Unknown").toLowerCase() : ''
     const matchSearch = search === '' || empName.includes(search.toLowerCase())
     const matchDept = filterDept === 'all' || leave.employee?.departmentId === filterDept
     const matchType = filterType === 'all' || leave.leaveType === filterType
@@ -126,7 +127,7 @@ export default function AdminLeavesPage() {
         <div className="flex gap-3 w-full md:w-auto">
           <select value={filterDept} onChange={e => setFilterDept(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring flex-1 md:w-40">
             <option value="all">All Departments</option>
-            {MOCK_DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            {([] as any[]).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
           
           <select value={filterType} onChange={e => setFilterType(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring flex-1 md:w-40">
@@ -174,7 +175,7 @@ export default function AdminLeavesPage() {
                       
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold">{leave.employee ? getFullName(leave.employee) : 'Unknown'}</span>
+                          <span className="font-semibold">{leave.employee ? (leave.employee ? `${leave.employee.firstName} ${leave.employee.lastName}` : "Unknown") : 'Unknown'}</span>
                           <Badge variant="outline" className={`text-[10px] uppercase font-bold border-none px-2 py-0.5 ${statusInfo.bgColor} ${statusInfo.color}`}>
                             {statusInfo.label}
                           </Badge>
@@ -400,7 +401,7 @@ export default function AdminLeavesPage() {
               <CardContent className="p-6">
                 <h3 className="font-semibold text-sm text-muted-foreground mb-4">Department Trends</h3>
                 <div className="flex flex-col gap-4">
-                  {MOCK_DEPARTMENTS.slice(0, 4).map((d, i) => {
+                  {([] as any[]).slice(0, 4).map((d, i) => {
                     const usage = [85, 60, 40, 20][i]
                     return (
                       <div key={d.id}>

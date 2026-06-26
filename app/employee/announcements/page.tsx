@@ -6,7 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { MOCK_ANNOUNCEMENTS, MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import { Megaphone, Pin, Calendar, Eye, Plus } from 'lucide-react'
 
 const containerVars = {
@@ -26,14 +27,14 @@ const priorityColors = {
 
 export default function AnnouncementsPage() {
   const [filter, setFilter] = useState<'all' | 'pinned'>('all')
-  const announcements = filter === 'pinned' ? MOCK_ANNOUNCEMENTS.filter(a => a.isPinned) : MOCK_ANNOUNCEMENTS
+  const announcements = filter === 'pinned' ? ([] as any[]).filter(a => a.isPinned) : []
 
   return (
     <motion.div className="flex flex-col gap-6 pb-12" variants={containerVars} initial="hidden" animate="show">
       <motion.div variants={itemVars} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Announcements</h1>
-          <p className="text-muted-foreground mt-1">{MOCK_ANNOUNCEMENTS.length} announcements · {MOCK_ANNOUNCEMENTS.filter(a => a.isPinned).length} pinned</p>
+          <p className="text-muted-foreground mt-1">{([] as any[]).length} announcements · {([] as any[]).filter(a => a.isPinned).length} pinned</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center rounded-lg border border-border overflow-hidden">
@@ -45,7 +46,7 @@ export default function AnnouncementsPage() {
 
       <div className="flex flex-col gap-4">
         {announcements.map(ann => {
-          const author = MOCK_EMPLOYEES.find(e => e.id === ann.authorId)
+          const author = ([] as any[]).find(e => e.id === ann.authorId)
           return (
             <motion.div key={ann.id} variants={itemVars}>
               <Card className={`hover:border-primary/20 transition-colors ${ann.isPinned ? 'border-l-4 border-l-primary' : ''}`}>
@@ -62,7 +63,7 @@ export default function AnnouncementsPage() {
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(ann.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          <Badge variant="outline" className={`text-[10px] ${priorityColors[ann.priority]}`}>{ann.priority}</Badge>
+                          <Badge variant="outline" className={`text-[10px] ${priorityColors[ann.priority as keyof typeof priorityColors]}`}>{ann.priority}</Badge>
                           <span className="text-[10px]">{ann.targetAudience === 'all' ? 'Everyone' : ann.targetAudience.join(', ')}</span>
                         </div>
                       </div>
@@ -73,7 +74,7 @@ export default function AnnouncementsPage() {
                     <Avatar className="w-6 h-6">
                       <AvatarFallback className="text-[9px]">{author ? `${author.firstName[0]}${author.lastName[0]}` : '??'}</AvatarFallback>
                     </Avatar>
-                    <span className="text-xs text-muted-foreground">Posted by <strong className="text-foreground">{author ? getFullName(author) : 'Admin'}</strong></span>
+                    <span className="text-xs text-muted-foreground">Posted by <strong className="text-foreground">{author ? (author ? `${author.firstName} ${author.lastName}` : "Unknown") : 'Admin'}</strong></span>
                   </div>
                 </CardContent>
               </Card>

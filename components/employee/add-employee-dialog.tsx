@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MOCK_DEPARTMENTS, MOCK_DESIGNATIONS, MOCK_WORK_LOCATIONS, MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 
 interface AddEmployeeDialogProps {
   open: boolean
@@ -100,7 +101,7 @@ export function AddEmployeeDialog({ open, onOpenChange }: AddEmployeeDialogProps
               <Select value={formData.departmentId} onValueChange={v => updateForm('departmentId', v)}>
                 <SelectTrigger><SelectValue placeholder="Select Department" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_DEPARTMENTS.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                  {([] as any[]).map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -109,7 +110,7 @@ export function AddEmployeeDialog({ open, onOpenChange }: AddEmployeeDialogProps
               <Select value={formData.designationId} onValueChange={v => updateForm('designationId', v)}>
                 <SelectTrigger><SelectValue placeholder="Select Designation" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_DESIGNATIONS.map(d => <SelectItem key={d.id} value={d.id}>{d.title}</SelectItem>)}
+                  {([] as any[]).map(d => <SelectItem key={d.id} value={d.id}>{d.title}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -118,7 +119,7 @@ export function AddEmployeeDialog({ open, onOpenChange }: AddEmployeeDialogProps
               <Select value={formData.workLocationId} onValueChange={v => updateForm('workLocationId', v)}>
                 <SelectTrigger><SelectValue placeholder="Select Location" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_WORK_LOCATIONS.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                  {([] as any[]).map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -128,7 +129,7 @@ export function AddEmployeeDialog({ open, onOpenChange }: AddEmployeeDialogProps
                 <SelectTrigger><SelectValue placeholder="Select Manager" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No Manager</SelectItem>
-                  {MOCK_EMPLOYEES.map(e => <SelectItem key={e.id} value={e.id}>{getFullName(e)}</SelectItem>)}
+                  {([] as any[]).map(e => <SelectItem key={e.id} value={e.id}>{(e ? `${e.firstName} ${e.lastName}` : "Unknown")}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

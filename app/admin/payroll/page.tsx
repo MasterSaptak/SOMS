@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MOCK_EMPLOYEES, MOCK_SALARIES, MOCK_PAYSLIPS, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import { Banknote, Download, FileText, TrendingUp, Wallet, Users, ArrowUpRight } from 'lucide-react'
 
 const containerVars = {
@@ -25,8 +26,8 @@ function formatCurrency(amount: number) {
 export default function PayrollPage() {
   const [activeTab, setActiveTab] = useState('overview')
 
-  const totalPayroll = MOCK_SALARIES.reduce((sum, s) => sum + s.baseSalary + s.hra + s.da + s.specialAllowance + s.bonus, 0)
-  const totalDeductions = MOCK_SALARIES.reduce((sum, s) => sum + s.pf + s.tax + s.esi + s.professionalTax, 0)
+  const totalPayroll = ([] as any[]).reduce((sum, s) => sum + s.baseSalary + s.hra + s.da + s.specialAllowance + s.bonus, 0)
+  const totalDeductions = ([] as any[]).reduce((sum, s) => sum + s.pf + s.tax + s.esi + s.professionalTax, 0)
   const netPayroll = totalPayroll - totalDeductions
 
   return (
@@ -72,15 +73,15 @@ export default function PayrollPage() {
               <div className="hidden md:grid grid-cols-[1fr_100px_80px_80px_80px_80px_100px] gap-3 px-4 py-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40">
                 <span>Employee</span><span>Base</span><span>HRA</span><span>DA</span><span>PF</span><span>Tax</span><span>Net</span>
               </div>
-              {MOCK_SALARIES.map(salary => {
-                const emp = MOCK_EMPLOYEES.find(e => e.id === salary.employeeId)
+              {([] as any[]).map(salary => {
+                const emp = ([] as any[]).find(e => e.id === salary.employeeId)
                 const gross = salary.baseSalary + salary.hra + salary.da + salary.specialAllowance + salary.bonus
                 const deductions = salary.pf + salary.tax + salary.esi + salary.professionalTax
                 const net = gross - deductions
                 return (
                   <div key={salary.id} className="grid grid-cols-1 md:grid-cols-[1fr_100px_80px_80px_80px_80px_100px] gap-2 md:gap-3 items-center p-4 border-b border-border/30 hover:bg-muted/20 transition-colors">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{emp ? getFullName(emp) : '—'}</span>
+                      <span className="text-sm font-medium">{emp ? (emp ? `${emp.firstName} ${emp.lastName}` : "Unknown") : '—'}</span>
                       <span className="text-[10px] text-muted-foreground">{emp?.designation?.title || (typeof emp?.designation === 'string' ? emp.designation : '—')}</span>
                     </div>
                     <span className="text-xs font-mono">{formatCurrency(salary.baseSalary)}</span>
@@ -98,8 +99,8 @@ export default function PayrollPage() {
 
         <TabsContent value="payslips">
           <div className="flex flex-col gap-3">
-            {MOCK_PAYSLIPS.map(slip => {
-              const emp = MOCK_EMPLOYEES.find(e => e.id === slip.employeeId)
+            {([] as any[]).map(slip => {
+              const emp = ([] as any[]).find(e => e.id === slip.employeeId)
               return (
                 <Card key={slip.id} className="hover:border-primary/20 transition-colors">
                   <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
@@ -108,7 +109,7 @@ export default function PayrollPage() {
                         <FileText className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{emp ? getFullName(emp) : '—'} — {slip.month}</p>
+                        <p className="text-sm font-medium">{emp ? (emp ? `${emp.firstName} ${emp.lastName}` : "Unknown") : '—'} — {slip.month}</p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                           <span>Gross: {formatCurrency(slip.grossSalary)}</span>
                           <span>Deductions: {formatCurrency(slip.totalDeductions)}</span>

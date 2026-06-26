@@ -59,8 +59,17 @@ export const useSyncStore = create<SyncState>()(
           }))
 
           try {
-            // Mocking an API call
-            await new Promise(resolve => setTimeout(resolve, 800))
+            // Perform actual API call
+            const response = await fetch(action.endpoint, {
+              method: action.method,
+              headers: { 'Content-Type': 'application/json' },
+              body: action.payload ? JSON.stringify(action.payload) : undefined
+            })
+            
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}))
+              throw new Error(errData.message || 'Sync API failed')
+            }
             
             // On success, remove from queue
             set((state) => ({

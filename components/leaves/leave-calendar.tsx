@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Palmtree, Stethoscope, Siren, Building2, Clock, CheckCircle2 } from 'lucide-react'
 import { useLeaveStore } from '@/store/use-leave-store'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -24,7 +25,7 @@ export function LeaveCalendar() {
   const [attendance, setAttendance] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   
-  const [currentDate, setCurrentDate] = useState(new Date('2026-06-01T00:00:00')) // Mocking around June 2026 based on legacy data
+  const [currentDate, setCurrentDate] = useState(new Date())
 
   useEffect(() => {
     async function fetchAttendance() {
@@ -92,8 +93,8 @@ export function LeaveCalendar() {
         if (isMe) {
           events.push({ type: 'me', title: 'My Leave', icon, color: 'bg-primary/10 text-primary border-primary/30' })
         } else {
-          const emp = MOCK_EMPLOYEES.find(e => e.id === leave.employeeId)
-          events.push({ type: 'team', title: emp ? getFullName(emp) : 'Team Member', icon, color: 'bg-muted text-muted-foreground border-border' })
+          const emp = ([] as any[]).find(e => e.id === leave.employeeId)
+          events.push({ type: 'team', title: emp ? (emp ? `${emp.firstName} ${emp.lastName}` : "Unknown") : 'Team Member', icon, color: 'bg-muted text-muted-foreground border-border' })
         }
       }
     })

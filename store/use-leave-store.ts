@@ -3,87 +3,195 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { LeaveRequest, LeaveBalance, LeaveType, LeaveStatus } from '@/lib/types'
-import { MOCK_LEAVES, MOCK_LEAVE_BALANCES } from '@/lib/demo/generators/legacy-mock-data'
+import { createClient } from '@/lib/supabase/client'
 
 interface LeaveState {
   leaves: LeaveRequest[]
   balances: Record<string, LeaveBalance>
 
-  submitLeave: (leave: Omit<LeaveRequest, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'hrId' | 'verificationStatus' | 'payrollProcessed' | 'salaryDeducted'>) => void
-  cancelLeave: (id: string) => void
-  verifyHR: (id: string, hrId: string) => void
-  approveManager: (id: string, managerId: string) => void
-  processPayroll: (id: string) => void
-  rejectLeave: (id: string) => void
+  loading: boolean
+  initialized: boolean
+  error?: string
+
+  loadLeaves: () => Promise<void>
+  refreshLeaves: () => Promise<void>
+  clear: () => void
+
+  submitLeave: (leave: Omit<LeaveRequest, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'hrId' | 'verificationStatus' | 'payrollProcessed' | 'salaryDeducted'>) => Promise<void>
+  cancelLeave: (id: string) => Promise<void>
+  verifyHR: (id: string, hrId: string) => Promise<void>
+  approveManager: (id: string, managerId: string) => Promise<void>
+  processPayroll: (id: string) => Promise<void>
+  rejectLeave: (id: string) => Promise<void>
+  
   getForEmployee: (employeeId: string) => LeaveRequest[]
   getBalance: (employeeId: string) => LeaveBalance
   getPending: () => LeaveRequest[]
 }
 
-const DEFAULT_BALANCE: LeaveBalance = { casual: 2, medical: 2, emergency: 0 }
+const DEFAULT_BALANCE: LeaveBalance = { casual: 0, medical: 0, emergency: 0 }
 
 export const useLeaveStore = create<LeaveState>()(
   persist(
     (set, get) => ({
-      leaves: MOCK_LEAVES,
-      balances: MOCK_LEAVE_BALANCES,
+      leaves: [],
+      balances: {},
 
-      submitLeave: (leave) => {
-        const newLeave: LeaveRequest = {
+      loading: false,
+      initialized: false,
+      error: undefined,
+
+      loadLeaves: async () => {
+        if (get().initialized) return
+        set({ loading: true, error: undefined })
+        try {
+          const supabase = createClient()
+          const { data, error } = await supabase.from('leaves' as any).select('*')
+          if (error) throw error
+          
+          set({ 
+            leaves: data as any, 
+            initialized: true, 
+            loading: false 
+          })
+        } catch (err: any) {
+          set({ error: err.message, loading: false })
+        }
+      },
+
+      refreshLeaves: async () => {
+        set({ loading: true, error: undefined })
+        try {
+          const supabase = createClient()
+          const { data, error } = await supabase.from('leaves' as any).select('*')
+          if (error) throw error
+          
+          set({ 
+            leaves: data as any, 
+            loading: false 
+          })
+        } catch (err: any) {
+          set({ error: err.message, loading: false })
+        }
+      },
+
+      clear: () => {
+        set({
+          leaves: [],
+          balances: {},
+          initialized: false,
+          error: undefined,
+          loading: false
+        })
+      },
+
+      submitLeave: async (leave) => {
+        const supabase = createClient()
+        const newLeave = {
           ...leave,
-          id: `l${Date.now()}`,
           status: 'submitted',
-          hrId: null,
           verificationStatus: 'pending',
           payrollProcessed: false,
           salaryDeducted: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         }
-        set((state) => ({ leaves: [newLeave, ...state.leaves] }))
-        // Mocking an Audit Log entry creation
-        console.log(`[Audit] Leave request submitted by ${leave.employeeId}`)
+        
+        const { data, error } = await supabase.from('leaves' as any).insert([newLeave]).select().single()
+        if (error) throw error
+        set((state) => ({ leaves: [data as any, ...state.leaves] }))
       },
 
-      cancelLeave: (id) => {
+      cancelLeave: async (id) => {
+        const supabase = createClient()
+        const { data, error } = await supabase
+            .from('leaves' as any)
+            .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select().single()
+        
+        if (error) throw error
         set((state) => ({
           leaves: state.leaves.map((l) =>
-            l.id === id ? { ...l, status: 'cancelled' as LeaveStatus, updatedAt: new Date().toISOString() } : l
+            l.id === id ? (data as any) : l
           ),
         }))
       },
 
-      verifyHR: (id, hrId) => {
+      verifyHR: async (id, hrId) => {
+        const supabase = createClient()
+        const { data, error } = await supabase
+            .from('leaves' as any)
+            .update({ 
+                verificationStatus: 'verified', 
+                status: 'hr_verification', 
+                hrId, 
+                updated_at: new Date().toISOString() 
+            })
+            .eq('id', id)
+            .select().single()
+        
+        if (error) throw error
         set((state) => ({
           leaves: state.leaves.map((l) =>
-            l.id === id ? { ...l, verificationStatus: 'verified', status: 'hr_verification' as LeaveStatus, hrId, updatedAt: new Date().toISOString() } : l
+            l.id === id ? (data as any) : l
           ),
         }))
-        console.log(`[Audit] Leave request ${id} verified by HR ${hrId}`)
       },
 
-      approveManager: (id, managerId) => {
+      approveManager: async (id, managerId) => {
+        const supabase = createClient()
+        const { data, error } = await supabase
+            .from('leaves' as any)
+            .update({ 
+                status: 'manager_approval', 
+                managerId, 
+                updated_at: new Date().toISOString() 
+            })
+            .eq('id', id)
+            .select().single()
+        
+        if (error) throw error
         set((state) => ({
           leaves: state.leaves.map((l) =>
-            l.id === id ? { ...l, status: 'manager_approval' as LeaveStatus, managerId, updatedAt: new Date().toISOString() } : l
+            l.id === id ? (data as any) : l
           ),
         }))
-        console.log(`[Audit] Leave request ${id} approved by Manager ${managerId}`)
       },
 
-      processPayroll: (id) => {
+      processPayroll: async (id) => {
+        const supabase = createClient()
+        const { data, error } = await supabase
+            .from('leaves' as any)
+            .update({ 
+                status: 'payroll_processing', 
+                payrollProcessed: true, 
+                updated_at: new Date().toISOString() 
+            })
+            .eq('id', id)
+            .select().single()
+            
+        if (error) throw error
         set((state) => ({
           leaves: state.leaves.map((l) =>
-            l.id === id ? { ...l, status: 'payroll_processing' as LeaveStatus, payrollProcessed: true, updatedAt: new Date().toISOString() } : l
+            l.id === id ? (data as any) : l
           ),
         }))
-        console.log(`[Audit] Leave request ${id} flagged for payroll processing`)
       },
 
-      rejectLeave: (id) => {
+      rejectLeave: async (id) => {
+        const supabase = createClient()
+        const { data, error } = await supabase
+            .from('leaves' as any)
+            .update({ 
+                status: 'rejected', 
+                updated_at: new Date().toISOString() 
+            })
+            .eq('id', id)
+            .select().single()
+        
+        if (error) throw error
         set((state) => ({
           leaves: state.leaves.map((l) =>
-            l.id === id ? { ...l, status: 'rejected' as LeaveStatus, updatedAt: new Date().toISOString() } : l
+            l.id === id ? (data as any) : l
           ),
         }))
       },
@@ -103,8 +211,7 @@ export const useLeaveStore = create<LeaveState>()(
     {
       name: 'soms-leaves',
       partialize: (state) => ({
-        leaves: state.leaves,
-        balances: state.balances,
+          // We do not persist leaves so that they are fetched on reload
       }),
     }
   )

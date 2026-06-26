@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MOCK_ASSETS, MOCK_ASSET_ASSIGNMENTS, MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import { ASSET_CATEGORIES, ASSET_CONDITIONS } from '@/lib/constants'
 import { useAuthStore } from '@/store/use-auth-store'
 import { Search, Monitor, Laptop, Smartphone, Headphones, Package, AlertTriangle } from 'lucide-react'
@@ -34,12 +35,12 @@ export default function AssetsPage() {
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState('my-assets')
 
-  const myAssignments = MOCK_ASSET_ASSIGNMENTS.filter(a => a.employeeId === employee?.id && !a.returnedDate)
-  const myAssets = myAssignments.map(a => ({ ...MOCK_ASSETS.find(as => as.id === a.assetId)!, assignment: a })).filter(a => a.id)
+  const myAssignments = ([] as any[]).filter(a => a.employeeId === employee?.id && !a.returnedDate)
+  const myAssets = myAssignments.map(a => ({ ...([] as any[]).find(as => as.id === a.assetId)!, assignment: a })).filter(a => a.id)
 
-  const allAssets = MOCK_ASSETS.filter(a => search === '' || a.name.toLowerCase().includes(search.toLowerCase()))
+  const allAssets = ([] as any[]).filter(a => search === '' || a.name.toLowerCase().includes(search.toLowerCase()))
 
-  const expiringWarranties = MOCK_ASSETS.filter(a => {
+  const expiringWarranties = ([] as any[]).filter(a => {
     const expiry = new Date(a.warrantyExpiry)
     const now = new Date()
     const diffDays = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
@@ -56,7 +57,7 @@ export default function AssetsPage() {
       {/* Category summary */}
       <motion.div variants={itemVars} className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {(Object.keys(ASSET_CATEGORIES) as Array<keyof typeof ASSET_CATEGORIES>).map(cat => {
-          const count = MOCK_ASSETS.filter(a => a.category === cat).length
+          const count = ([] as any[]).filter(a => a.category === cat).length
           return (
             <Card key={cat} className="hover:border-primary/20 transition-colors">
               <CardContent className="p-4 flex items-center gap-3">
@@ -93,8 +94,8 @@ export default function AssetsPage() {
                       <h3 className="font-semibold text-sm">{asset.name}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">S/N: {asset.serialNumber}</p>
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <Badge variant="outline" className="text-[10px]">{ASSET_CATEGORIES[asset.category].label}</Badge>
-                        <Badge variant="outline" className={`text-[10px] ${ASSET_CONDITIONS[asset.condition].color}`}>{ASSET_CONDITIONS[asset.condition].label}</Badge>
+                        <Badge variant="outline" className="text-[10px]">{ASSET_CATEGORIES[asset.category as keyof typeof ASSET_CATEGORIES].label}</Badge>
+                        <Badge variant="outline" className={`text-[10px] ${ASSET_CONDITIONS[asset.condition as keyof typeof ASSET_CONDITIONS].color}`}>{ASSET_CONDITIONS[asset.condition as keyof typeof ASSET_CONDITIONS].label}</Badge>
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-2">Assigned {new Date(asset.assignment.assignedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
@@ -118,19 +119,19 @@ export default function AssetsPage() {
                 <span>Asset</span><span>Category</span><span>Serial</span><span>Condition</span><span>Status</span><span>Assigned To</span>
               </div>
               {allAssets.map(asset => {
-                const assignment = MOCK_ASSET_ASSIGNMENTS.find(a => a.assetId === asset.id && !a.returnedDate)
-                const assignee = assignment ? MOCK_EMPLOYEES.find(e => e.id === assignment.employeeId) : null
+                const assignment = ([] as any[]).find(a => a.assetId === asset.id && !a.returnedDate)
+                const assignee = assignment ? ([] as any[]).find(e => e.id === assignment.employeeId) : null
                 return (
                   <div key={asset.id} className="grid grid-cols-1 md:grid-cols-[1fr_100px_110px_90px_90px_110px] gap-2 md:gap-3 items-center p-4 border-b border-border/30 hover:bg-muted/20 transition-colors">
                     <div className="flex items-center gap-2">
                       <span className="text-primary">{assetIcons[asset.category]}</span>
                       <span className="text-sm font-medium">{asset.name}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">{ASSET_CATEGORIES[asset.category].label}</span>
+                    <span className="text-xs text-muted-foreground">{ASSET_CATEGORIES[asset.category as keyof typeof ASSET_CATEGORIES].label}</span>
                     <span className="text-xs font-mono text-muted-foreground">{asset.serialNumber}</span>
-                    <Badge variant="outline" className={`text-[10px] w-fit ${ASSET_CONDITIONS[asset.condition].color}`}>{asset.condition}</Badge>
+                    <Badge variant="outline" className={`text-[10px] w-fit ${ASSET_CONDITIONS[asset.condition as keyof typeof ASSET_CONDITIONS].color}`}>{asset.condition}</Badge>
                     <Badge variant="outline" className={`text-[10px] w-fit ${asset.status === 'available' ? 'text-emerald-500' : asset.status === 'assigned' ? 'text-blue-500' : 'text-amber-500'}`}>{asset.status}</Badge>
-                    <span className="text-xs">{assignee ? getFullName(assignee) : '—'}</span>
+                    <span className="text-xs">{assignee ? (assignee ? `${assignee.firstName} ${assignee.lastName}` : "Unknown") : '—'}</span>
                   </div>
                 )
               })}

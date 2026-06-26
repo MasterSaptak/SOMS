@@ -31,7 +31,7 @@ export function useBackgroundSync() {
         
         if (tasks && tasks.length > 0) {
           // 2. Write to IndexedDB
-          await CacheManager.saveTasks(tasks)
+          await CacheManager.saveTasks(tasks as any[])
           
           // 3. Invalidate memory cache so UI re-renders if looking at tasks
           queryClient.invalidateQueries({ queryKey: ['tasks'] })

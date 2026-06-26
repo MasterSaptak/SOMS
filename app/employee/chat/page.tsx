@@ -12,7 +12,8 @@ import {
   Users, Lock, Settings, MoreHorizontal, Phone, Video,
   Pin, MessageSquare,
 } from 'lucide-react'
-import { MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 
 interface Channel {
   id: string
@@ -34,7 +35,7 @@ interface ChatMessage {
   isPinned?: boolean
 }
 
-const MOCK_CHANNELS: Channel[] = [
+const []: Channel[] = [
   { id: 'ch1', name: 'general', type: 'public', members: 8, unread: 3, lastMessage: 'Welcome to the new SOMS chat!', lastMessageTime: '10:30 AM' },
   { id: 'ch2', name: 'engineering', type: 'public', members: 4, unread: 0, lastMessage: 'Pipeline build #234 passed ✅', lastMessageTime: '9:45 AM' },
   { id: 'ch3', name: 'design', type: 'public', members: 3, unread: 1, lastMessage: 'New mockups uploaded to Figma', lastMessageTime: '11:15 AM' },
@@ -44,7 +45,7 @@ const MOCK_CHANNELS: Channel[] = [
   { id: 'ch7', name: 'Mike Johnson', type: 'dm', members: 2, unread: 1, lastMessage: 'Let me check the deployment logs', lastMessageTime: '4:15 PM' },
 ]
 
-const MOCK_MESSAGES: ChatMessage[] = [
+const []: ChatMessage[] = [
   { id: 'm1', senderId: 'e1', senderName: 'Admin User', content: '👋 Welcome to the #general channel! This is the new SOMS internal chat system. Feel free to share updates, ask questions, and collaborate with your team.', timestamp: '2026-06-20T08:00:00Z', isPinned: true },
   { id: 'm2', senderId: 'e2', senderName: 'Priya Sharma', content: 'Exciting! Great to have a built-in chat system. Reminder: the updated WFH policy is now live on the HR portal. Please review it before July 1st.', timestamp: '2026-06-20T08:15:00Z', reactions: [{ emoji: '👍', count: 4 }, { emoji: '✅', count: 2 }] },
   { id: 'm3', senderId: 'e5', senderName: 'Mike Johnson', content: 'The CI/CD pipeline for the main branch is now green. All tests passing. 🎉', timestamp: '2026-06-20T09:30:00Z', reactions: [{ emoji: '🎉', count: 3 }] },
@@ -60,13 +61,13 @@ export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const activeChannel = MOCK_CHANNELS.find((c) => c.id === selectedChannel)
+  const activeChannel = ([] as any[]).find((c) => c.id === selectedChannel)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [selectedChannel])
 
-  const filteredChannels = MOCK_CHANNELS.filter((ch) =>
+  const filteredChannels = ([] as any[]).filter((ch) =>
     ch.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -182,11 +183,11 @@ export default function ChatPage() {
           {/* Messages */}
           <ScrollArea className="flex-1 px-4 py-4">
             <div className="flex flex-col gap-4">
-              {MOCK_MESSAGES.map((msg) => (
+              {([] as any[]).map((msg) => (
                 <div key={msg.id} className="flex gap-3 group">
                   <Avatar className="w-8 h-8 shrink-0 mt-0.5">
                     <AvatarFallback className="text-xs">
-                      {msg.senderName.split(' ').map(n => n[0]).join('')}
+                      {msg.senderName.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -204,7 +205,7 @@ export default function ChatPage() {
                     <p className="text-sm text-foreground mt-0.5 leading-relaxed">{msg.content}</p>
                     {msg.reactions && msg.reactions.length > 0 && (
                       <div className="flex items-center gap-1.5 mt-1.5">
-                        {msg.reactions.map((r, i) => (
+                        {msg.reactions.map((r: any, i: number) => (
                           <button
                             key={i}
                             className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted hover:bg-muted/80 text-xs transition-colors"

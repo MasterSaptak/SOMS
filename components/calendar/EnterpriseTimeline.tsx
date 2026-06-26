@@ -81,7 +81,7 @@ export function EnterpriseTimeline() {
   const urlProjectId = searchParams?.get('project_id')
   const [country, setCountry] = useState<Country>('Global')
   
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 1)) // June 2026 demo
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [viewScope, setViewScope] = useState<ViewScope>('my_calendar')
   const [focusMode, setFocusMode] = useState(false)
   

@@ -6,11 +6,12 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, XCircle, ArrowRight } from 'lucide-react'
-import { MOCK_LEAVES, getEmployeeById, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import Link from 'next/link'
 
 export function PendingApprovalsWidget() {
-  const [leaves, setLeaves] = useState(MOCK_LEAVES.filter(l => l.status === 'pending'))
+  const [leaves, setLeaves] = useState(([] as any[]).filter(l => l.status === 'pending'))
   const [actioned, setActioned] = useState<Record<string, 'approved' | 'rejected'>>({})
 
   const handleAction = (id: string, action: 'approved' | 'rejected') => {
@@ -34,7 +35,7 @@ export function PendingApprovalsWidget() {
       <CardContent className="p-0 flex-1 overflow-y-auto">
         <div className="flex flex-col divide-y divide-border/30">
           {leaves.map(leave => {
-            const employee = getEmployeeById(leave.employeeId)
+            const employee: any = undefined
             const isActioned = !!actioned[leave.id]
             const actionType = actioned[leave.id]
             
@@ -59,7 +60,7 @@ export function PendingApprovalsWidget() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="font-semibold text-sm truncate">
-                        {employee ? getFullName(employee) : 'Unknown Employee'}
+                        {employee ? (employee ? `${employee.firstName} ${employee.lastName}` : "Unknown") : 'Unknown Employee'}
                       </div>
                       <Badge variant="outline" className={`text-[9px] capitalize shrink-0 ${typeColor}`}>
                         {leave.leaveType}

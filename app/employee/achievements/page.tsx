@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { useAuthStore } from '@/store/use-auth-store'
-import { MOCK_ACHIEVEMENTS } from '@/lib/demo/generators/legacy-mock-data'
 import { Trophy, Lock, Star, Flame, Zap, Target, Shield, Clock, Award, Crown, Users, Coffee } from 'lucide-react'
 
 const containerVars = {
@@ -47,7 +46,7 @@ const tierBorders = {
 export default function AchievementsPage() {
   const { employee } = useAuthStore()
 
-  const myAchievements = MOCK_ACHIEVEMENTS.filter(a => a.employeeId === employee?.id)
+  const myAchievements = ([] as any[]).filter(a => a.employeeId === employee?.id)
   const unlocked = myAchievements.filter(a => a.unlockedAt)
   const inProgress = myAchievements.filter(a => !a.unlockedAt)
 
@@ -104,7 +103,7 @@ export default function AchievementsPage() {
           <p className="text-xs text-muted-foreground mt-1">Total XP</p>
         </CardContent></Card>
         <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold">{MOCK_ACHIEVEMENTS.length}</p>
+          <p className="text-2xl font-bold">{([] as any[]).length}</p>
           <p className="text-xs text-muted-foreground mt-1">Total Available</p>
         </CardContent></Card>
       </motion.div>
@@ -114,11 +113,11 @@ export default function AchievementsPage() {
         <motion.div variants={itemVars}>
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-primary" />Unlocked Achievements</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {unlocked.map(ach => (
-              <Card key={ach.id} className={`hover:shadow-md transition-all ${tierBorders[ach.tier]}`}>
+            {unlocked.map((ach: any) => (
+              <Card key={ach.id} className={`hover:shadow-md transition-all ${tierBorders[ach.tier as keyof typeof tierBorders]}`}>
                 <CardContent className="p-5 flex items-start gap-4">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${tierColors[ach.tier]} flex items-center justify-center shrink-0 shadow-sm`}>
-                    {achievementIcons[ach.achievementId] || <Award className="w-6 h-6" />}
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${tierColors[ach.tier as keyof typeof tierColors]} flex items-center justify-center shrink-0 shadow-sm`}>
+                    {achievementIcons[ach.achievementId as keyof typeof achievementIcons] || <Award className="w-6 h-6" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">

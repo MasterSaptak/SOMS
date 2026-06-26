@@ -7,7 +7,7 @@ type Asset = Database['public']['Tables']['assets']['Row']
 type Consumable = Database['public']['Tables']['consumables']['Row']
 type InventoryCheckup = Database['public']['Tables']['inventory_checkups']['Row']
 
-export class InventoryRepository extends BaseRepository<Asset> {
+export class InventoryRepository extends BaseRepository<any> {
   constructor() {
     super('assets')
   }

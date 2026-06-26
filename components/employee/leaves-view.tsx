@@ -15,7 +15,8 @@ import { usePolicyStore } from '@/store/use-policy-store'
 import { ApplyLeaveWizard } from '@/components/leaves/apply-leave-wizard'
 import { EnterpriseTimeline } from '@/components/calendar/EnterpriseTimeline'
 import { LEAVE_TYPES, LEAVE_STATUSES } from '@/lib/constants'
-import { MOCK_EMPLOYEES, getFullName } from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import type { LeaveType, LeaveStatus } from '@/lib/types'
 import {
   Plus, Calendar, Clock, X, FileText, CheckCircle2,
@@ -73,7 +74,7 @@ function ApplyLeaveDialog({ onClose }: { onClose: () => void }) {
   // Emergency Fields
   const [emergencyCategory, setEmergencyCategory] = useState('Family')
 
-  const managers = MOCK_EMPLOYEES.filter(e => e.id !== employee?.id)
+  const managers = ([] as any[]).filter(e => e.id !== employee?.id)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -277,7 +278,7 @@ function ApplyLeaveDialog({ onClose }: { onClose: () => void }) {
                   >
                     <option value="">Select manager...</option>
                     {managers.map((mgr) => (
-                      <option key={mgr.id} value={mgr.id}>{getFullName(mgr)} — {mgr.designation?.title || (typeof mgr.designation === 'string' ? mgr.designation : '—')}</option>
+                      <option key={mgr.id} value={mgr.id}>{(mgr ? `${mgr.firstName} ${mgr.lastName}` : "Unknown")} — {mgr.designation?.title || (typeof mgr.designation === 'string' ? mgr.designation : '—')}</option>
                     ))}
                   </select>
                 </div>

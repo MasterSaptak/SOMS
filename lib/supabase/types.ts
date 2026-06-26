@@ -24,12 +24,18 @@ export type Database = {
         Row: {
           id: string
           user_id: string
+          organization_id: string | null
           employee_id_string: string | null
           full_name: string
           email: string
           phone: string | null
           department: string | null
+          department_id: string | null
+          team_id: string | null
           designation: string | null
+          designation_id: string | null
+          work_location_id: string | null
+          manager_id: string | null
           joining_date: string | null
           profile_photo: string | null
           address: string | null
@@ -38,8 +44,8 @@ export type Database = {
           created_at: string | null
           updated_at: string | null
         }
-        Insert: { id?: string; user_id: string; employee_id_string?: string | null; full_name: string; email: string; phone?: string | null; department?: string | null; designation?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
-        Update: { id?: string; user_id?: string; employee_id_string?: string | null; full_name?: string; email?: string; phone?: string | null; department?: string | null; designation?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
+        Insert: { id?: string; user_id: string; organization_id?: string | null; employee_id_string?: string | null; full_name: string; email: string; phone?: string | null; department?: string | null; department_id?: string | null; team_id?: string | null; designation?: string | null; designation_id?: string | null; work_location_id?: string | null; manager_id?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
+        Update: { id?: string; user_id?: string; organization_id?: string | null; employee_id_string?: string | null; full_name?: string; email?: string; phone?: string | null; department?: string | null; department_id?: string | null; team_id?: string | null; designation?: string | null; designation_id?: string | null; work_location_id?: string | null; manager_id?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
         Relationships: []
       }
       attendance: {

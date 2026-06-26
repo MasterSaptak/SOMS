@@ -5,14 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { MapPin, Calendar, Building2, Users, Phone, Edit, ChevronRight } from 'lucide-react'
-import { 
-  getDesignationById, 
-  getDepartmentById, 
-  getTeamById, 
-  getWorkLocationById, 
-  getManagerById, 
-  getFullName 
-} from '@/lib/demo/generators/legacy-mock-data'
+import { EmptyState } from '@/components/ui/empty-state';
+// TODO: Fetch real data instead of mock data
 import type { Employee } from '@/lib/types'
 
 interface ProfileHeroProps {
@@ -22,11 +16,11 @@ interface ProfileHeroProps {
 }
 
 export function ProfileHero({ employee, isAdminView, onEditClick }: ProfileHeroProps) {
-  const designation = getDesignationById(employee.designationId)
-  const department = getDepartmentById(employee.departmentId)
-  const team = getTeamById(employee.teamId)
-  const location = getWorkLocationById(employee.workLocationId)
-  const manager = getManagerById(employee.managerId)
+  const designation: any = undefined
+  const department: any = undefined
+  const team: any = undefined
+  const location: any = undefined
+  const manager: any = undefined
 
   const initials = `${employee.firstName[0]}${employee.lastName[0]}`
   
@@ -62,7 +56,7 @@ export function ProfileHero({ employee, isAdminView, onEditClick }: ProfileHeroP
             <div className="flex-1 min-w-0 flex flex-col gap-3">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight">{getFullName(employee)}</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">{(employee ? `${employee.firstName} ${employee.lastName}` : "Unknown")}</h2>
                   <div className="text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
                     <span className="font-medium text-foreground">{designation?.title || 'No Designation'}</span>
                     <span className="text-muted-foreground/40">•</span>
@@ -120,7 +114,7 @@ export function ProfileHero({ employee, isAdminView, onEditClick }: ProfileHeroP
                       <AvatarImage src={manager.avatarUrl || undefined} />
                       <AvatarFallback className="text-[8px] bg-primary/10">{manager.firstName[0]}{manager.lastName[0]}</AvatarFallback>
                     </Avatar>
-                    <span>{getFullName(manager)}</span>
+                    <span>{(manager ? `${manager.firstName} ${manager.lastName}` : "Unknown")}</span>
                   </div>
                 </div>
               )}
