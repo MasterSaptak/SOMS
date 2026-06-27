@@ -21,9 +21,11 @@ export function NavigationSystem() {
 
   return (
     <>
+      {/* Desktop & Tablet: sidebar visible */}
       <div className="hidden md:block">
         <AppSidebar />
       </div>
+      {/* Mobile: bottom navigation + sidebar available via sheet */}
       {isMobile && <MobileBottomNav />}
     </>
   )

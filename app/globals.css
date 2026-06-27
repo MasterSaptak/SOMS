@@ -272,3 +272,12 @@
 @media (max-width: 640px) {
   .bento-hero, .bento-wide, .bento-tall { grid-column: span 1; grid-row: span 1; }
 }
+
+/* ─── Mobile Utilities ─── */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

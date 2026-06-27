@@ -5,6 +5,7 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
+  // @ts-expect-error - skipWaiting is supported by next-pwa but missing from its type definitions
   skipWaiting: true,
   scope: "/",
 });

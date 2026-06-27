@@ -18,6 +18,9 @@ const TasksView = dynamic(() => import('@/components/employee/tasks-view'), {
 const LeavesView = dynamic(() => import('@/components/employee/leaves-view'), {
   loading: () => <TabLoader />
 })
+const PayrollView = dynamic(() => import('@/components/employee/payroll-view'), {
+  loading: () => <TabLoader />
+})
 
 function TabLoader() {
   return (
@@ -47,6 +50,9 @@ export function KeepAliveTabs() {
       </div>
       <div style={{ display: activeTab === 'leaves' ? 'block' : 'none' }}>
         <LeavesView />
+      </div>
+      <div style={{ display: activeTab === 'payroll' ? 'block' : 'none' }}>
+        <PayrollView />
       </div>
     </div>
   )

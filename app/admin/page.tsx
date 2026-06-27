@@ -1,22 +1,26 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { BentoGrid, BentoSlot } from '@/components/enterprise/layout/bento-grid'
 import { MetricCard } from '@/components/enterprise/primitives/metric-card'
 import { ExecutiveOverview } from '@/components/dashboard/bento/executive-overview'
-import { AttendanceChart } from '@/components/dashboard/bento/attendance-chart'
-import { DepartmentPerformance } from '@/components/dashboard/bento/department-performance'
-import { HeadcountDonut } from '@/components/dashboard/bento/headcount-donut'
 import { AICopilotPanel } from '@/components/dashboard/bento/ai-copilot-panel'
-import { LiveActivity } from '@/components/dashboard/bento/live-activity'
 import { WorkspaceStatus } from '@/components/dashboard/bento/workspace-status'
 import { QuickActions } from '@/components/dashboard/bento/quick-actions'
 import { PendingApprovalsBento } from '@/components/dashboard/bento/pending-approvals-bento'
 import { SystemUpdateCenter } from '@/components/dashboard/bento/system-update-center'
 import {
-  Users, Clock, CalendarRange, Activity, Calendar, CheckSquare, Briefcase,
+  Users, Clock, CalendarRange, Activity, Calendar, CheckSquare, Briefcase, Loader2
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state';
+
+const ChartLoader = () => <div className="flex items-center justify-center h-full min-h-[200px] bg-surface-secondary/20 rounded-xl animate-pulse"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+
+const AttendanceChart = dynamic(() => import('@/components/dashboard/bento/attendance-chart').then(mod => mod.AttendanceChart), { loading: ChartLoader, ssr: false })
+const DepartmentPerformance = dynamic(() => import('@/components/dashboard/bento/department-performance').then(mod => mod.DepartmentPerformance), { loading: ChartLoader, ssr: false })
+const HeadcountDonut = dynamic(() => import('@/components/dashboard/bento/headcount-donut').then(mod => mod.HeadcountDonut), { loading: ChartLoader, ssr: false })
+const LiveActivity = dynamic(() => import('@/components/dashboard/bento/live-activity').then(mod => mod.LiveActivity), { loading: ChartLoader, ssr: false })
 // TODO: Fetch real data instead of mock data
 
 export default function AdminDashboard() {
