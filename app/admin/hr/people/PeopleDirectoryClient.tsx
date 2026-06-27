@@ -11,9 +11,12 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getPeopleAction, updatePersonAction, createPersonAction, bulkUpdateStatusAction, deletePersonAction } from '@/app/actions/people.actions'
+import { assignToOrganization } from '@/app/actions/identity.actions'
 import PersonProfileDrawer from './PersonProfileDrawer'
 import ChangeLifecycleDialog from './ChangeLifecycleDialog'
+import AssignOrganizationDialog from './AssignOrganizationDialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { useAuthStore } from '@/store/use-auth-store'
 
 interface PersonSummary {
   id: string
@@ -54,6 +57,7 @@ interface Props {
   }
   organizationId: string | null
   searchQuery?: string
+  unassignedUsers?: any[]
 }
 
 const statusColors: Record<string, string> = {
@@ -66,8 +70,10 @@ const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
 }
 
-export default function PeopleDirectoryClient({ initialData, filterOptions, organizationId, searchQuery = '' }: Props) {
+export default function PeopleDirectoryClient({ initialData, filterOptions, organizationId, searchQuery = '', unassignedUsers = [] }: Props) {
+  const [activeTab, setActiveTab] = useState<'directory' | 'unassigned'>('directory')
   const [people, setPeople] = useState<PaginatedPeople>(initialData)
+  const { currentOrganization } = useAuthStore()
   const [search, setSearch] = useState(searchQuery)
   const [statusFilter, setStatusFilter] = useState('all')
   const [deptFilter, setDeptFilter] = useState('all')
@@ -79,6 +85,7 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
   const [isPending, startTransition] = useTransition()
   const [actionMenu, setActionMenu] = useState<string | null>(null)
   const [lifecycleDialogPerson, setLifecycleDialogPerson] = useState<PersonSummary | null>(null)
+  const [assignOrgPerson, setAssignOrgPerson] = useState<PersonSummary | null>(null)
 
   // Sync global search
   React.useEffect(() => {
@@ -172,6 +179,24 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
   }
 
+  const handleAssign = (userId: string) => {
+    const orgId = currentOrganization?.id || organizationId
+    if (!orgId) {
+      toast.error('No organization selected')
+      return
+    }
+    startTransition(async () => {
+      const res = await assignToOrganization(userId, orgId, 'employee')
+      if (res.error) {
+        toast.error(res.error)
+      } else {
+        toast.success("User assigned successfully.")
+        // Refresh by reloading page since we need unassignedUsers refreshed
+        window.location.reload()
+      }
+    })
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -183,18 +208,61 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowCreateDialog(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium transition-colors shadow-sm"
-          >
-            <Plus size={16} />
-            Add Person
-          </button>
+          {activeTab === 'directory' ? (
+            <button
+              onClick={() => setShowCreateDialog(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium transition-colors shadow-sm"
+            >
+              <Plus size={16} />
+              Add Person
+            </button>
+          ) : (
+            <a
+              href="/admin/settings/organization"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium transition-colors shadow-sm"
+            >
+              <Building2 size={16} />
+              Create Organization
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Sticky Toolbar */}
-      <div className="sticky top-14 z-10 bg-surface-base py-3 border-b border-border/50 flex flex-col sm:flex-row gap-3 shadow-sm -mx-2 px-2">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-border">
+        <button
+          onClick={() => setActiveTab('directory')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'directory' 
+              ? 'border-primary text-primary' 
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Directory
+        </button>
+        <button
+          onClick={() => setActiveTab('unassigned')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'unassigned' 
+              ? 'border-primary text-primary' 
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <UserPlus className="w-4 h-4" />
+          Unassigned Users
+          {unassignedUsers.length > 0 && (
+            <span className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 px-2 py-0.5 rounded-full text-xs">
+              {unassignedUsers.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'directory' ? (
+        <>
+          {/* Sticky Toolbar */}
+          <div className="sticky top-14 z-10 bg-surface-base py-3 border-b border-border/50 flex flex-col sm:flex-row gap-3 shadow-sm -mx-2 px-2">
         <div className="relative flex-1 max-w-sm hidden sm:block">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -213,13 +281,7 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
           <Filter size={15} />
           Filters
         </button>
-        <button
-          onClick={() => setShowCreateDialog(true)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground transition-all shadow-sm"
-        >
-          <Plus size={15} />
-          Add Person
-        </button>
+
         <button
           onClick={() => fetchPeople(1)}
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground transition-all shadow-sm ml-auto"
@@ -400,7 +462,7 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
                             <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <FolderKanban size={14} className="text-muted-foreground" /> Assign Project
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => setAssignOrgPerson(person)} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <Building2 size={14} className="text-muted-foreground" /> Assign Organization
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
@@ -468,7 +530,57 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
           </div>
         )}
       </div>
-
+        </>
+      ) : (
+        <div className="bg-surface-primary border border-border rounded-xl overflow-hidden mt-6">
+          {unassignedUsers.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
+              <UserCheck size={32} className="mb-2 text-primary/40" />
+              <p>No unassigned users found.</p>
+              <p className="text-sm">All registered users are assigned to an organization.</p>
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted/50 border-b border-border text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-medium">User Email</th>
+                  <th className="px-4 py-3 font-medium">Joined Date</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {unassignedUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-foreground">{user.email}</div>
+                      <div className="text-xs text-muted-foreground font-mono mt-1">{user.id}</div>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-xs font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                        Unassigned
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button 
+                        onClick={() => handleAssign(user.id)}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        Assign to Organization
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
       {/* Person Profile Drawer */}
       {selectedPerson && (
         <PersonProfileDrawer
@@ -487,6 +599,18 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
           personName={lifecycleDialogPerson.full_name}
           onClose={() => setLifecycleDialogPerson(null)}
           onUpdate={() => fetchPeople(people.page)}
+        />
+      )}
+
+      {/* Assign Organization Dialog */}
+      {assignOrgPerson && (
+        <AssignOrganizationDialog
+          employee={assignOrgPerson}
+          onClose={() => setAssignOrgPerson(null)}
+          onAssigned={() => {
+            setAssignOrgPerson(null)
+            fetchPeople(people.page)
+          }}
         />
       )}
 

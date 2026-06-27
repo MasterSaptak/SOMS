@@ -6,7 +6,7 @@ import { permissionService } from '@/lib/services/permission.service'
 import { Result, failure } from '@/lib/utils/result'
 import { AuthError, PermissionError } from '@/lib/errors'
 import type { Organization, OrganizationMember, OrganizationInvitation } from '@/types/organizations'
-import type { CreateOrganizationInput, InviteMemberInput } from '@/lib/validators/organization.validator'
+import type { CreateOrganizationInput, UpdateOrganizationInput, InviteMemberInput } from '@/lib/validators/organization.validator'
 
 async function getAuthContext() {
   const supabase = await createClient()
@@ -28,6 +28,20 @@ export async function createOrganizationAction(
     return await organizationService.createOrganization(input, userId)
   } catch (err) {
     return failure(err instanceof Error ? err : new Error('Failed to create organization'))
+  }
+}
+
+/**
+ * Update an existing organization.
+ */
+export async function updateOrganizationAction(
+  input: UpdateOrganizationInput
+): Promise<Result<Organization>> {
+  try {
+    const { userId } = await getAuthContext()
+    return await organizationService.updateOrganization(input, userId)
+  } catch (err) {
+    return failure(err instanceof Error ? err : new Error('Failed to update organization'))
   }
 }
 

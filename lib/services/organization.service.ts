@@ -49,6 +49,9 @@ export class OrganizationService {
 
     if (orgError) {
       logger.error('[OrganizationService] createOrganization failed', orgError)
+      if (orgError.code === '23505') {
+        return failure(new Error(`An organization with this name or slug already exists. Try a different URL Slug.`))
+      }
       return failure(new Error(orgError.message))
     }
 
@@ -94,6 +97,35 @@ export class OrganizationService {
     })
 
     return success(org)
+  }
+
+  /**
+   * Update an organization. Only owners and admins can update.
+   */
+  async updateOrganization(
+    input: UpdateOrganizationInput, 
+    requestingUserId: string
+  ): Promise<Result<Organization>> {
+    const orgResult = await organizationRepository.findById(input.id)
+    if (!orgResult.success) {
+      return failure(new NotFoundError('Organization not found'))
+    }
+
+    const requesterResult = await organizationRepository.findMember(input.id, requestingUserId)
+    if (!requesterResult.success || !['owner', 'admin'].includes(requesterResult.data.role)) {
+      return failure(new PermissionError('Only owners and admins can update the organization'))
+    }
+
+    const updateResult = await organizationRepository.updateOrganization(input.id, input)
+    if (!updateResult.success) {
+      return failure(updateResult.error)
+    }
+
+    await eventBus.publish(
+      eventBus.createEvent('organization.updated', { orgId: input.id, updatedBy: requestingUserId })
+    )
+
+    return success(updateResult.data)
   }
 
   /**

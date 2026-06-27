@@ -115,6 +115,7 @@ const NAV_SECTIONS = {
       {
         label: null,
         items: [
+          { label: 'Organization', href: '/admin/organization', icon: 'Building2' },
           { label: 'Workforce',   href: '/admin/hr',         icon: 'Users' },
         ],
       },
@@ -138,23 +139,6 @@ const NAV_SECTIONS = {
         items: [
           { label: 'Assets',  href: '/admin/assets',  icon: 'Package' },
           { label: 'Consumables', href: '/admin/consumables', icon: 'Boxes' },
-        ],
-      },
-      {
-        label: null,
-        items: [
-          { label: 'Settings', href: '/admin/settings', icon: 'Settings2' },
-        ],
-      },
-    ],
-  },
-  reception: {
-    label: 'Front Desk',
-    groups: [
-      {
-        label: null,
-        items: [
-          { label: 'Visitors', href: '/reception', icon: 'UserPlus' },
         ],
       },
     ],

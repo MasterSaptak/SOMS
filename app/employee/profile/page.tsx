@@ -30,7 +30,7 @@ export default function ProfileRedirectPage() {
       }
 
       // If absolutely nothing is found, just go to directory
-      router.replace('/admin/hr/directory')
+      router.replace('/admin/hr/people')
     }
 
     redirectUser()

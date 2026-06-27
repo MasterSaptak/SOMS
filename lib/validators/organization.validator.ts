@@ -11,6 +11,10 @@ export const createOrganizationSchema = z.object({
   size: z.enum(['1-10', '11-50', '51-200', '201-500', '500+']).optional().nullable(),
 })
 
+export const updateOrganizationSchema = createOrganizationSchema.partial().extend({
+  id: z.string().uuid('Invalid organization ID'),
+})
+
 export const inviteMemberSchema = z.object({
   email: z.string().email('Invalid email address'),
   role: z.enum(['admin', 'manager', 'employee', 'guest']),
@@ -31,6 +35,7 @@ export const acceptInvitationSchema = z.object({
 })
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>
+export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>
 export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>
 export type SwitchOrganizationInput = z.infer<typeof switchOrganizationSchema>

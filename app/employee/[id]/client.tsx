@@ -197,7 +197,7 @@ export default function EmployeeProfileClient({ initialData, employeeId }: { ini
                   <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-primary" /> Organization Hierarchy
                   </Label>
-                  <OrgPositionTrail employee={employee} />
+                  <OrgPositionTrail employee={employee} hierarchyContext={initialData.hierarchyContext} />
                 </div>
                 
                 <div className="mt-2 border-t border-border/50 pt-4">

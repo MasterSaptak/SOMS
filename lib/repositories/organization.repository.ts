@@ -34,6 +34,32 @@ export class OrganizationRepository extends BaseRepository<'organizations'> {
     }
   }
 
+  async updateOrganization(orgId: string, updates: Partial<Organization>): Promise<Result<Organization>> {
+    try {
+      const client = await this.getClient()
+      
+      const { data, error } = await client
+        .from('organizations')
+        .update({
+          name: updates.name,
+          slug: updates.slug,
+          industry: updates.industry,
+          size: updates.size,
+          website: updates.website,
+          updated_at: new Date().toISOString()
+        } as never)
+        .eq('id' as never, orgId)
+        .select()
+        .single()
+
+      if (error || !data) return failure(new Error(`Failed to update organization: ${error?.message}`))
+      return success(data as object as Organization)
+    } catch (err) {
+      logger.error('[OrganizationRepository] updateOrganization failed', err)
+      return failure(err as Error)
+    }
+  }
+
   async findUserMemberships(userId: string): Promise<Result<OrganizationMember[]>> {
     try {
       const sb = await getUntypedClient()

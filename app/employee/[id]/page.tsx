@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { getEmployee360Action, getAllSkillsAction } from '@/app/actions/employee.actions'
+import { orgEmployeeService } from '@/lib/services/organization/employee.service'
 import EmployeeProfileClient from './client'
 import { redirect } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
@@ -10,9 +11,10 @@ export const metadata = {
 
 export default async function EmployeeProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
-  const [res, skillsRes] = await Promise.all([
+  const [res, skillsRes, hierarchyRes] = await Promise.all([
     getEmployee360Action(resolvedParams.id),
-    getAllSkillsAction()
+    getAllSkillsAction(),
+    orgEmployeeService.getEmployeeHierarchyContext(resolvedParams.id)
   ])
 
   if (!res.success) {
@@ -29,7 +31,8 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
 
   const initialData = {
     ...res.data,
-    availableSkills: skillsRes.success ? skillsRes.data : []
+    availableSkills: skillsRes.success ? skillsRes.data : [],
+    hierarchyContext: hierarchyRes.success ? hierarchyRes.data : null
   }
 
   return <EmployeeProfileClient initialData={initialData} employeeId={resolvedParams.id} />

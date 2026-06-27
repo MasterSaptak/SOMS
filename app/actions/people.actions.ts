@@ -19,6 +19,8 @@ export async function createPersonAction(data: {
   full_name: string
   email: string
   organization_id?: string
+  organization_member_id?: string
+  user_id?: string
   phone?: string
   department?: string
   designation?: string

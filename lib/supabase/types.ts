@@ -25,6 +25,7 @@ export type Database = {
           id: string
           user_id: string
           organization_id: string | null
+          organization_member_id: string | null
           employee_id_string: string | null
           full_name: string
           email: string
@@ -44,8 +45,8 @@ export type Database = {
           created_at: string | null
           updated_at: string | null
         }
-        Insert: { id?: string; user_id: string; organization_id?: string | null; employee_id_string?: string | null; full_name: string; email: string; phone?: string | null; department?: string | null; department_id?: string | null; team_id?: string | null; designation?: string | null; designation_id?: string | null; work_location_id?: string | null; manager_id?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
-        Update: { id?: string; user_id?: string; organization_id?: string | null; employee_id_string?: string | null; full_name?: string; email?: string; phone?: string | null; department?: string | null; department_id?: string | null; team_id?: string | null; designation?: string | null; designation_id?: string | null; work_location_id?: string | null; manager_id?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
+        Insert: { id?: string; user_id: string; organization_id?: string | null; organization_member_id?: string | null; employee_id_string?: string | null; full_name: string; email: string; phone?: string | null; department?: string | null; department_id?: string | null; team_id?: string | null; designation?: string | null; designation_id?: string | null; work_location_id?: string | null; manager_id?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
+        Update: { id?: string; user_id?: string; organization_id?: string | null; organization_member_id?: string | null; employee_id_string?: string | null; full_name?: string; email?: string; phone?: string | null; department?: string | null; department_id?: string | null; team_id?: string | null; designation?: string | null; designation_id?: string | null; work_location_id?: string | null; manager_id?: string | null; joining_date?: string | null; profile_photo?: string | null; address?: string | null; emergency_contact?: string | null; employment_status?: string | null; created_at?: string | null; updated_at?: string | null }
         Relationships: []
       }
       attendance: {
@@ -89,18 +90,21 @@ export type Database = {
       tasks: {
         Row: {
           id: string
+          organization_id: string | null
           title: string
           description: string | null
           status: string | null
           priority: string | null
           assigned_to: string | null
+          project_id: string | null
+          team_id: string | null
           created_by: string | null
           deadline: string | null
           created_at: string | null
           updated_at: string | null
         }
-        Insert: { id?: string; title: string; description?: string | null; status?: string | null; priority?: string | null; assigned_to?: string | null; created_by?: string | null; deadline?: string | null; created_at?: string | null; updated_at?: string | null }
-        Update: { id?: string; title?: string; description?: string | null; status?: string | null; priority?: string | null; assigned_to?: string | null; created_by?: string | null; deadline?: string | null; created_at?: string | null; updated_at?: string | null }
+        Insert: { id?: string; organization_id?: string | null; title: string; description?: string | null; status?: string | null; priority?: string | null; assigned_to?: string | null; project_id?: string | null; team_id?: string | null; created_by?: string | null; deadline?: string | null; created_at?: string | null; updated_at?: string | null }
+        Update: { id?: string; organization_id?: string | null; title?: string; description?: string | null; status?: string | null; priority?: string | null; assigned_to?: string | null; project_id?: string | null; team_id?: string | null; created_by?: string | null; deadline?: string | null; created_at?: string | null; updated_at?: string | null }
         Relationships: []
       }
       task_updates: {
@@ -150,9 +154,9 @@ export type Database = {
         Relationships: []
       }
       audit_logs: {
-        Row: { id: string; user_id: string | null; action: string; resource: string; details: Json | null; ip_address: string | null; user_agent: string | null; created_at: string | null; }
-        Insert: { id?: string; user_id?: string | null; action: string; resource: string; details?: Json | null; ip_address?: string | null; user_agent?: string | null; created_at?: string | null; }
-        Update: { id?: string; user_id?: string | null; action?: string; resource?: string; details?: Json | null; ip_address?: string | null; user_agent?: string | null; created_at?: string | null; }
+        Row: { id: string; organization_id: string | null; user_id: string | null; action: string; resource: string; details: Json | null; ip_address: string | null; user_agent: string | null; created_at: string | null; }
+        Insert: { id?: string; organization_id?: string | null; user_id?: string | null; action: string; resource: string; details?: Json | null; ip_address?: string | null; user_agent?: string | null; created_at?: string | null; }
+        Update: { id?: string; organization_id?: string | null; user_id?: string | null; action?: string; resource?: string; details?: Json | null; ip_address?: string | null; user_agent?: string | null; created_at?: string | null; }
         Relationships: []
       }
       workflows: {
@@ -180,9 +184,9 @@ export type Database = {
         Relationships: []
       }
       document_categories: {
-        Row: { id: string; name: string; slug: string; description: string | null; created_at: string | null; }
-        Insert: { id?: string; name: string; slug: string; description?: string | null; created_at?: string | null; }
-        Update: { id?: string; name?: string; slug?: string; description?: string | null; created_at?: string | null; }
+        Row: { id: string; organization_id: string | null; name: string; slug: string; description: string | null; created_at: string | null; }
+        Insert: { id?: string; organization_id?: string | null; name: string; slug: string; description?: string | null; created_at?: string | null; }
+        Update: { id?: string; organization_id?: string | null; name?: string; slug?: string; description?: string | null; created_at?: string | null; }
         Relationships: []
       }
       documents: {
@@ -234,9 +238,9 @@ export type Database = {
         Relationships: []
       }
       teams: {
-        Row: { id: string; department_id: string; name: string; lead_id: string | null; created_at: string | null; updated_at: string | null; }
-        Insert: { id?: string; department_id: string; name: string; lead_id?: string | null; created_at?: string | null; updated_at?: string | null; }
-        Update: { id?: string; department_id?: string; name?: string; lead_id?: string | null; created_at?: string | null; updated_at?: string | null; }
+        Row: { id: string; organization_id: string | null; department_id: string; name: string; lead_id: string | null; created_at: string | null; updated_at: string | null; }
+        Insert: { id?: string; organization_id?: string | null; department_id: string; name: string; lead_id?: string | null; created_at?: string | null; updated_at?: string | null; }
+        Update: { id?: string; organization_id?: string | null; department_id?: string; name?: string; lead_id?: string | null; created_at?: string | null; updated_at?: string | null; }
         Relationships: []
       }
       branches: {
@@ -246,9 +250,9 @@ export type Database = {
         Relationships: []
       }
       locations: {
-        Row: { id: string; name: string; address: string; city: string; country: string; created_at: string | null; }
-        Insert: { id?: string; name: string; address: string; city: string; country: string; created_at?: string | null; }
-        Update: { id?: string; name?: string; address?: string; city?: string; country?: string; created_at?: string | null; }
+        Row: { id: string; organization_id: string | null; name: string; address: string; city: string; country: string; created_at: string | null; }
+        Insert: { id?: string; organization_id?: string | null; name: string; address: string; city: string; country: string; created_at?: string | null; }
+        Update: { id?: string; organization_id?: string | null; name?: string; address?: string; city?: string; country?: string; created_at?: string | null; }
         Relationships: []
       }
       roles: {
@@ -258,9 +262,9 @@ export type Database = {
         Relationships: []
       }
       permissions: {
-        Row: { id: string; name: string; resource: string; action: string; created_at: string | null; }
-        Insert: { id?: string; name: string; resource: string; action: string; created_at?: string | null; }
-        Update: { id?: string; name?: string; resource?: string; action?: string; created_at?: string | null; }
+        Row: { id: string; organization_id: string | null; name: string; resource: string; action: string; created_at: string | null; }
+        Insert: { id?: string; organization_id?: string | null; name: string; resource: string; action: string; created_at?: string | null; }
+        Update: { id?: string; organization_id?: string | null; name?: string; resource?: string; action?: string; created_at?: string | null; }
         Relationships: []
       }
       meetings: {
@@ -270,9 +274,9 @@ export type Database = {
         Relationships: []
       }
       projects: {
-        Row: { id: string; name: string; description: string | null; status: string; start_date: string | null; end_date: string | null; created_at: string | null; }
-        Insert: { id?: string; name: string; description?: string | null; status?: string; start_date?: string | null; end_date?: string | null; created_at?: string | null; }
-        Update: { id?: string; name?: string; description?: string | null; status?: string; start_date?: string | null; end_date?: string | null; created_at?: string | null; }
+        Row: { id: string; organization_id: string | null; name: string; description: string | null; status: string; start_date: string | null; end_date: string | null; created_at: string | null; }
+        Insert: { id?: string; organization_id?: string | null; name: string; description?: string | null; status?: string; start_date?: string | null; end_date?: string | null; created_at?: string | null; }
+        Update: { id?: string; organization_id?: string | null; name?: string; description?: string | null; status?: string; start_date?: string | null; end_date?: string | null; created_at?: string | null; }
         Relationships: []
       }
       project_members: {
@@ -615,6 +619,101 @@ export interface SprintATables {
       resource?: string
       actions?: string[]
       expires_at?: string | null
+      created_at?: string
+    }
+  }
+  team_members: {
+    Row: {
+      team_id: string
+      employee_id: string
+      joined_at: string
+    }
+    Insert: {
+      team_id: string
+      employee_id: string
+      joined_at?: string
+    }
+    Update: {
+      team_id?: string
+      employee_id?: string
+      joined_at?: string
+    }
+  }
+  task_assignments: {
+    Row: {
+      task_id: string
+      employee_id: string
+    }
+    Insert: {
+      task_id: string
+      employee_id: string
+    }
+    Update: {
+      task_id?: string
+      employee_id?: string
+    }
+  }
+  member_roles: {
+    Row: {
+      organization_member_id: string
+      role_id: string
+      assigned_by: string | null
+      assigned_at: string
+    }
+    Insert: {
+      organization_member_id: string
+      role_id: string
+      assigned_by?: string | null
+      assigned_at?: string
+    }
+    Update: {
+      organization_member_id?: string
+      role_id?: string
+      assigned_by?: string | null
+      assigned_at?: string
+    }
+  }
+  member_activity: {
+    Row: {
+      id: string
+      organization_member_id: string
+      event_type: string
+      login_at: string | null
+      logout_at: string | null
+      last_seen: string
+      ip_address: string | null
+      device: string | null
+      browser: string | null
+      operating_system: string | null
+      session_id: string | null
+      created_at: string
+    }
+    Insert: {
+      id?: string
+      organization_member_id: string
+      event_type: string
+      login_at?: string | null
+      logout_at?: string | null
+      last_seen?: string
+      ip_address?: string | null
+      device?: string | null
+      browser?: string | null
+      operating_system?: string | null
+      session_id?: string | null
+      created_at?: string
+    }
+    Update: {
+      id?: string
+      organization_member_id?: string
+      event_type?: string
+      login_at?: string | null
+      logout_at?: string | null
+      last_seen?: string
+      ip_address?: string | null
+      device?: string | null
+      browser?: string | null
+      operating_system?: string | null
+      session_id?: string | null
       created_at?: string
     }
   }

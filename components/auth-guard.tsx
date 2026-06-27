@@ -30,34 +30,82 @@ export function AuthGuard({ children, fallback, requireAdmin = false }: AuthGuar
         return
       }
 
-      // Fetch profile and employee info
+      // Fetch profile and organization member info
       const { data: profile } = await (supabase as any)
         .from('profiles')
         .select('id, role')
         .eq('id', session.user.id)
-        .single()
+        .maybeSingle()
         
-      const { data: employeeData } = await (supabase as any)
-        .from('employees')
-        .select('id, user_id, employee_id_string, full_name, department, designation, phone, profile_photo, joining_date, employment_status, created_at, organization_id')
+      const { data: orgMembersData } = await (supabase as any)
+        .from('organization_members')
+        .select('id, organization_id, role, status')
         .eq('user_id', session.user.id)
-        .single()
+        .eq('status', 'active')
+        .limit(1)
+        
+      const orgMember = orgMembersData && orgMembersData.length > 0 ? orgMembersData[0] : null
+
+      // Redirect unassigned users to waiting screen (unless they are super admin)
+      const isSuperAdmin = session.user.email === 'saptech.online009@gmail.com'
+      
+      if (!orgMember && !isSuperAdmin) {
+        if (pathname !== '/waiting') {
+          router.replace('/waiting')
+          return
+        }
+      } else if (orgMember && pathname === '/waiting') {
+        router.replace('/admin/dashboard')
+        return
+      }
+
+      // Fetch employee profile if they are an org member or super admin
+      let employeeData = null
+      if (orgMember) {
+        let { data } = await (supabase as any)
+          .from('employees')
+          .select('id, user_id, employee_id_string, full_name, department, designation, phone, profile_photo, joining_date, employment_status, created_at, organization_id')
+          .eq('organization_member_id', orgMember.id)
+          .maybeSingle()
+          
+        if (!data) {
+          const { data: fallbackData } = await (supabase as any)
+            .from('employees')
+            .select('id, user_id, employee_id_string, full_name, department, designation, phone, profile_photo, joining_date, employment_status, created_at, organization_id')
+            .eq('user_id', session.user.id)
+            // Fetch any employee record for this user, we will link it up later if needed
+            .limit(1)
+            .maybeSingle()
+          data = fallbackData
+        }
+        
+        employeeData = data
+      }
+      
+      if (!employeeData && isSuperAdmin) {
+        const { data } = await (supabase as any)
+          .from('employees')
+          .select('id, user_id, employee_id_string, full_name, department, designation, phone, profile_photo, joining_date, employment_status, created_at, organization_id')
+          .eq('user_id', session.user.id)
+          .maybeSingle()
+        employeeData = data
+      }
 
       // Use the actual DB role, with Prime Admin override
-      let activeRole = profile?.role || 'employee';
-      if (session.user.email === 'saptech.online009@gmail.com') {
+      let activeRole = orgMember?.role || profile?.role || 'employee';
+      if (isSuperAdmin) {
         activeRole = 'super_admin';
       }
 
-      if (profile) {
+      if (profile || isSuperAdmin) {
         setAuth(
           { id: session.user.id, email: session.user.email!, role: activeRole as any, isActive: true, lastLogin: null, createdAt: new Date().toISOString() },
           employeeData ? {
             id: employeeData.id,
-            userId: employeeData.user_id,
+            userId: session.user.id,
             employeeCode: employeeData.employee_id_string || '',
-            firstName: employeeData.full_name.split(' ')[0] || '',
-            lastName: employeeData.full_name.split(' ').slice(1).join(' ') || '',
+            firstName: employeeData.full_name?.split(' ')[0] || '',
+            lastName: employeeData.full_name?.split(' ').slice(1).join(' ') || '',
             departmentId: employeeData.department || '',
             designation: employeeData.designation || '',
             phone: employeeData.phone || '',

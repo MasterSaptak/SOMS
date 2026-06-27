@@ -2,17 +2,20 @@ import React from 'react'
 import { ChevronRight, Building2, Users, Briefcase, UserCircle2, Zap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-export function OrgPositionTrail({ employee }: { employee: any }) {
+export function OrgPositionTrail({ employee, hierarchyContext }: { employee: any, hierarchyContext?: any }) {
   const router = useRouter()
 
-  const departmentName = typeof employee.department === 'string' ? employee.department : employee.department?.name
-  const teamName = typeof employee.team === 'string' ? employee.team : employee.team?.name
+  const orgName = hierarchyContext?.organization?.name || 'Organization'
+  const branchName = hierarchyContext?.branch?.name
+  const departmentName = hierarchyContext?.department?.name || (typeof employee.department === 'string' ? employee.department : employee.department?.name)
+  const teamName = hierarchyContext?.primaryTeam?.teams?.name || (typeof employee.team === 'string' ? employee.team : employee.team?.name)
   const positionTitle = typeof employee.designation === 'string' ? employee.designation : employee.designation?.title
-  const managerName = employee.manager ? (typeof employee.manager === 'string' ? employee.manager : `${employee.manager.firstName || ''} ${employee.manager.lastName || ''}`.trim() || employee.manager.full_name) : null
-  const managerId = employee.manager ? (employee.manager.id || employee.manager_id) : employee.manager_id
+  const managerName = hierarchyContext?.manager ? hierarchyContext.manager.full_name : (employee.manager ? (typeof employee.manager === 'string' ? employee.manager : `${employee.manager.firstName || ''} ${employee.manager.lastName || ''}`.trim() || employee.manager.full_name) : null)
+  const managerId = hierarchyContext?.manager?.id || (employee.manager ? (employee.manager.id || employee.manager_id) : employee.manager_id)
 
   const parts = []
   
+  if (branchName) parts.push({ label: branchName, icon: Building2, type: 'branch' })
   if (departmentName) parts.push({ label: departmentName, icon: Building2, type: 'department' })
   if (teamName) parts.push({ label: teamName, icon: Users, type: 'team' })
   if (positionTitle) parts.push({ label: positionTitle, icon: Zap, type: 'position' })
@@ -21,7 +24,7 @@ export function OrgPositionTrail({ employee }: { employee: any }) {
     <div className="flex flex-wrap items-center gap-2 text-sm">
       <div className="flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors bg-muted/50 text-muted-foreground">
         <Building2 className="w-3.5 h-3.5" />
-        <span>Organization</span>
+        <span>{orgName}</span>
       </div>
       
       {parts.map((part, index) => (

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { getPeopleAction, getFilterOptionsAction } from '@/app/actions/people.actions'
+import { listUnassignedUsers } from '@/app/actions/identity.actions'
 import { createClient } from '@/lib/supabase/server'
 import PeopleDirectoryClient from './PeopleDirectoryClient'
 
@@ -27,9 +28,10 @@ export default async function PeoplePage() {
   // Since this is an admin view, let's bypass the strict single-org filter for now 
   // so the user can see all employees across their organizations or unassigned employees.
   const organizationId = null // Bypass filter to show all users in the system
-  const [peopleResult, filterOptions] = await Promise.all([
+  const [peopleResult, filterOptions, unassignedRes] = await Promise.all([
     getPeopleAction({ organizationId, page: 1, pageSize: 50 }),
     getFilterOptionsAction(organizationId),
+    listUnassignedUsers(orgMembers?.[0]?.organization_id || '')
   ])
 
   if (!peopleResult.success) {
@@ -40,7 +42,8 @@ export default async function PeoplePage() {
     <PeopleDirectoryClient
       initialData={peopleResult.success ? peopleResult.data! : { data: [], total: 0, page: 1, pageSize: 50, totalPages: 0 }}
       filterOptions={filterOptions}
-      organizationId={organizationId}
+      organizationId={organizationId || orgMembers?.[0]?.organization_id || null}
+      unassignedUsers={unassignedRes.data || []}
     />
   )
 }

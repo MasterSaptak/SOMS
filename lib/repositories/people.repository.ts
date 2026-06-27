@@ -11,6 +11,7 @@ import { Result, success, failure } from '@/lib/utils/result'
 export interface PersonSummary {
   id: string
   user_id: string | null
+  organization_member_id: string | null
   employee_id_string: string | null
   full_name: string
   email: string
@@ -79,7 +80,7 @@ export class PeopleRepository {
 
       let query = sb
         .from('employees')
-        .select('id, user_id, employee_id_string, full_name, email, phone, profile_photo, employment_status, employment_type, lifecycle_status, department, designation, organization_id, reports_to_employee_id, joining_date, created_at, updated_at', { count: 'exact' })
+        .select('id, user_id, organization_member_id, employee_id_string, full_name, email, phone, profile_photo, employment_status, employment_type, lifecycle_status, department, designation, organization_id, reports_to_employee_id, joining_date, created_at, updated_at', { count: 'exact' })
 
       if (filters?.organizationId) {
         query = query.eq('organization_id', filters.organizationId)
@@ -153,7 +154,7 @@ export class PeopleRepository {
 
       const { data, error } = await sb
         .from('employees')
-        .select('id, user_id, organization_id, department_id, team_id, designation_id, work_location_id, manager_id, employee_id_string, full_name, email, phone, profile_photo, joining_date, employment_status, date_of_birth, gender, blood_group, nationality, marital_status, personal_email, address, aadhaar_nid, passport_no, visa_status, driving_license, department, designation, created_at, updated_at')
+        .select('id, user_id, organization_member_id, organization_id, department_id, team_id, designation_id, work_location_id, manager_id, employee_id_string, full_name, email, phone, profile_photo, joining_date, employment_status, date_of_birth, gender, blood_group, nationality, marital_status, personal_email, address, aadhaar_nid, passport_no, visa_status, driving_license, department, designation, created_at, updated_at')
         .eq('id', employeeId)
         .single()
 
@@ -230,6 +231,8 @@ export class PeopleRepository {
     full_name: string
     email: string
     organization_id?: string
+    organization_member_id?: string
+    user_id?: string
     phone?: string
     department?: string
     designation?: string
