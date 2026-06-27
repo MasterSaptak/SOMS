@@ -6,8 +6,10 @@ import {
   Search, Filter, Plus, MoreHorizontal, ChevronLeft, ChevronRight,
   Download, Upload, Trash2, UserCheck, UserX, CheckSquare, Square,
   X, Eye, Edit, ShieldAlert, ArrowRightLeft, Briefcase, FolderKanban,
-  User, Activity, Users, Building2, Package, CalendarRange, Banknote
+  User, Activity, Users, Building2, Package, CalendarRange, Banknote,
+  LayoutGrid, List, SlidersHorizontal, Loader2, FileDown, CheckCircle2, XCircle, UserPlus
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { getPeopleAction, updatePersonAction, createPersonAction, bulkUpdateStatusAction } from '@/app/actions/people.actions'
 import PersonProfileDrawer from './PersonProfileDrawer'
 import ChangeLifecycleDialog from './ChangeLifecycleDialog'
@@ -375,29 +377,29 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
                               <Edit size={14} className="text-muted-foreground" /> Edit Profile
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-border/50 my-1" />
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <ArrowRightLeft size={14} className="text-muted-foreground" /> Transfer
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <Users size={14} className="text-muted-foreground" /> Assign Team
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <FolderKanban size={14} className="text-muted-foreground" /> Assign Project
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <Building2 size={14} className="text-muted-foreground" /> Assign Organization
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <Package size={14} className="text-muted-foreground" /> Assign Asset
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-border/50 my-1" />
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <ShieldAlert size={14} className="text-muted-foreground" /> Reset Password
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <CalendarRange size={14} className="text-muted-foreground" /> Leave
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
+                            <DropdownMenuItem onClick={() => toast.info('Feature coming soon')} className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer">
                               <Banknote size={14} className="text-muted-foreground" /> Payroll
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-border/50 my-1" />

@@ -10,7 +10,7 @@ async function getUntypedClient(): Promise<any> {
 }
 
 // Explicit column list for the employee table — avoids SELECT *
-const EMPLOYEE_COLUMNS = 'id, user_id, organization_id, department_id, team_id, designation_id, work_location_id, manager_id, employee_id_string, full_name, phone, email, profile_photo, joining_date, employment_status, created_at, date_of_birth, gender, blood_group, nationality, marital_status, personal_email, address, aadhaar_nid, passport_no, visa_status, driving_license, department, team, designation'
+const EMPLOYEE_COLUMNS = 'id, user_id, organization_id, department_id, team_id, designation_id, work_location_id, manager_id, employee_id_string, full_name, phone, email, profile_photo, joining_date, employment_status, created_at, date_of_birth, gender, blood_group, nationality, marital_status, personal_email, address, aadhaar_nid, passport_no, visa_status, driving_license'
 
 export class EmployeeRepository extends BaseRepository<'employees'> {
   constructor() {
@@ -198,7 +198,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
         .from('employee_skills')
         .select(`
           id, employee_id, skill_id, proficiency, years_of_experience, certification, notes, verification_status, is_verified, verified_by, verified_at, verification_notes, created_at, updated_at,
-          skill:skills(id, name, category, created_at, updated_at)
+          skill:skills(id, name, category_id, created_at, updated_at)
         `)
         .eq('employee_id', employeeId)
 
@@ -222,7 +222,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
         skill: d.skill ? {
           id: d.skill.id,
           name: d.skill.name,
-          category: d.skill.category,
+          category: d.skill.category_id,
           createdAt: d.skill.created_at,
           updatedAt: d.skill.updated_at
         } : undefined
@@ -238,7 +238,7 @@ export class EmployeeRepository extends BaseRepository<'employees'> {
   async getAllSkills(): Promise<Result<any[]>> {
     try {
       const client = await getUntypedClient()
-      const { data, error } = await client.from('skills').select('id, name, category, created_at, updated_at').order('name')
+      const { data, error } = await client.from('skills').select('id, name, category_id, created_at, updated_at').order('name')
       if (error) throw error
       return success(data)
     } catch (err) {

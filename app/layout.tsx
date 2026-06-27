@@ -33,6 +33,7 @@ import { CommandPalette } from '@/components/command-palette';
 import { AICopilot } from '@/components/ai-copilot';
 import { OfflineBanner } from '@/components/offline-banner';
 import { QueryProvider } from '@/components/query-provider';
+import { Toaster } from 'sonner';
 
 export default function RootLayout({
   children,
@@ -47,6 +48,7 @@ export default function RootLayout({
           {children}
           <CommandPalette />
           <AICopilot />
+          <Toaster richColors position="top-right" />
         </QueryProvider>
       </body>
     </html>

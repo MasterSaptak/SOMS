@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useTransition } from 'react'
 import { X, User, Briefcase, Building2, Users, FolderKanban, GraduationCap, Award, FileText, Activity, Shield, Save, Loader2, ChevronRight, Clock, CalendarRange, Banknote, Package, Trophy, Edit } from 'lucide-react'
 import { getPersonProfileAction, updatePersonAction } from '@/app/actions/people.actions'
+import { toast } from 'sonner'
 
 interface Props {
   employeeId: string
@@ -54,11 +55,18 @@ export default function PersonProfileDrawer({ employeeId, onClose, onUpdate, org
         }
       })
       if (Object.keys(changes).length > 0) {
-        await updatePersonAction(employeeId, changes)
-        setPerson({ ...person, ...changes })
-        onUpdate()
+        const result = await updatePersonAction(employeeId, changes)
+        if (result.success) {
+          toast.success('Profile updated successfully')
+          setPerson({ ...person, ...changes })
+          onUpdate()
+          setIsEditing(false)
+        } else {
+          toast.error(result.error || 'Failed to update profile')
+        }
+      } else {
+        setIsEditing(false)
       }
-      setIsEditing(false)
     })
   }
 

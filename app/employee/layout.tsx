@@ -177,28 +177,30 @@ function EmployeeLayoutInner({
               </header>
               
               {/* ─── Scrollable Tabs ─── */}
-              <div className="flex border-b border-border/40 bg-surface-base shrink-0 z-10 overflow-x-auto hide-scrollbar scroll-smooth snap-x snap-mandatory">
-                <div className="flex px-3 md:px-6 gap-0 md:gap-4 min-w-max">
-                  {TABS.map(tab => {
-                    const isActive = optimisticPath === tab.tab;
-                    return (
-                      <Link
-                        key={tab.tab}
-                        href={`/employee?tab=${tab.tab}`}
-                        onClick={(e) => handleTabClick(e, tab.tab)}
-                        className={`flex items-center gap-1.5 py-3 px-3 md:px-2 text-xs md:text-sm font-semibold border-b-2 transition-all whitespace-nowrap snap-start relative ${
-                          isActive 
-                            ? 'border-primary text-primary' 
-                            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                        }`}
-                      >
-                        {tab.icon}
-                        {tab.label}
-                      </Link>
-                    )
-                  })}
+              {pathname === '/employee' && (
+                <div className="flex border-b border-border/40 bg-surface-base shrink-0 z-10 overflow-x-auto hide-scrollbar scroll-smooth snap-x snap-mandatory">
+                  <div className="flex px-3 md:px-6 gap-0 md:gap-4 min-w-max">
+                    {TABS.map(tab => {
+                      const isActive = optimisticPath === tab.tab;
+                      return (
+                        <Link
+                          key={tab.tab}
+                          href={`/employee?tab=${tab.tab}`}
+                          onClick={(e) => handleTabClick(e, tab.tab)}
+                          className={`flex items-center gap-1.5 py-3 px-3 md:px-2 text-xs md:text-sm font-semibold border-b-2 transition-all whitespace-nowrap snap-start relative ${
+                            isActive 
+                              ? 'border-primary text-primary' 
+                              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                          }`}
+                        >
+                          {tab.icon}
+                          {tab.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* ─── Content Area ─── */}
               <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
