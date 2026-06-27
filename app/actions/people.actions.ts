@@ -40,3 +40,7 @@ export async function getEmployeeOptionsAction(organizationId?: string) {
 export async function bulkUpdateStatusAction(employeeIds: string[], status: string) {
   return peopleService.bulkUpdateStatus(employeeIds, status)
 }
+
+export async function deletePersonAction(employeeId: string) {
+  return peopleService.deletePerson(employeeId)
+}

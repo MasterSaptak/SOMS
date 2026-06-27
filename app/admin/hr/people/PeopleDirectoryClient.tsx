@@ -10,7 +10,7 @@ import {
   LayoutGrid, List, SlidersHorizontal, Loader2, FileDown, CheckCircle2, XCircle, UserPlus
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { getPeopleAction, updatePersonAction, createPersonAction, bulkUpdateStatusAction } from '@/app/actions/people.actions'
+import { getPeopleAction, updatePersonAction, createPersonAction, bulkUpdateStatusAction, deletePersonAction } from '@/app/actions/people.actions'
 import PersonProfileDrawer from './PersonProfileDrawer'
 import ChangeLifecycleDialog from './ChangeLifecycleDialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
@@ -152,6 +152,20 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
         fetchPeople(1)
       }
     })
+  }
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this person? This action cannot be undone.')) {
+      startTransition(async () => {
+        const result = await deletePersonAction(id)
+        if (result.success) {
+          toast.success('Person deleted successfully')
+          fetchPeople(people.page)
+        } else {
+          toast.error('Failed to delete person')
+        }
+      })
+    }
   }
 
   const getInitials = (name: string) => {
@@ -403,7 +417,7 @@ export default function PeopleDirectoryClient({ initialData, filterOptions, orga
                               <Banknote size={14} className="text-muted-foreground" /> Payroll
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-border/50 my-1" />
-                            <DropdownMenuItem className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
+                            <DropdownMenuItem onClick={() => handleDelete(person.id)} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
                               <Trash2 size={14} /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>

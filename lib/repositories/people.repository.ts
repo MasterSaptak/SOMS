@@ -308,6 +308,22 @@ export class PeopleRepository {
       return failure(error as Error)
     }
   }
+  /**
+   * Delete a person
+   */
+  async delete(employeeId: string): Promise<Result<void>> {
+    try {
+      const sb = getAdminClient()
+      const { error } = await sb
+        .from('employees')
+        .delete()
+        .eq('id', employeeId)
+      if (error) throw error
+      return success(undefined)
+    } catch (error) {
+      return failure(error as Error)
+    }
+  }
 }
 
 export const peopleRepository = new PeopleRepository()

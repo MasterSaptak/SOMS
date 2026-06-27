@@ -112,10 +112,17 @@ export class PeopleService {
   }
 
   /**
-   * Bulk status update
+   * Bulk update status
    */
   async bulkUpdateStatus(employeeIds: string[], status: string): Promise<Result<void>> {
     return peopleRepository.bulkUpdateStatus(employeeIds, status)
+  }
+
+  /**
+   * Delete a person
+   */
+  async deletePerson(employeeId: string): Promise<Result<void>> {
+    return peopleRepository.delete(employeeId)
   }
 }
 
