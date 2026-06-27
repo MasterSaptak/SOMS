@@ -120,6 +120,7 @@ export default function PersonProfileDrawer({ employeeId, onClose, onUpdate, org
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-xl border border-border/50">
               {renderField({ label: "Full Name", field: "full_name" })}
+              {renderField({ label: "Profile Photo URL", field: "profile_photo", type: "url" })}
               {renderField({ label: "Email", field: "email", type: "email" })}
               {renderField({ label: "Phone", field: "phone" })}
               {renderField({ label: "Personal Email", field: "personal_email", type: "email" })}
@@ -268,7 +269,7 @@ export default function PersonProfileDrawer({ employeeId, onClose, onUpdate, org
                   <Activity size={14} /> {person.employment_type ? person.employment_type.charAt(0).toUpperCase() + person.employment_type.slice(1) : 'Permanent'}
                 </span>
                 <span className="text-muted-foreground flex items-center gap-1.5">
-                  <CalendarRange size={14} /> Joined {person.joining_date ? new Date(person.joining_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' }) : '—'}
+                  <CalendarRange size={14} /> Joined {person.created_at ? new Date(person.created_at).toLocaleString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '—'}
                 </span>
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <User size={14} /> {person.employee_id_string || 'No ID'}
