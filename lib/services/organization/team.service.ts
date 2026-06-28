@@ -18,14 +18,14 @@ export class TeamService {
   async getTeamDetails(teamId: string): Promise<Result<{ team: any, members: any[] }>> {
     try {
       const teamRes = await teamRepository.findById(teamId)
-      if (teamRes.error) return failure(new Error(teamRes.error))
+      if (!teamRes.success) return failure(teamRes.error)
       if (!teamRes.data) return failure(new Error('Team not found'))
       
       const membersRes = await teamMemberRepository.findByTeamId(teamId)
       
       return success({
         team: teamRes.data,
-        members: membersRes.data || []
+        members: membersRes.success ? membersRes.data : []
       })
     } catch (err) {
       logger.error('[TeamService] getTeamDetails error', err)

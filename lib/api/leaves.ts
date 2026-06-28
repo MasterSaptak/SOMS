@@ -6,7 +6,7 @@ type LeaveInsert = Database['public']['Tables']['leaves']['Insert']
 export async function getLeaves(employeeId?: string) {
   const supabase = await createClient()
 
-  let query = supabase
+  let query = (supabase as any)
     .from('leaves')
     .select(`
       *,

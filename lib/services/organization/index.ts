@@ -1,4 +1,4 @@
-export * from './organization.service';
+export * from '../organization.service';
 export * from './branch.service';
 export * from './department.service';
 export * from './team.service';

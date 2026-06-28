@@ -36,7 +36,7 @@ export function AssignTeamsDialog({
       )
 
       // Fetch all teams for the organization. Since teams links to departments, we need to join.
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('teams')
         .select(`
           id, name, department_id,

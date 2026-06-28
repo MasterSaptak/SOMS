@@ -20,7 +20,7 @@ export async function getCurrentOrganizationId(): Promise<Result<string>> {
 
     if (activeOrgId) {
       // Verify they are actually a member of this org
-      const { data: member, error } = await supabase
+      const { data: member, error } = await (supabase as any)
         .from('organization_members')
         .select('organization_id')
         .eq('user_id', user.id)
@@ -35,7 +35,7 @@ export async function getCurrentOrganizationId(): Promise<Result<string>> {
     }
 
     // Default: find the first active organization this user belongs to
-    const { data: members, error: memberError } = await supabase
+    const { data: members, error: memberError } = await (supabase as any)
       .from('organization_members')
       .select('organization_id')
       .eq('user_id', user.id)

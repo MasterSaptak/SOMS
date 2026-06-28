@@ -137,7 +137,7 @@ export class ProjectRepository {
   async findById(id: string, organizationId?: string): Promise<Result<ProjectWithDetails>> {
     try {
       const client = await this.getClient()
-      let query = client
+      let query = (client as any)
         .from('projects')
         .select(`
           *,
@@ -305,13 +305,13 @@ export class ProjectRepository {
   async addMilestone(milestone: {
     organization_id: string
     project_id: string
-    title: string
+    name: string
     description?: string
-    target_date?: string
+    due_date?: string
   }): Promise<Result<any>> {
     try {
       const client = await this.getClient()
-      const { data, error } = await client.from('project_milestones').insert(milestone).select().single()
+      const { data, error } = await (client as any).from('project_milestones').insert(milestone).select().single()
       if (error) throw error
       return success(data)
     } catch (error) {

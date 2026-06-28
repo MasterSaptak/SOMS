@@ -11,7 +11,7 @@ export class OrgEmployeeService {
       const client = await createClient()
 
       // 1. Get employee basic info, department, designation
-      const { data: employee, error: empErr } = await client
+      const { data: employee, error: empErr } = await (client as any)
         .from('employees')
         .select(`
           id, full_name, organization_id, department_id, manager_id,
