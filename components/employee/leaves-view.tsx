@@ -499,7 +499,7 @@ export default function LeavesPage() {
 
           {/* Summary Widget */}
           <BentoSlot className="col-span-1 row-span-1">
-            <div className="bg-primary/5 rounded-3xl border border-primary/10 p-6 flex flex-col h-full shadow-sm hover:shadow-md transition-all">
+            <div className="bg-primary/5 rounded-3xl border border-primary/10 p-6 flex flex-col h-full shadow-sm hover:shadow-md transition-all overflow-hidden relative">
               <h3 className="font-semibold text-sm mb-4 text-primary flex items-center gap-2">
                 <Info className="w-4 h-4" /> Leave Summary
               </h3>
@@ -523,16 +523,28 @@ export default function LeavesPage() {
               </div>
               
               {/* Mini Analytics Trend */}
-              <div className="mt-4 pt-4 border-t border-primary/10">
+              <div className="mt-4 pt-4 border-t border-primary/10 z-10">
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                   <span>Monthly Utilization Trend</span>
                   <span className="text-primary font-medium">12%</span>
                 </div>
-                <div className="flex items-end gap-1 h-8">
-                  {[10, 20, 15, 30, 40, 25, 12].map((val, i) => (
-                    <div key={i} className="flex-1 bg-primary/20 rounded-t-sm" style={{ height: `${val}%` }}>
-                      <div className="w-full bg-primary rounded-t-sm" style={{ height: '50%' }} />
-                    </div>
+                <div className="flex items-end gap-1 h-10 w-full overflow-hidden">
+                  {[10, 20, 15, 30, 40, 25, 12, 18, 22, 10, 5, 2].map((val, i) => (
+                    <motion.div 
+                      key={i} 
+                      initial={{ height: 0 }}
+                      animate={{ height: `${val}%` }}
+                      transition={{ duration: 1, delay: i * 0.05, ease: "easeOut" }}
+                      className="flex-1 bg-primary/20 rounded-t-sm relative"
+                    >
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.5 + (i * 0.05) }}
+                        className="absolute bottom-0 w-full bg-primary rounded-t-sm" 
+                        style={{ height: '50%' }} 
+                      />
+                    </motion.div>
                   ))}
                 </div>
               </div>

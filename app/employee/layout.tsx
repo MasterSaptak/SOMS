@@ -26,6 +26,7 @@ import {
   Settings,
   LogOut,
   Wallet,
+  User,
 } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -33,8 +34,9 @@ import Link from "next/link"
 
 import { AppUpdater } from "@/components/app-updater"
 import { PwaInstallButton } from "@/components/pwa-install-button"
-import { useTransition, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Loader2 } from "lucide-react"
+import { ActionRegistry } from "@/components/layout/action-registry"
 import {
   Sheet,
   SheetContent,
@@ -56,7 +58,7 @@ const TABS = [
   { label: 'Overview', tab: 'overview', icon: <LayoutDashboard className="w-4 h-4" /> },
   { label: 'Session', tab: 'session', icon: <Clock className="w-4 h-4" /> },
   { label: 'Tasks', tab: 'tasks', icon: <CheckSquare className="w-4 h-4" /> },
-  { label: 'Leave', tab: 'leaves', icon: <CalendarRange className="w-4 h-4" /> },
+  { label: 'Leave & Attendence Calender', tab: 'leaves', icon: <CalendarRange className="w-4 h-4" /> },
   { label: 'Payroll', tab: 'payroll', icon: <Wallet className="w-4 h-4" /> },
 ]
 
@@ -121,58 +123,49 @@ function EmployeeLayoutInner({
                 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-1 md:gap-2">
-                  {/* Desktop-only actions */}
-                  <div className="hidden md:flex items-center gap-2">
-                    <QueueViewer />
-                    <UniversalSearch />
-                    <PwaInstallButton />
-                    <AppUpdater />
-                    <button
-                      onClick={toggleTheme}
-                      className="p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Toggle theme"
-                    >
-                      {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                    </button>
-                  </div>
+                  <ActionRegistry />
+                  
                   
                   {/* Always visible */}
                   <NotificationCenter />
                   
                   {/* Mobile-only: Profile Menu */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="md:hidden p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="More options"
-                      >
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => router.refresh()}>
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Refresh
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={toggleTheme}>
-                        {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                        {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Download className="w-4 h-4 mr-2" />
-                        Install App
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push('/employee/profile')}>
-                        <Settings className="w-4 h-4 mr-2" />
-                        Settings
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Sign Out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="md:hidden flex items-center gap-2">
+                    <button
+                      onClick={() => router.push('/employee/profile')}
+                      className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Profile"
+                    >
+                      <User className="w-5 h-5" />
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label="More options"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => router.refresh()}>
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Refresh
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={toggleTheme}>
+                          {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                        </DropdownMenuItem>
+                        <AppUpdater asMenuItem />
+                        <PwaInstallButton asMenuItem />
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sign Out
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </header>
               

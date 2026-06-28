@@ -5,7 +5,9 @@ import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CacheManager } from '@/lib/cache/cache-manager'
 
-export function AppUpdater() {
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+
+export function AppUpdater({ asMenuItem = false }: { asMenuItem?: boolean }) {
   const [isUpdating, setIsUpdating] = useState(false)
 
   const handleUpdate = async () => {
@@ -56,6 +58,15 @@ export function AppUpdater() {
       console.error('Failed to update app:', error)
       setIsUpdating(false)
     }
+  }
+
+  if (asMenuItem) {
+    return (
+      <DropdownMenuItem onClick={handleUpdate} disabled={isUpdating}>
+        <RefreshCw className={`w-4 h-4 mr-2 ${isUpdating ? 'animate-spin text-primary' : ''}`} />
+        {isUpdating ? 'Updating...' : 'Update App'}
+      </DropdownMenuItem>
+    )
   }
 
   // Hide in development if desired, but fine to show always for testing

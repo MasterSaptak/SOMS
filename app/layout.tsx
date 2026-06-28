@@ -33,6 +33,7 @@ import { CommandPalette } from '@/components/command-palette';
 import { AICopilot } from '@/components/ai-copilot';
 import { OfflineBanner } from '@/components/offline-banner';
 import { QueryProvider } from '@/components/query-provider';
+import { DeviceProvider } from '@/components/providers/device-provider';
 import { Toaster } from 'sonner';
 
 export default function RootLayout({
@@ -43,13 +44,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
       <body className="bg-background text-foreground min-h-screen flex flex-col">
-        <QueryProvider>
-          <OfflineBanner />
-          {children}
-          <CommandPalette />
-          <AICopilot />
-          <Toaster richColors position="top-right" />
-        </QueryProvider>
+        <DeviceProvider>
+          <QueryProvider>
+            <OfflineBanner />
+            {children}
+            <CommandPalette />
+            <AICopilot />
+            <Toaster richColors position="top-right" />
+          </QueryProvider>
+        </DeviceProvider>
       </body>
     </html>
   );

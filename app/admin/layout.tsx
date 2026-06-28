@@ -8,22 +8,21 @@ import { LayoutManager } from "@/components/layout/layout-manager"
 import { NavigationSystem } from "@/components/layout/navigation-system"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { NotificationCenter } from "@/components/notification-center"
-import { QueueViewer } from "@/components/queue-viewer"
+import { ActionRegistry } from "@/components/layout/action-registry"
 import {
-  Sun,
-  Moon,
   Menu,
   MoreVertical,
   RefreshCw,
-  Download,
   Settings,
   LogOut,
+  User,
+  Sun,
+  Moon,
 } from "lucide-react"
 import { useThemeStore } from "@/store/use-theme-store"
-import { useRouter } from "next/navigation"
 import { AppUpdater } from "@/components/app-updater"
 import { PwaInstallButton } from "@/components/pwa-install-button"
-import { GlobalSearch } from "@/components/global-search"
+import { useRouter } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Sheet,
@@ -40,8 +39,8 @@ import { useAuthStore } from "@/store/use-auth-store"
 import { createClient } from "@/lib/supabase/client"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { theme, toggleTheme } = useThemeStore()
   const { logout } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -79,58 +78,48 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-1 md:gap-2">
-                  {/* Desktop-only actions */}
-                  <div className="hidden md:flex items-center gap-2">
-                    <GlobalSearch />
-                    <QueueViewer />
-                    <PwaInstallButton />
-                    <AppUpdater />
-                    <button
-                      onClick={toggleTheme}
-                      className="p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Toggle theme"
-                    >
-                      {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                    </button>
-                  </div>
+                  <ActionRegistry />
 
                   {/* Always visible */}
                   <NotificationCenter />
 
                   {/* Mobile-only: Profile Menu */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="md:hidden p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="More options"
-                      >
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => router.refresh()}>
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Refresh
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={toggleTheme}>
-                        {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                        {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Download className="w-4 h-4 mr-2" />
-                        Install App
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push('/admin/settings')}>
-                        <Settings className="w-4 h-4 mr-2" />
-                        Settings
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Sign Out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="md:hidden flex items-center gap-2">
+                    <button
+                      onClick={() => router.push('/admin/settings')}
+                      className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Profile"
+                    >
+                      <User className="w-5 h-5" />
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label="More options"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => router.refresh()}>
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Refresh
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={toggleTheme}>
+                          {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                        </DropdownMenuItem>
+                        <AppUpdater asMenuItem />
+                        <PwaInstallButton asMenuItem />
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sign Out
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </header>
 

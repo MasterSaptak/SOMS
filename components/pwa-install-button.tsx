@@ -18,7 +18,9 @@ declare global {
   }
 }
 
-export function PwaInstallButton() {
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+
+export function PwaInstallButton({ asMenuItem = false }: { asMenuItem?: boolean }) {
   const [isStandalone, setIsStandalone] = useState<boolean | null>(null)
   const [isIOS, setIsIOS] = useState(false)
   const [isMac, setIsMac] = useState(false)
@@ -108,18 +110,25 @@ export function PwaInstallButton() {
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleClick}
-        disabled={installing}
-        className="gap-2 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 transition-all rounded-full h-9"
-      >
-        <Download className={`w-4 h-4 text-primary ${installing ? 'animate-bounce' : ''}`} />
-        <span className="text-xs font-semibold hidden md:inline">
+      {asMenuItem ? (
+        <DropdownMenuItem onClick={handleClick} disabled={installing}>
+          <Download className={`w-4 h-4 mr-2 ${installing ? 'animate-bounce text-primary' : ''}`} />
           {installing ? 'Installing...' : 'Install App'}
-        </span>
-      </Button>
+        </DropdownMenuItem>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleClick}
+          disabled={installing}
+          className="gap-2 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 transition-all rounded-full h-9"
+        >
+          <Download className={`w-4 h-4 text-primary ${installing ? 'animate-bounce' : ''}`} />
+          <span className="text-xs font-semibold hidden md:inline">
+            {installing ? 'Installing...' : 'Install App'}
+          </span>
+        </Button>
+      )}
 
       {/* Fallback dialog for iOS / Mac / browsers that don't support beforeinstallprompt */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
