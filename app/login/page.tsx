@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { SyncEngine } from '@/lib/cache/sync-engine'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,12 +19,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [syncMessage, setSyncMessage] = useState('')
   const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+    setSyncMessage('Signing in...')
 
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -33,12 +36,17 @@ export default function LoginPage() {
 
       if (signInError) throw signInError
 
+      setSyncMessage('Syncing workspace...')
+      
       // Fetch the user's role to route them correctly
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', data.user.id)
         .single()
+
+      // Run initial offline-first sync bootstrap
+      await SyncEngine.bootstrap(data.user.id)
 
       if (profile?.role === 'admin') {
         router.push('/admin')
@@ -47,8 +55,8 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       setError(err.message || 'Failed to sign in. Please check your credentials.')
-    } finally {
       setIsLoading(false)
+      setSyncMessage('')
     }
   }
 
@@ -150,7 +158,7 @@ export default function LoginPage() {
                 ) : (
                   <LogIn className="w-4 h-4" />
                 )}
-                {isLoading ? 'Signing in...' : 'Sign In'}
+                {isLoading ? (syncMessage || 'Signing in...') : 'Sign In'}
               </Button>
 
             </form>
