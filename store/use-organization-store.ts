@@ -28,10 +28,19 @@ export const useOrganizationStore = create<OrganizationState>()(
       isLoading: false,
       hasLoaded: false,
 
-      setActiveOrganization: (org) => set({
-        activeOrganization: org,
-        activeOrganizationId: org?.id ?? null,
-      }),
+      setActiveOrganization: (org) => {
+        if (typeof document !== 'undefined') {
+          if (org?.id) {
+            document.cookie = `soms_current_org=${org.id}; path=/; max-age=31536000; SameSite=Lax`
+          } else {
+            document.cookie = `soms_current_org=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+          }
+        }
+        set({
+          activeOrganization: org,
+          activeOrganizationId: org?.id ?? null,
+        })
+      },
 
       setMemberships: (memberships) => set({ memberships }),
 
@@ -39,6 +48,9 @@ export const useOrganizationStore = create<OrganizationState>()(
         const { memberships } = get()
         const membership = memberships.find((m) => m.organizationId === orgId)
         if (membership?.organization) {
+          if (typeof document !== 'undefined') {
+            document.cookie = `soms_current_org=${orgId}; path=/; max-age=31536000; SameSite=Lax`
+          }
           set({
             activeOrganizationId: orgId,
             activeOrganization: membership.organization,
@@ -67,6 +79,10 @@ export const useOrganizationStore = create<OrganizationState>()(
             }
             if (!activeOrg && memberships.length > 0) {
               activeOrg = memberships[0].organization ?? null
+            }
+
+            if (typeof document !== 'undefined' && activeOrg?.id) {
+              document.cookie = `soms_current_org=${activeOrg.id}; path=/; max-age=31536000; SameSite=Lax`
             }
 
             set({

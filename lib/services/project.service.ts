@@ -14,11 +14,15 @@ export class ProjectService {
     return await projectRepository.findByOrganization(organizationId, options)
   }
 
-  async getProject(projectId: string, organizationId: string): Promise<Result<any>> {
+  async getAllProjects(options?: any): Promise<Result<any[]>> {
+    return await projectRepository.findAllUserProjects(options)
+  }
+
+  async getProject(projectId: string, organizationId?: string): Promise<Result<any>> {
     return await projectRepository.findById(projectId, organizationId)
   }
 
-  async createProject(organizationId: string, projectData: Partial<Project>, memberIds: string[] = []): Promise<Result<any>> {
+  async createProject(organizationId: string, projectData: Partial<Project>, memberIds: string[] = [], teamIds: string[] = []): Promise<Result<any>> {
     try {
       // Calculate initial health score based on data or default to On Track
       const health_score = projectData.health_score || 'On Track'
@@ -36,6 +40,12 @@ export class ProjectService {
       if (initialMembers.length > 0) {
         await Promise.all(initialMembers.map(empId =>
           projectRepository.addMember(project.id, empId, organizationId, empId === projectData.owner_id ? 'Owner' : 'Member')
+        ))
+      }
+
+      if (teamIds.length > 0) {
+        await Promise.all(teamIds.map(teamId => 
+          projectRepository.addTeam(project.id, teamId, organizationId)
         ))
       }
 
@@ -131,6 +141,44 @@ export class ProjectService {
         actor_id: actorId,
         action_type: 'member_role_updated',
         description: `Updated member role to ${role}`
+      })
+      return success(undefined)
+    } catch (error) {
+      return failure(error as Error)
+    }
+  }
+
+  // ── TEAMS ──
+
+  async addProjectTeam(organizationId: string, projectId: string, teamId: string, actorId: string): Promise<Result<void>> {
+    try {
+      await this.enforceProjectRole(organizationId, projectId, actorId, ['Owner', 'Manager'])
+      const res = await projectRepository.addTeam(projectId, teamId, organizationId)
+      if (!res.success) throw res.error
+      await projectRepository.logActivity({
+        organization_id: organizationId,
+        project_id: projectId,
+        actor_id: actorId,
+        action_type: 'team_added',
+        description: `Added team to project`
+      })
+      return success(undefined)
+    } catch (error) {
+      return failure(error as Error)
+    }
+  }
+
+  async removeProjectTeam(organizationId: string, projectId: string, teamId: string, actorId: string): Promise<Result<void>> {
+    try {
+      await this.enforceProjectRole(organizationId, projectId, actorId, ['Owner', 'Manager'])
+      const res = await projectRepository.removeTeam(projectId, teamId, organizationId)
+      if (!res.success) throw res.error
+      await projectRepository.logActivity({
+        organization_id: organizationId,
+        project_id: projectId,
+        actor_id: actorId,
+        action_type: 'team_removed',
+        description: `Removed team from project`
       })
       return success(undefined)
     } catch (error) {
