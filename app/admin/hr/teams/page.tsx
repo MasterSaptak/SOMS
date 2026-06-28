@@ -22,9 +22,9 @@ export default async function TeamsPage() {
     departmentService.getDepartments(currentOrgId)
   ])
 
-  const teams = teamsRes.data || []
-  const branches = branchesRes.data || []
-  const departments = deptsRes.data || []
+  const teams = teamsRes.success ? teamsRes.data : []
+  const branches = branchesRes.success ? branchesRes.data : []
+  const departments = deptsRes.success ? deptsRes.data : []
 
   return (
     <TeamDirectory 

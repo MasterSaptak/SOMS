@@ -12,6 +12,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const cookieStore = await cookies()
   const currentOrgId = cookieStore.get('soms_current_org')?.value
 
+  if (!currentOrgId) {
+    return <div>No active organization selected.</div>
+  }
+
   const projectService = new ProjectService()
   const res = await projectService.getProject(id, currentOrgId)
   

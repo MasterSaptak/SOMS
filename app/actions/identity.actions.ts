@@ -14,7 +14,7 @@ export async function listUnassignedUsers(organizationId: string) {
     if (authError) throw authError
 
     // Get all members for this org
-    const { data: orgMembers, error: membersError } = await supabaseAdmin
+    const { data: orgMembers, error: membersError } = await (supabaseAdmin as any)
       .from('organization_members')
       .select('user_id')
       .eq('organization_id', organizationId)
@@ -22,7 +22,7 @@ export async function listUnassignedUsers(organizationId: string) {
     if (membersError) throw membersError
 
     // Filter out users already in the org
-    const memberUserIds = new Set(orgMembers?.map(m => m.user_id) || [])
+    const memberUserIds = new Set(orgMembers?.map((m: any) => m.user_id) || [])
     const unassigned = users.filter(u => !memberUserIds.has(u.id))
 
     return { 
@@ -49,7 +49,7 @@ export async function assignToOrganization(userId: string, organizationId: strin
     if (!session) throw new Error("Unauthorized")
 
     // 2. Insert into organization_members
-    const { data: newMember, error: memberError } = await supabaseAdmin
+    const { data: newMember, error: memberError } = await (supabaseAdmin as any)
       .from('organization_members')
       .insert({
         organization_id: organizationId,
@@ -63,14 +63,14 @@ export async function assignToOrganization(userId: string, organizationId: strin
     if (memberError) throw memberError
 
     // 3. Find role ID to insert into member_roles
-    const { data: roleData } = await supabaseAdmin
+    const { data: roleData } = await (supabaseAdmin as any)
       .from('roles')
       .select('id')
       .eq('name', roleName)
       .maybeSingle()
       
     if (roleData) {
-      await supabaseAdmin
+      await (supabaseAdmin as any)
         .from('member_roles')
         .insert({
           organization_member_id: newMember.id,
@@ -80,7 +80,7 @@ export async function assignToOrganization(userId: string, organizationId: strin
     }
     
     // Log Activity
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('member_activity')
       .insert({
         organization_member_id: newMember.id,
@@ -99,7 +99,7 @@ export async function updateMemberStatus(memberId: string, status: 'active' | 's
   const supabaseAdmin = getAdminClient()
   
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from('organization_members')
       .update({ status })
       .eq('id', memberId)
@@ -108,7 +108,7 @@ export async function updateMemberStatus(memberId: string, status: 'active' | 's
 
     if (error) throw error
     
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('member_activity')
       .insert({
         organization_member_id: memberId,
@@ -131,7 +131,7 @@ export async function updateMemberRole(memberId: string, roleName: string) {
     const { data: { session } } = await supabase.auth.getSession()
 
     // Update primary role in organization_members
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from('organization_members')
       .update({ role: roleName })
       .eq('id', memberId)
@@ -141,14 +141,14 @@ export async function updateMemberRole(memberId: string, roleName: string) {
     if (error) throw error
     
     // Also add to member_roles (upsert logic to keep it simple, or just add if it doesn't exist)
-    const { data: roleData } = await supabaseAdmin
+    const { data: roleData } = await (supabaseAdmin as any)
       .from('roles')
       .select('id')
       .eq('name', roleName)
       .maybeSingle()
       
     if (roleData) {
-      await supabaseAdmin
+      await (supabaseAdmin as any)
         .from('member_roles')
         .upsert({
           organization_member_id: memberId,
@@ -157,7 +157,7 @@ export async function updateMemberRole(memberId: string, roleName: string) {
         }, { onConflict: 'organization_member_id,role_id' })
     }
 
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('member_activity')
       .insert({
         organization_member_id: memberId,

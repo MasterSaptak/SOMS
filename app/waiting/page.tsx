@@ -21,7 +21,7 @@ export default function WaitingPage() {
         return
       }
 
-      const { data: member } = await supabase
+      const { data: member } = await (supabase as any)
         .from('organization_members')
         .select('id, status')
         .eq('user_id', session.user.id)

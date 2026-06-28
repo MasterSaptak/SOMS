@@ -23,7 +23,7 @@ export default async function HRDashboardPage() {
   const adminSb = await getAdminClient()
 
   // Get user's organization
-  const { data: orgMembers } = await adminSb
+  const { data: orgMembers } = await (adminSb as any)
     .from('organization_members')
     .select('organization_id')
     .eq('user_id', user.id)

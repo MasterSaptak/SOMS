@@ -14,7 +14,7 @@ export default async function NewProjectPage() {
 
   let userOrgs: { id: string; name: string }[] = []
   if (userData?.user?.id) {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('organization_members')
       .select('organization_id, organizations(id, name)')
       .eq('user_id', userData.user.id)

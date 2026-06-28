@@ -19,7 +19,7 @@ export default async function PeoplePage() {
   const { createClient: createAdmin } = await import('@supabase/supabase-js')
   const adminSb = createAdmin(supabaseUrl, supabaseKey)
 
-  const { data: orgMembers } = await adminSb
+  const { data: orgMembers } = await (adminSb as any)
     .from('organization_members')
     .select('organization_id')
     .eq('user_id', user.id)

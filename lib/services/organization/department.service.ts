@@ -6,7 +6,7 @@ export class DepartmentService {
   async getDepartments(orgId: string): Promise<Result<any[]>> {
     try {
       const res = await departmentRepository.findByOrganizationId(orgId)
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       
       // We'll return the flat list. The UI or a tree service can construct the hierarchy.
       return success(res.data)
@@ -19,7 +19,7 @@ export class DepartmentService {
   async createDepartment(data: any): Promise<Result<any>> {
     try {
       const res = await departmentRepository.create(data)
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       return success(res.data)
     } catch (err) {
       logger.error('[DepartmentService] createDepartment error', err)
@@ -30,7 +30,7 @@ export class DepartmentService {
   async updateDepartment(id: string, data: any): Promise<Result<any>> {
     try {
       const res = await departmentRepository.update(id, data)
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       return success(res.data)
     } catch (err) {
       logger.error('[DepartmentService] updateDepartment error', err)
@@ -41,7 +41,7 @@ export class DepartmentService {
   async deleteDepartment(id: string): Promise<Result<void>> {
     try {
       const res = await departmentRepository.delete(id)
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       return success(undefined)
     } catch (err) {
       logger.error('[DepartmentService] deleteDepartment error', err)

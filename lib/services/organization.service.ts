@@ -5,8 +5,10 @@ import { logger } from '@/lib/logger/logger'
 import { eventBus } from '@/lib/events/event-bus'
 import {
   createOrganizationSchema,
+  updateOrganizationSchema,
   inviteMemberSchema,
   type CreateOrganizationInput,
+  type UpdateOrganizationInput,
   type InviteMemberInput,
 } from '@/lib/validators/organization.validator'
 import type { Organization, OrganizationMember, OrganizationInvitation, OrgMemberRole } from '@/types/organizations'
@@ -58,7 +60,7 @@ export class OrganizationService {
     const org = orgData as unknown as Organization
 
     // Add creator as owner
-    const { error: memberError } = await serviceClient
+    const { error: memberError } = await (serviceClient as any)
       .from('organization_members')
       .insert({
         organization_id: org.id,

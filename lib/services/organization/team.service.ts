@@ -7,7 +7,7 @@ export class TeamService {
   async getTeamsByOrganization(orgId: string): Promise<Result<any[]>> {
     try {
       const res = await teamRepository.findByOrganizationId(orgId)
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       return success(res.data)
     } catch (err) {
       logger.error('[TeamService] getTeamsByOrganization error', err)
@@ -43,7 +43,7 @@ export class TeamService {
       }
 
       const res = await teamRepository.create(data)
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       return success(res.data)
     } catch (err) {
       logger.error('[TeamService] createTeam error', err)
@@ -54,7 +54,7 @@ export class TeamService {
   async updateTeam(id: string, data: any): Promise<Result<any>> {
     try {
       const res = await teamRepository.update(id, data)
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       return success(res.data)
     } catch (err) {
       logger.error('[TeamService] updateTeam error', err)
@@ -68,7 +68,7 @@ export class TeamService {
 
       if (isPrimary) {
         // Unset primary for this employee in other teams
-        await client
+        await (client as any)
           .from('team_members')
           .update({ is_primary: false })
           .eq('employee_id', employeeId)
@@ -81,7 +81,7 @@ export class TeamService {
         is_primary: isPrimary
       })
 
-      if (res.error) return failure(new Error(res.error))
+      if (!res.success) return failure(res.error)
       return success(res.data)
     } catch (err) {
       logger.error('[TeamService] addTeamMember error', err)
@@ -92,7 +92,7 @@ export class TeamService {
   async removeTeamMember(teamId: string, employeeId: string): Promise<Result<void>> {
     try {
       const client = await createClient()
-      const { error } = await client
+      const { error } = await (client as any)
         .from('team_members')
         .delete()
         .eq('team_id', teamId)

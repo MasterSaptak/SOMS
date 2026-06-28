@@ -19,12 +19,12 @@ export default async function TeamDetailsPage({ params }: { params: Promise<{ id
     workforceAnalyticsService.getTeamStats(id)
   ])
 
-  if (detailsRes.error) {
+  if (!detailsRes.success) {
     return notFound()
   }
 
   const { team, members } = detailsRes.data
-  const stats = statsRes.data
+  const stats = statsRes.success ? statsRes.data : null
 
   return (
     <TeamDashboardClient 

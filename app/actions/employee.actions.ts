@@ -24,7 +24,7 @@ async function getAuthContext() {
     const { createClient: createAdmin } = await import('@supabase/supabase-js')
     const adminSupabase = createAdmin(supabaseUrl, supabaseKey)
 
-    const { data: orgMembers } = await adminSupabase
+    const { data: orgMembers } = await (adminSupabase as any)
       .from('organization_members')
       .select('organization_id')
       .eq('user_id', user.id)

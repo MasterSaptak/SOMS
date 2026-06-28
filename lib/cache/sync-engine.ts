@@ -118,10 +118,8 @@ class SyncEngineClass {
 
     if (profile) {
       await db.profiles.put({
-        id: profile.id,
-        role: profile.role,
+        ...profile,
         updated_at: profile.updated_at || new Date().toISOString(),
-        ...profile
       })
     }
   }

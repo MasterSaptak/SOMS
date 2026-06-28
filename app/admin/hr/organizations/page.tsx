@@ -15,7 +15,7 @@ export default async function OrganizationsPage() {
     .select('id, name, slug, logo_url, industry, size, is_active, created_at')
     .order('name')
 
-  const { data: memberCounts } = await adminSb
+  const { data: memberCounts } = await (adminSb as any)
     .from('organization_members')
     .select('organization_id')
 

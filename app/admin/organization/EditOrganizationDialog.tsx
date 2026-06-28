@@ -36,7 +36,7 @@ export function EditOrganizationDialog({ organization, onClose, onUpdated }: Pro
         name: name.trim(), 
         slug: slug.trim(),
         industry: industry || undefined,
-        size: size || undefined
+        size: (size as any) || undefined
       })
       if (result.success) {
         toast.success('Organization updated successfully!')

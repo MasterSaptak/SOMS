@@ -4,6 +4,8 @@ import OrganizationClient from './OrganizationClient'
 
 export const dynamic = 'force-dynamic'
 
+import { cookies } from 'next/headers'
+
 export default async function OrganizationSettingsPage() {
   const result = await getUserOrganizationsAction()
   
@@ -12,5 +14,8 @@ export default async function OrganizationSettingsPage() {
   // Let's pass the raw data, OrganizationClient will handle it.
   const orgMembers = result.success ? result.data! : []
 
-  return <OrganizationClient initialMembers={orgMembers} />
+  const cookieStore = await cookies()
+  const currentOrgId = cookieStore.get('soms_current_org')?.value || null
+
+  return <OrganizationClient initialMembers={orgMembers} initialCurrentOrgId={currentOrgId} />
 }

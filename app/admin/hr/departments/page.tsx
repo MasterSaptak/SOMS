@@ -12,7 +12,9 @@ export default async function DepartmentsPage() {
 
   if (!orgId) return <div>No active organization selected.</div>
 
-  const { data: treeData, error } = await organizationTreeService.getFullTree(orgId)
+  const treeRes = await organizationTreeService.getFullTree(orgId)
+  const treeData = treeRes.success ? treeRes.data : []
+  const error = treeRes.success ? null : treeRes.error
 
   return (
     <div className="space-y-6">
@@ -29,7 +31,7 @@ export default async function DepartmentsPage() {
 
       {error ? (
         <div className="p-8 text-center text-destructive bg-destructive/10 rounded-xl border border-destructive/20">
-          Failed to load organization tree: {error}
+          Failed to load organization tree: {error.message}
         </div>
       ) : (
         <DepartmentTree treeData={treeData} />

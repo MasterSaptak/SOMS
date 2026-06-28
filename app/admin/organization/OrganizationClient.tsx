@@ -5,17 +5,24 @@ import { Plus, Building, MapPin, Globe, Check, Settings2, Pencil } from 'lucide-
 import { CreateOrganizationDialog } from './CreateOrganizationDialog'
 import { EditOrganizationDialog } from './EditOrganizationDialog'
 import type { Organization, OrganizationMember } from '@/types/organizations'
-import { useAuthStore } from '@/store/use-auth-store'
+
 
 interface Props {
   initialMembers: OrganizationMember[]
+  initialCurrentOrgId?: string | null
 }
 
-export default function OrganizationClient({ initialMembers }: Props) {
+export default function OrganizationClient({ initialMembers, initialCurrentOrgId }: Props) {
   const [members, setMembers] = useState<OrganizationMember[]>(initialMembers)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
-  const { currentOrganization, setCurrentOrganization } = useAuthStore()
+  const [currentOrgId, setCurrentOrgId] = useState(initialCurrentOrgId)
+
+  const handleSwitchOrganization = (org: Organization) => {
+    document.cookie = `soms_current_org=${org.id}; path=/; max-age=31536000; SameSite=Lax`
+    setCurrentOrgId(org.id)
+    window.location.reload()
+  }
 
   const organizations = members.map(m => m.organization || (m as any).organizations).filter(Boolean) as Organization[]
 
@@ -37,7 +44,7 @@ export default function OrganizationClient({ initialMembers }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {organizations.map(org => {
-          const isCurrent = currentOrganization?.id === org.id
+          const isCurrent = currentOrgId === org.id
           
           return (
             <div 
@@ -89,7 +96,7 @@ export default function OrganizationClient({ initialMembers }: Props) {
 
                 {!isCurrent && (
                   <button 
-                    onClick={() => setCurrentOrganization(org)}
+                    onClick={() => handleSwitchOrganization(org)}
                     className="w-full py-2 px-4 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:bg-accent/80 transition-colors"
                   >
                     Switch to {org.name}

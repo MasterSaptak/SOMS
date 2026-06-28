@@ -71,6 +71,7 @@ export class TeamRepository extends BaseRepository<'teams'> {
   }
 }
 
+// @ts-expect-error - Table not in generated types
 export class TeamMemberRepository extends BaseRepository<'team_members'> {
   constructor() {
     super('team_members')

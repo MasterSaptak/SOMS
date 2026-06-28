@@ -26,7 +26,7 @@ export function ProjectDashboard({ initialProjects, orgId }: ProjectDashboardPro
 
   const activeProjects = projects.filter(p => p.status === 'Active')
   const completedProjects = projects.filter(p => p.status === 'Completed')
-  const delayedProjects = projects.filter(p => p.status === 'On Hold' || p.health_score === 'Delayed')
+  const delayedProjects = projects.filter(p => p.status === 'On Hold' || p.health_score === 'Critical')
 
   const totalBudget = projects.reduce((acc, p) => acc + (p.total_budget || 0), 0)
   const usedBudget = projects.reduce((acc, p) => acc + (p.actual_cost || 0), 0)

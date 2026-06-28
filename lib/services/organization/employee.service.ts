@@ -25,7 +25,7 @@ export class OrgEmployeeService {
       if (empErr) throw empErr
 
       // 2. Get teams
-      const { data: teamMembers, error: tmErr } = await client
+      const { data: teamMembers, error: tmErr } = await (client as any)
         .from('team_members')
         .select(`
           teams(id, name, department_id, lead_id)

@@ -30,13 +30,13 @@ export class WorkforceAnalyticsService {
     try {
       const client = await createClient()
       
-      const { data: team, error } = await client.from('teams').select('max_members').eq('id', teamId).single()
+      const { data: team, error } = await (client as any).from('teams').select('max_members').eq('id', teamId).single()
       if (error) throw error
 
-      const { count: membersCount, error: countErr } = await client.from('team_members').select('*', { count: 'exact', head: true }).eq('team_id', teamId)
+      const { count: membersCount, error: countErr } = await (client as any).from('team_members').select('*', { count: 'exact', head: true }).eq('team_id', teamId)
       if (countErr) throw countErr
 
-      const max = team.max_members || 10
+      const max = team?.max_members || 10
       const current = membersCount || 0
       const capacityPct = Math.round((current / max) * 100)
 

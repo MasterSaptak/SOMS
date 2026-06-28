@@ -32,7 +32,7 @@ export function CreateOrganizationDialog({ onClose, onCreated }: Props) {
         name: name.trim(), 
         slug: finalSlug,
         industry: industry || undefined,
-        size: size || undefined
+        size: (size as any) || undefined
       })
       if (result.success) {
         toast.success('Organization created successfully!')
