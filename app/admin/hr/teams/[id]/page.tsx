@@ -7,13 +7,13 @@ import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
-export default async function TeamDetailsPage({ params }: { params: { id: string } }) {
+export default async function TeamDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies()
   const orgId = cookieStore.get('soms_current_org')?.value
 
   if (!orgId) return <div>No active organization selected.</div>
 
-  const { id } = params
+  const { id } = await params
   const [detailsRes, statsRes] = await Promise.all([
     teamService.getTeamDetails(id),
     workforceAnalyticsService.getTeamStats(id)
