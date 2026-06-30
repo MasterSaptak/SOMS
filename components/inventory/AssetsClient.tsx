@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from 'sonner'
 
 export function AssetsClient() {
   const { activeOrganizationId } = useOrganizationStore()
@@ -57,10 +58,11 @@ export function AssetsClient() {
     const res = await createAssetAction({ ...formData, price: Number(formData.price), quantity: Number(formData.quantity) })
     if (res.success) {
       setIsAddOpen(false)
+      toast.success('Asset added successfully')
       loadAssets()
       setFormData({ name: "", type: "Hardware", serial_number: "", status: "Available", price: 0, quantity: 1, location: "", supplier: "" })
     } else {
-      console.error(res.error)
+      toast.error(res.error?.message || 'Failed to add asset')
     }
   }
 

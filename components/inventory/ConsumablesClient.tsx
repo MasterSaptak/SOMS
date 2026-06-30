@@ -20,6 +20,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
+import { toast } from 'sonner'
 
 export function ConsumablesClient() {
   const { activeOrganizationId } = useOrganizationStore()
@@ -71,10 +72,11 @@ export function ConsumablesClient() {
     })
     if (res.success) {
       setIsAddOpen(false)
+      toast.success('Consumable added successfully')
       loadItems()
       setFormData({ name: "", category: "Office Supplies", description: "", quantity: 0, minimum_stock: 10, unit: "pcs", unit_price: 0, location: "", supplier: "" })
     } else {
-      console.error(res.error)
+      toast.error(res.error?.message || 'Failed to add consumable')
     }
   }
 

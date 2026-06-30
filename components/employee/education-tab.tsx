@@ -2,11 +2,11 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Trash2, GraduationCap } from 'lucide-react'
+import { Plus, Trash2, GraduationCap, Loader2 } from 'lucide-react'
 import { addEmployeeEducationAction, deleteEmployeeEducationAction, verifyEducationAction } from '@/app/actions/employee.actions'
 import { VerificationBadge } from '@/components/profile/VerificationBadge'
-
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { employeeId: string, canEdit: boolean, isAdmin: boolean, initialData: any[] }) {
   const router = useRouter()
@@ -26,7 +26,7 @@ export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { em
 
   const handleAdd = async () => {
     if (!formData.school || !formData.degree) {
-      alert('School and Degree are required.')
+      toast.error('School and Degree are required.')
       return
     }
     setIsSaving(true)
@@ -44,8 +44,10 @@ export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { em
       
       setIsAdding(false)
       setFormData({ school: '', degree: '', fieldOfStudy: '', startDate: '', endDate: '', cgpa: '' })
+      toast.success('Education record added successfully')
+      router.refresh()
     } catch (e: any) {
-      alert(`Error adding education: ${e.message}`)
+      toast.error(`Error adding education: ${e.message}`)
     }
     setIsSaving(false)
   }
@@ -57,8 +59,10 @@ export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { em
       if (!res.success) throw new Error('Failed to delete education')
       
       setEducation(education.filter(e => e.id !== id))
+      toast.success('Education record deleted')
+      router.refresh()
     } catch (e: any) {
-      alert(`Error deleting education: ${e.message}`)
+      toast.error(`Error deleting education: ${e.message}`)
     }
   }
 
@@ -70,8 +74,10 @@ export function EducationTab({ employeeId, canEdit, isAdmin, initialData }: { em
       
       const updated = education.map(e => e.id === id ? { ...e, verificationStatus: status, isVerified: status === 'verified' } : e)
       setEducation(updated)
+      toast.success(`Education record ${status}`)
+      router.refresh()
     } catch (e: any) {
-      alert(`Error verifying education: ${e.message}`)
+      toast.error(`Error verifying education: ${e.message}`)
     }
   }
 

@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createTaskAction } from "@/app/actions/task.actions"
 import { Loader2, Plus } from "lucide-react"
 import { useOrganizationStore } from "@/store/use-organization-store"
+import { toast } from 'sonner'
 
 export function TaskCreateDialog({ 
   onSuccess 
@@ -49,10 +50,13 @@ export function TaskCreateDialog({
       const result = await createTaskAction(activeOrganizationId, taskData, [])
       if (result.success) {
         setOpen(false)
+        toast.success('Task created successfully')
         onSuccess?.()
+      } else {
+        toast.error(result.error?.message || 'Failed to create task')
       }
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      toast.error(err?.message || 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }

@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, Trash2, Briefcase } from 'lucide-react'
+import { Plus, Trash2, Briefcase, Loader2 } from 'lucide-react'
 import { addEmployeeExperienceAction, deleteEmployeeExperienceAction, verifyExperienceAction } from '@/app/actions/employee.actions'
 import { VerificationBadge } from '@/components/profile/VerificationBadge'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { employeeId: string, canEdit: boolean, isAdmin: boolean, initialData: any[] }) {
   const router = useRouter()
@@ -25,7 +26,7 @@ export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { e
 
   const handleAdd = async () => {
     if (!formData.companyName || !formData.title) {
-      alert('Company Name and Title are required.')
+      toast.error('Company Name and Title are required.')
       return
     }
     setIsSaving(true)
@@ -43,8 +44,10 @@ export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { e
       
       setIsAdding(false)
       setFormData({ companyName: '', title: '', location: '', startDate: '', endDate: '', description: '' })
+      toast.success('Experience record added successfully')
+      router.refresh()
     } catch (e: any) {
-      alert(`Error adding experience: ${e.message}`)
+      toast.error(`Error adding experience: ${e.message}`)
     }
     setIsSaving(false)
   }
@@ -56,8 +59,10 @@ export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { e
       if (!res.success) throw new Error('Failed to delete experience')
       
       setExperience(experience.filter(e => e.id !== id))
+      toast.success('Experience record deleted')
+      router.refresh()
     } catch (e: any) {
-      alert(`Error deleting experience: ${e.message}`)
+      toast.error(`Error deleting experience: ${e.message}`)
     }
   }
 
@@ -70,8 +75,10 @@ export function ExperienceTab({ employeeId, canEdit, isAdmin, initialData }: { e
       // Update locally
       const updated = experience.map(e => e.id === id ? { ...e, verificationStatus: status, isVerified: status === 'verified' } : e)
       setExperience(updated)
+      toast.success(`Experience record ${status}`)
+      router.refresh()
     } catch (e: any) {
-      alert(`Error verifying experience: ${e.message}`)
+      toast.error(`Error verifying experience: ${e.message}`)
     }
   }
 

@@ -50,7 +50,7 @@ export function useBackgroundSync() {
     // Start sync loop
     performSync()
 
-    // Setup Realtime fallback
+    // Setup Realtime — invalidate caches for all major entity types
     const channel = supabase.channel('schema-db-changes')
       .on(
         'postgres_changes',
@@ -59,10 +59,34 @@ export function useBackgroundSync() {
           schema: 'public',
         },
         async (payload) => {
-          // If a realtime event comes in, trigger a targeted cache update
-          if (payload.table === 'tasks' && payload.new) {
-            await CacheManager.saveTasks([payload.new as any])
-            queryClient.invalidateQueries({ queryKey: ['tasks'] })
+          const table = payload.table
+          // Map table names to React Query keys
+          const tableKeyMap: Record<string, string[][]> = {
+            tasks: [['tasks']],
+            task_assignments: [['tasks']],
+            projects: [['projects']],
+            project_members: [['projects']],
+            assets: [['assets']],
+            consumables: [['consumables']],
+            employees: [['employees'], ['employee360']],
+            employee_education: [['employee360']],
+            employee_experience: [['employee360']],
+            employee_certifications: [['employee360']],
+            employee_documents: [['employee360']],
+            employee_skills: [['employee360']],
+            departments: [['departments']],
+            leaves: [['leaves']],
+            attendance: [['attendance']],
+            organizations: [['organizations']],
+          }
+          
+          const keys = tableKeyMap[table]
+          if (keys) {
+            // Also save to IndexedDB for task-specific caching
+            if (table === 'tasks' && payload.new) {
+              await CacheManager.saveTasks([payload.new as any])
+            }
+            keys.forEach(key => queryClient.invalidateQueries({ queryKey: key }))
           }
         }
       )

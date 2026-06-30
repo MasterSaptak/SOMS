@@ -7,6 +7,7 @@ import { addEmployeeCertificationAction, deleteEmployeeCertificationAction, veri
 import { VerificationBadge } from '@/components/profile/VerificationBadge'
 import { Badge } from '@/components/ui/badge'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }: { employeeId: string, canEdit: boolean, isAdmin: boolean, initialData: any[] }) {
   const router = useRouter()
@@ -24,7 +25,7 @@ export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }:
 
   const handleAdd = async () => {
     if (!formData.name || !formData.issuer) {
-      alert('Name and Issuer are required.')
+      toast.error('Name and Issuer are required.')
       return
     }
     setIsSaving(true)
@@ -41,8 +42,10 @@ export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }:
       
       setIsAdding(false)
       setFormData({ name: '', issuer: '', issueDate: '', expiryDate: '', credentialUrl: '' })
+      toast.success('Certification added successfully')
+      router.refresh()
     } catch (e: any) {
-      alert(`Error adding certification: ${e.message}`)
+      toast.error(`Error adding certification: ${e.message}`)
     }
     setIsSaving(false)
   }
@@ -54,8 +57,10 @@ export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }:
       if (!res.success) throw new Error('Failed to delete certification')
       
       setCertifications(certifications.filter(c => c.id !== id))
+      toast.success('Certification deleted')
+      router.refresh()
     } catch (e: any) {
-      alert(`Error deleting certification: ${e.message}`)
+      toast.error(`Error deleting certification: ${e.message}`)
     }
   }
 
@@ -67,8 +72,10 @@ export function CertificationsTab({ employeeId, canEdit, isAdmin, initialData }:
       
       const updated = certifications.map(c => c.id === id ? { ...c, verificationStatus: status, isVerified: status === 'verified' } : c)
       setCertifications(updated)
+      toast.success(`Certification ${status}`)
+      router.refresh()
     } catch (e: any) {
-      alert(`Error verifying certification: ${e.message}`)
+      toast.error(`Error verifying certification: ${e.message}`)
     }
   }
 

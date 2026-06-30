@@ -312,18 +312,80 @@ export class PeopleRepository {
     }
   }
   /**
-   * Delete a person
+   * Delete a person and completely remove them from the system
    */
   async delete(employeeId: string): Promise<Result<void>> {
     try {
       const sb = getAdminClient()
-      const { error } = await sb
+      
+      // 1. Get employee details
+      const { data: employee, error: empError } = await sb
+        .from('employees')
+        .select('id, user_id, organization_member_id')
+        .eq('id', employeeId)
+        .single()
+
+      if (empError) throw empError
+
+      const userId = employee.user_id
+      const memberId = employee.organization_member_id
+
+      // 2. Cleanup relations manually to avoid orphan issues if cascades aren't fully set up
+      
+      // Task related
+      await sb.from('tasks').delete().eq('assignee_id', employeeId)
+      await sb.from('tasks').delete().eq('assigned_to', employeeId)
+      
+      // Attendance & Leaves
+      await sb.from('attendance').delete().eq('employee_id', employeeId)
+      await sb.from('leaves').delete().eq('employee_id', employeeId)
+      await sb.from('leave_requests').delete().eq('employee_id', employeeId)
+      
+      // Employee profiles
+      await sb.from('employee_skills').delete().eq('employee_id', employeeId)
+      await sb.from('employee_documents').delete().eq('employee_id', employeeId)
+      await sb.from('emergency_contacts').delete().eq('employee_id', employeeId)
+      await sb.from('employment_details').delete().eq('employee_id', employeeId)
+      await sb.from('employee_education').delete().eq('employee_id', employeeId)
+      await sb.from('employee_experience').delete().eq('employee_id', employeeId)
+      await sb.from('employee_certifications').delete().eq('employee_id', employeeId)
+      await sb.from('employee_preferences').delete().eq('employee_id', employeeId)
+
+      // Timeline events
+      await sb.from('timeline_events').delete().eq('employee_id', employeeId)
+      
+      // Notifications & sessions for the user
+      if (userId) {
+        await sb.from('notifications').delete().eq('user_id', userId)
+        await sb.from('user_sessions').delete().eq('user_id', userId)
+      }
+
+      // 3. Delete employee record
+      const { error: delEmpError } = await sb
         .from('employees')
         .delete()
         .eq('id', employeeId)
-      if (error) throw error
+        
+      if (delEmpError) throw delEmpError
+
+      // 4. Delete org member
+      if (memberId) {
+        await sb.from('organization_members').delete().eq('id', memberId)
+      }
+
+      // 5. Delete profile and auth user
+      if (userId) {
+        // Delete profile explicitly
+        await sb.from('profiles').delete().eq('id', userId)
+        
+        // Delete from Supabase Auth
+        const { error: authError } = await sb.auth.admin.deleteUser(userId)
+        if (authError) throw authError
+      }
+
       return success(undefined)
     } catch (error) {
+      console.error('Delete User Error:', error)
       return failure(error as Error)
     }
   }

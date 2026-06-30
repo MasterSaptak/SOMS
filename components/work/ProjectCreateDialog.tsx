@@ -10,6 +10,7 @@ import { Plus, Loader2 } from "lucide-react"
 import { createProjectAction } from "@/app/actions/project.actions"
 import { useOrganizationStore } from "@/store/use-organization-store"
 import { useAuthStore } from "@/store/use-auth-store"
+import { toast } from 'sonner'
 
 export function ProjectCreateDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false)
@@ -52,9 +53,10 @@ export function ProjectCreateDialog({ onSuccess }: { onSuccess?: () => void }) {
       if (res.success) {
         setOpen(false)
         setFormData({ name: "", description: "", start_date: "", end_date: "", total_budget: "", client: "" })
+        toast.success('Project created successfully')
         if (onSuccess) onSuccess()
       } else {
-        alert("Failed to create project: " + res.error?.message)
+        toast.error(res.error?.message || 'Failed to create project')
       }
     } finally {
       setLoading(false)

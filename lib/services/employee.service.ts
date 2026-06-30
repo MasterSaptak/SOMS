@@ -51,11 +51,15 @@ export class EmployeeService {
         if (!authRes.success) return failure(authRes.error)
       }
 
-      const [detailsRes, contactsRes, skillsRes, prefsRes] = await Promise.all([
+      const [detailsRes, contactsRes, skillsRes, prefsRes, docsRes, certsRes, eduRes, expRes] = await Promise.all([
         employeeRepository.findEmploymentDetails(emp.id),
         employeeRepository.findEmergencyContacts(emp.id),
         employeeRepository.findSkills(emp.id),
-        employeeRepository.findPreferences(emp.id)
+        employeeRepository.findPreferences(emp.id),
+        employeeRepository.findDocuments(emp.id),
+        employeeRepository.findCertifications(emp.id),
+        employeeRepository.findEducation(emp.id),
+        employeeRepository.findExperience(emp.id)
       ])
 
       let rbacRoles: string[] = []
@@ -80,10 +84,10 @@ export class EmployeeService {
         emergencyContacts: contactsRes.success ? contactsRes.data : [],
         skills: skillsRes.success ? skillsRes.data : [],
         preferences: prefsRes.success ? prefsRes.data : null,
-        documents: [],
-        certifications: [],
-        education: [],
-        experience: []
+        documents: docsRes.success ? docsRes.data : [],
+        certifications: certsRes.success ? certsRes.data : [],
+        education: eduRes.success ? eduRes.data : [],
+        experience: expRes.success ? expRes.data : []
       })
     } catch (err) {
       logger.error('[EmployeeService] getEmployee360 failed', err)
