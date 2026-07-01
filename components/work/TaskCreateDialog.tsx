@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createTaskAction } from "@/app/actions/task.actions"
 import { Loader2, Plus } from "lucide-react"
 import { useOrganizationStore } from "@/store/use-organization-store"
+import { useAuthStore } from "@/store/use-auth-store"
 import { toast } from 'sonner'
 
 export function TaskCreateDialog({ 
@@ -28,10 +29,14 @@ export function TaskCreateDialog({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const { activeOrganizationId } = useOrganizationStore()
+  const { employee } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!activeOrganizationId) return
+    if (!activeOrganizationId) {
+      toast.error('No active organization selected! Please select an organization first.')
+      return
+    }
 
     setLoading(true)
     const formData = new FormData(e.currentTarget)
@@ -39,11 +44,12 @@ export function TaskCreateDialog({
     const taskData = {
       title: formData.get("title") as string,
       description: formData.get("description") as string,
-      category: formData.get("category") as any,
-      priority: formData.get("priority") as any,
-      status: formData.get("status") as any,
-      estimated_hours: formData.get("estimated_hours") ? parseFloat(formData.get("estimated_hours") as string) : undefined,
-      due_date: formData.get("due_date") ? formData.get("due_date") as string : undefined
+      category: (formData.get("category") || "Task") as any,
+      priority: (formData.get("priority") || "Medium") as any,
+      status: (formData.get("status") || "Draft") as any,
+      estimated_hours: formData.get("estimated_hours") ? parseFloat(formData.get("estimated_hours") as string) : null,
+      due_date: formData.get("due_date") ? formData.get("due_date") as string : null,
+      created_by: employee?.id || null
     }
 
     try {
@@ -168,7 +174,7 @@ export function TaskCreateDialog({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !activeOrganizationId}>
+            <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Task
             </Button>

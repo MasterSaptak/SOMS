@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { createClient } from '@/lib/supabase/client'
+import { getFallbackOrganizationAction } from '@/app/actions/organization.actions'
 import type { Organization, OrganizationMember } from '@/types/organizations'
 
 interface OrganizationState {
@@ -79,6 +80,29 @@ export const useOrganizationStore = create<OrganizationState>()(
             }
             if (!activeOrg && memberships.length > 0) {
               activeOrg = memberships[0].organization ?? null
+            }
+            
+            // Fallback for Super Admin with no explicit memberships
+            if (!activeOrg) {
+              const result = await getFallbackOrganizationAction()
+              
+              if (!result.success) {
+                console.error("Fallback org fetch error:", result.error)
+              }
+              
+              const fallbackOrg = result.success ? result.data : null
+              
+              if (fallbackOrg) {
+                activeOrg = fallbackOrg
+                memberships.push({
+                  id: 'super-admin-mock',
+                  organizationId: activeOrg!.id,
+                  userId,
+                  role: 'owner',
+                  status: 'active',
+                  organization: activeOrg!
+                } as any)
+              }
             }
 
             if (typeof document !== 'undefined' && activeOrg?.id) {

@@ -19,12 +19,21 @@ export async function getTaskAction(taskId: string, organizationId: string) {
 }
 
 export async function createTaskAction(organizationId: string, taskData: Partial<Task>, assignees: string[] = []) {
-  const result = await taskService.createTask(organizationId, taskData, assignees)
-  if (result.success) {
-    revalidatePath("/admin/tasks")
-    revalidatePath("/employee/tasks")
+  console.log('--- SERVER ACTION CALLED: createTaskAction ---')
+  console.log('Org ID:', organizationId)
+  console.log('Task Data:', taskData)
+  try {
+    const result = await taskService.createTask(organizationId, taskData, assignees)
+    console.log('Task Service Result:', JSON.stringify(result, null, 2))
+    if (result.success) {
+      revalidatePath("/admin/tasks")
+      revalidatePath("/employee/tasks")
+    }
+    return result
+  } catch (error) {
+    console.error('SERVER ACTION ERROR:', error)
+    return { success: false, error: { message: (error as any).message || 'Unknown error in action' } }
   }
-  return result
 }
 
 export async function updateTaskAction(taskId: string, organizationId: string, actorId: string, updates: Partial<Task>) {

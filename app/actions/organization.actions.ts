@@ -104,6 +104,8 @@ export async function acceptInvitationAction(token: string): Promise<Result<Orga
   }
 }
 
+
+
 /**
  * Remove a member from an organization.
  */
@@ -132,5 +134,29 @@ export async function archiveOrganizationAction(orgId: string): Promise<Result<b
     return await organizationService.archiveOrganization(orgId, userId)
   } catch (err) {
     return failure(err instanceof Error ? err : new Error('Failed to archive organization'))
+  }
+}
+
+
+
+export async function getFallbackOrganizationAction(): Promise<Result<Organization | null>> {
+  try {
+    const { getAdminClient } = await import('@/lib/supabase/server')
+    const adminClient = getAdminClient()
+    const { data, error } = await adminClient
+      .from('organizations')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') return { success: true, data: null } // No rows found
+      throw error
+    }
+    
+    return { success: true, data: data as unknown as Organization }
+  } catch (err) {
+    return failure(err instanceof Error ? err : new Error('Failed to fetch fallback organization'))
   }
 }

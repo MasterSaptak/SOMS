@@ -25,10 +25,12 @@ export function EnterpriseProvider({ children }: { children: React.ReactNode }) 
 
   // Step 1: Load org memberships on auth
   useEffect(() => {
-    if (isAuthenticated && user?.id && !orgsLoaded) {
-      fetchUserOrganizations(user.id)
+    if (isAuthenticated && user?.id) {
+      if (!orgsLoaded || !activeOrganizationId) {
+        fetchUserOrganizations(user.id)
+      }
     }
-  }, [isAuthenticated, user?.id, orgsLoaded, fetchUserOrganizations])
+  }, [isAuthenticated, user?.id, orgsLoaded, activeOrganizationId, fetchUserOrganizations])
 
   // Step 2: Load permissions when org is known
   useEffect(() => {

@@ -5,6 +5,7 @@ import type { User, Employee, UserRole } from '@/lib/types'
 import { db } from '@/lib/cache/db'
 import { isCacheEnabled } from '@/lib/cache/flags'
 import { SyncEngine } from '@/lib/cache/sync-engine'
+import { useOrganizationStore } from './use-organization-store'
 
 interface AuthState {
   user: User | null
@@ -38,6 +39,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     // Total User Isolation: purge all local cache on logout
     SyncEngine.clearCache()
+    useOrganizationStore.getState().reset?.()
     set({ user: null, employee: null, isAuthenticated: false })
   },
 
