@@ -59,7 +59,7 @@ export function BudgetOverview({ project, onUpdate }: { project: ProjectWithDeta
       setAmount("")
       setDescription("")
       setCategory("Other")
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
     loadBudgets()
       onUpdate()
     } else {
@@ -77,7 +77,7 @@ export function BudgetOverview({ project, onUpdate }: { project: ProjectWithDeta
       description: req.description
     })
     if (res.success) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
     loadBudgets()
       onUpdate()
     } else {
@@ -94,7 +94,7 @@ export function BudgetOverview({ project, onUpdate }: { project: ProjectWithDeta
     setActionLoading(`reject-${req.id}`)
     const res = await rejectBudgetRequestAction(activeOrganizationId, project.id, req.id, user.id, reason || "Rejected")
     if (res.success) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
     loadBudgets()
     } else {
       alert("Failed to reject: " + res.error?.message)

@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useLocalCache } from "@/hooks/use-local-cache"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/button"
 
 export function ProjectList({ onSelectProject }: { onSelectProject: (id: string) => void }) {
   const router = useRouter()
-  const [projects, setProjects] = useState<ProjectWithDetails[]>([])
+  const [projects, setProjects] = useLocalCache<ProjectWithDetails[]>("soms_cached_projects", [])
   const { activeOrganizationId } = useOrganizationStore()
 
   const fetchProjects = useCallback(async () => {
@@ -27,7 +28,7 @@ export function ProjectList({ onSelectProject }: { onSelectProject: (id: string)
   }, [activeOrganizationId])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchProjects()
 
     const handleRefresh = () => fetchProjects()

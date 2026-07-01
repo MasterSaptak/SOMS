@@ -77,7 +77,7 @@ function EmployeeLayoutInner({
   const { logout } = useAuthStore()
 
   // Sync optimistic path when real path changes
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+   
   useEffect(() => {
     setOptimisticPath(searchParams?.get('tab') || 'overview')
   }, [searchParams])

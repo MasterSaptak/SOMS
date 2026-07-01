@@ -3,7 +3,7 @@ import { Result, success, failure } from '@/lib/utils/result'
 import { logger } from '@/lib/logger/logger'
 import type { Role, RolePermission, UserRole, EffectivePermissions, Permission } from '@/types/permissions'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function getSB(): Promise<any> {
   const client = await createServerClient()
   return client as any

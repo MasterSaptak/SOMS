@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger/logger'
 import type { Organization, OrganizationMember, OrganizationInvitation, OrgMemberRole } from '@/types/organizations'
 
 // Helper: returns client cast to any for Sprint-A tables not yet in generated types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function getUntypedClient(): Promise<any> {
   const client = await createServerClient()
   return client as unknown as any

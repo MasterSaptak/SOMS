@@ -32,33 +32,25 @@ export default async function HRDashboardPage() {
   const organizationId = orgMembers?.[0]?.organization_id
 
   // Fetch stats using service role to avoid RLS issues
-  let totalPeople = 0, activePeople = 0, totalDepts = 0, totalOrgs = 0, totalProjects = 0
+  const [
+    { count: empCount },
+    { count: activeCount },
+    { count: deptCount },
+    { count: projCount },
+    { count: orgCount }
+  ] = await Promise.all([
+    adminSb.from('employees').select('id', { count: 'exact', head: true }),
+    adminSb.from('employees').select('id', { count: 'exact', head: true }).eq('employment_status', 'active'),
+    adminSb.from('departments').select('id', { count: 'exact', head: true }),
+    adminSb.from('projects').select('id', { count: 'exact', head: true }),
+    adminSb.from('organizations').select('id', { count: 'exact', head: true })
+  ])
 
-  const { count: empCount } = await adminSb
-    .from('employees')
-    .select('id', { count: 'exact', head: true })
-  totalPeople = empCount || 0
-
-  const { count: activeCount } = await adminSb
-    .from('employees')
-    .select('id', { count: 'exact', head: true })
-    .eq('employment_status', 'active')
-  activePeople = activeCount || 0
-
-  const { count: deptCount } = await adminSb
-    .from('departments')
-    .select('id', { count: 'exact', head: true })
-  totalDepts = deptCount || 0
-
-  const { count: projCount } = await adminSb
-    .from('projects')
-    .select('id', { count: 'exact', head: true })
-  totalProjects = projCount || 0
-
-  const { count: orgCount } = await adminSb
-    .from('organizations')
-    .select('id', { count: 'exact', head: true })
-  totalOrgs = orgCount || 0
+  const totalPeople = empCount || 0
+  const activePeople = activeCount || 0
+  const totalDepts = deptCount || 0
+  const totalProjects = projCount || 0
+  const totalOrgs = orgCount || 0
 
   const stats = {
     totalPeople,

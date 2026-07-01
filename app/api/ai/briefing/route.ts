@@ -3,7 +3,10 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' })
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not set')
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     
     // Build the context from mock data
     const context = {

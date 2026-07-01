@@ -1,6 +1,8 @@
 // @ts-nocheck
 "use client"
 
+import { useLocalCache } from "@/hooks/use-local-cache"
+
 import React, { useState, useEffect, useCallback } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { 
@@ -32,7 +34,7 @@ import { Task } from "@/lib/repositories/task.repository"
 
 export function WorkManagementShell() {
   const [activeTab, setActiveTab] = useState("overview")
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [tasks, setTasks] = useLocalCache<Task[]>("soms_cached_tasks", [])
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   
@@ -48,7 +50,7 @@ export function WorkManagementShell() {
   }, [activeOrganizationId])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     loadTasks()
   }, [activeOrganizationId, loadTasks])
 
